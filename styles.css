@@ -9,6 +9,10 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
     color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
 .top-header {
@@ -96,6 +100,28 @@ body {
     margin-top: 0.2rem;
     font-size: 0.9rem;
     color: #666;
+}
+
+.button {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #ff4444;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none;
+}
+
+.button:hover {
+    background-color: #cc3333;
+}
+
+.button-container {
+    text-align: center;
 }
 
 .main-container {
