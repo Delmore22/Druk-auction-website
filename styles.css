@@ -7,12 +7,16 @@
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
-    color: #333;
+    color: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    background-color: #000; /* fallback for older browsers */
+    background-image: url('images/car-homepage.png');
+    background-size: aut;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .top-header {
@@ -122,6 +126,11 @@ body {
 
 .button-container {
     text-align: center;
+}
+
+.button-container h1 {
+    font-size: 4rem;
+    margin-bottom: 8rem; /* add space below heading */
 }
 
 .main-container {
