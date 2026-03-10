@@ -540,14 +540,14 @@ body {
     border-bottom: none;
 }
 
-.auction-icon {
+.auction-photo {
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
+    background-color: var(--card-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     flex-shrink: 0;
 }
 
@@ -803,4 +803,190 @@ body {
     text-align: center;
     color: var(--tertiary-text);
     font-size: 0.9rem;
+}
+
+/* ========== VIEW TOGGLE & PAGINATION ========== */
+.view-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.view-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-color);
+    transition: all 0.3s;
+}
+
+.view-btn:hover {
+    background: var(--hover-bg);
+}
+
+.view-btn.active {
+    background: var(--accent-color);
+    color: var(--accent-text);
+    border-color: var(--accent-color);
+}
+
+/* ========== AUCTIONS CONTAINER ========== */
+.auctions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-height: 400px;
+}
+
+.auctions-container.tile-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.auctions-container.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.auctions-container.list-view .auction-item {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    gap: 1rem;
+    transition: background 0.3s;
+    background: var(--header-bg);
+}
+
+.auctions-container.list-view .auction-item:last-child {
+    border-bottom: none;
+}
+
+/* ========== AUCTION ITEM - TILE VIEW ========== */
+.tile-view .auction-item {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 220px;
+    padding: 1.5rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: var(--header-bg);
+    transition: all 0.3s;
+    text-decoration: none;
+    color: inherit;
+    gap: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.tile-view .auction-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px var(--shadow);
+    border-color: var(--border-color);
+}
+
+.tile-view .auction-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: var(--auction-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
+}
+
+.tile-view .auction-item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 22%, rgba(0, 0, 0, 0.16) 78%);
+    z-index: 1;
+}
+
+.tile-view .auction-photo {
+    display: none;
+}
+
+.tile-view .auction-details {
+    flex: 1;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+.tile-view .auction-details h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.tile-view .auction-details p {
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+.tile-view .auction-time {
+    text-align: left;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.28);
+    color: #ffd166;
+    position: relative;
+    z-index: 2;
+}
+
+.list-view .auction-photo {
+    width: 100px;
+    height: 72px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+/* ========== PAGINATION CONTROLS ========== */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.pagination-btn {
+    background: var(--accent-color);
+    color: var(--accent-text);
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-info {
+    font-size: 0.9rem;
+    color: var(--tertiary-text);
+    min-width: 80px;
+    text-align: center;
 }

@@ -105,79 +105,91 @@
                             <span class="live-badge">🔴 LIVE</span>
                             Current Auctions
                         </h3>
-                        <a href="#" class="view-all-link">View All</a>
+                        <div class="view-toggle">
+                            <button class="view-btn tile-btn active" onclick="switchView('tile')" title="Tile View">⊞</button>
+                            <button class="view-btn list-btn" onclick="switchView('list')" title="List View">≡</button>
+                        </div>
                     </div>
                     
-                    <a class="auction-item" href="car-details.html" target="_blank">
-                        <div class="auction-icon" style="background: rgba(218,165,32,0.1); color: #DAA520;">🏎️</div>
+                    <div id="auctionsContainer" class="auctions-container tile-view">
+                    <a class="auction-item" data-car-name="1967-ford-mustang-fastback" href="car-details.html" target="_blank">
+                        <div class="auction-photo" aria-hidden="true"></div>
                         <div class="auction-details">
-                            <h4>1967 Shelby GT500 Eleanor</h4>
-                            <p>428 V8 • 47,000 miles • Pristine</p>
+                            <h4>1967 Ford Mustang Fastback</h4>
+                            <p>289 V8 • 4-Speed • Restored</p>
                         </div>
                         <div class="auction-time">02:14:33</div>
                     </a>
 
-                    <div class="auction-item">
-                        <div class="auction-icon" style="background: rgba(34,197,94,0.1); color: #22c55e;">🚗</div>
+                    <div class="auction-item" data-car-name="1957-chevrolet-Bel-Air">
+                        <div class="auction-photo" aria-hidden="true"></div>
                         <div class="auction-details">
-                            <h4>1963 Corvette Split Window</h4>
-                            <p>327 V8 • Numbers Matching</p>
+                            <h4>1957 Chevrolet Bel Air</h4>
+                            <p>283 V8 • Fuel Injection • Two-Tone</p>
                         </div>
                         <div class="auction-time">01:42:18</div>
                     </div>
 
-                    <div class="auction-item">
-                        <div class="auction-icon" style="background: rgba(239,68,68,0.1); color: #ef4444;">🏁</div>
+                    <div class="auction-item" data-car-name="1955-chevrolet-nomad">
+                        <div class="auction-photo" aria-hidden="true"></div>
                         <div class="auction-details">
-                            <h4>1970 Plymouth Hemi Cuda</h4>
-                            <p>426 Hemi • 4-Speed • Tor Red</p>
+                            <h4>1955 Chevrolet Nomad</h4>
+                            <p>265 V8 • Wagon • Frame-Off Build</p>
                         </div>
                         <div class="auction-time">03:08:45</div>
                     </div>
 
-                    <div class="auction-item">
-                        <div class="auction-icon" style="background: rgba(59,130,246,0.1); color: #3b82f6;">🚙</div>
+                    <div class="auction-item" data-car-name="1958-chevrolet--impala">
+                        <div class="auction-photo" aria-hidden="true"></div>
                         <div class="auction-details">
-                            <h4>1969 Dodge Charger R/T</h4>
-                            <p>440 Magnum • Factory A/C</p>
+                            <h4>1958 Chevrolet Impala</h4>
+                            <p>348 V8 • Tri-Power • Hardtop</p>
                         </div>
                         <div class="auction-time">00:58:22</div>
                     </div>
 
-                    <div class="auction-item">
-                        <div class="auction-icon" style="background: rgba(168,85,247,0.1); color: #a855f7;">🏎️</div>
+                    <div class="auction-item" data-car-name="1959-cadillac-series-62">
+                        <div class="auction-photo" aria-hidden="true"></div>
                         <div class="auction-details">
-                            <h4>1971 Ford Mustang Boss 351</h4>
-                            <p>Boss 351 V8 • Bright Yellow</p>
+                            <h4>1959 Cadillac Series 62</h4>
+                            <p>390 V8 • Tailfins • Convertible</p>
                         </div>
                         <div class="auction-time">04:33:12</div>
                     </div>
 
-                    <div class="auction-item">
-                        <div class="auction-icon" style="background: rgba(218,165,32,0.1); color: #DAA520;">🚗</div>
+                    <div class="auction-item" data-car-name="1960-prosche-356b-cabriolet">
+                        <div class="auction-photo" aria-hidden="true"></div>
                         <div class="auction-details">
-                            <h4>1955 Chevrolet Bel Air</h4>
-                            <p>327 V8 • Restored • Two-Tone</p>
+                            <h4>1960 Prosche 356B Cabriolet</h4>
+                            <p>1600 Super • 4-Speed • Open Top</p>
                         </div>
                         <div class="auction-time">05:22:45</div>
                     </div>
 
-                    <div class="auction-item">
-                        <div class="auction-icon" style="background: rgba(34,197,94,0.1); color: #22c55e;">🏁</div>
+                    <div class="auction-item" data-car-name="1969-jaguar-e-type">
+                        <div class="auction-photo" aria-hidden="true"></div>
                         <div class="auction-details">
-                            <h4>1970 Chevrolet Chevelle SS</h4>
-                            <p>454 LS6 • 4-Speed • Cranberry Red</p>
+                            <h4>1969 Jaguar E-Type</h4>
+                            <p>4.2L Inline-6 • Series 2 • Coupe</p>
                         </div>
                         <div class="auction-time">02:55:18</div>
                     </div>
 
-                    <div class="auction-item">
-                        <div class="auction-icon" style="background: rgba(239,68,68,0.1); color: #ef4444;">🚙</div>
+                    <div class="auction-item" data-car-name="1969-mercury-cougar">
+                        <div class="auction-photo" aria-hidden="true"></div>
                         <div class="auction-details">
-                            <h4>1969 Pontiac GTO Judge</h4>
-                            <p>400 V8 • Ram Air IV • Original</p>
+                            <h4>1969 Mercury Cougar</h4>
+                            <p>351 Windsor • XR-7 Trim • Survivor</p>
                         </div>
                         <div class="auction-time">01:33:27</div>
+                    </div>
+                    </div>
+                    
+                    <!-- Pagination Controls -->
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" onclick="previousPage()" id="prevBtn">← Previous</button>
+                        <span id="pageInfo" class="page-info">Page 1</span>
+                        <button class="pagination-btn" onclick="nextPage()" id="nextBtn">Next →</button>
                     </div>
                 </div>
             </div>
@@ -485,7 +497,107 @@
         }
     `;
     document.head.appendChild(style);
+
+    // Initialize auction view system
+    initializeAuctionView();
 });
+
+// Auction View Management
+let currentView = 'tile';
+let currentPage = 1;
+const itemsPerPage = 8;
+let allAuctionItems = [];
+
+function initializeAuctionView() {
+    // Get all auction items
+    const container = document.getElementById('auctionsContainer');
+    allAuctionItems = Array.from(container.querySelectorAll('.auction-item'));
+
+    // Apply card backgrounds and list thumbnails from /cars-photos
+    loadAuctionPhotos();
+    
+    // Initialize with tile view
+    switchView('tile');
+}
+
+function loadAuctionPhotos() {
+    allAuctionItems.forEach((item) => {
+        const carName = item.getAttribute('data-car-name');
+        if (!carName) return;
+
+        const imagePath = `cars-photos/${carName}.png`;
+        const photoNode = item.querySelector('.auction-photo');
+
+        // Set both tile and list image sources via CSS variable.
+        item.style.setProperty('--auction-image', `url('${imagePath}')`);
+        if (photoNode) {
+            photoNode.style.backgroundImage = `url('${imagePath}')`;
+        }
+    });
+}
+
+function switchView(viewType) {
+    const container = document.getElementById('auctionsContainer');
+    const tileBtn = document.querySelector('.tile-btn');
+    const listBtn = document.querySelector('.list-btn');
+    
+    currentView = viewType;
+    currentPage = 1;
+    
+    // Update button states
+    if (viewType === 'tile') {
+        container.classList.remove('list-view');
+        container.classList.add('tile-view');
+        tileBtn.classList.add('active');
+        listBtn.classList.remove('active');
+    } else {
+        container.classList.remove('tile-view');
+        container.classList.add('list-view');
+        listBtn.classList.add('active');
+        tileBtn.classList.remove('active');
+    }
+    
+    // Update pagination and display
+    updatePagination();
+}
+
+function updatePagination() {
+    const container = document.getElementById('auctionsContainer');
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const totalPages = Math.ceil(allAuctionItems.length / itemsPerPage);
+    
+    // Show/hide items based on current page
+    allAuctionItems.forEach((item, idx) => {
+        if (idx >= startIdx && idx < endIdx) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    // Update page info
+    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+    
+    // Enable/disable pagination buttons
+    document.getElementById('prevBtn').disabled = currentPage === 1;
+    document.getElementById('nextBtn').disabled = currentPage === totalPages;
+}
+
+function nextPage() {
+    const totalPages = Math.ceil(allAuctionItems.length / itemsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+    }
+}
+
+function previousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+    }
+}
     </script>
 </body>
 </html>
