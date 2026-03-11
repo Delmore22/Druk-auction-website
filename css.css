@@ -7,6 +7,7 @@
 
 /* ========== THEME VARIABLES ========== */
 :root {
+    --top-header-height: 75px;
     --bg-color: #f5f5f5;
     --text-color: #333;
     --header-bg: white;
@@ -32,6 +33,7 @@
     --welcome-bg-end: #1e40af;
     --live-badge-start: #ff0000;
     --live-badge-end: #ff4444;
+    --bg-texture-overlay: rgba(255, 255, 255, 0.8);
 }
 
 .dark-theme {
@@ -59,12 +61,26 @@
     --welcome-bg-end: #1e293b;
     --live-badge-start: #ff0000;
     --live-badge-end: #ff4444;
+    --bg-texture-overlay: rgba(18, 18, 18, 0.6);
 }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--bg-color);
+    background-color: var(--bg-color);
+    background-image:
+        linear-gradient(var(--bg-texture-overlay), var(--bg-texture-overlay)),
+        url('images/bg-texture-dark-lg.jpg');
+    background-size: auto, cover;
+    background-position: 0 0, center;
+    background-repeat: no-repeat, no-repeat;
+    background-attachment: scroll;
     color: var(--text-color);
+}
+
+@media print {
+    body {
+        background-image: none;
+    }
 }
 
 /* ========== TOP HEADER ========== */
@@ -77,7 +93,7 @@ body {
     box-shadow: 0 2px 4px var(--shadow);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 120;
 }
 
 .logo-section {
@@ -335,8 +351,8 @@ body {
     justify-content: center;
     align-items: center;
     position: sticky;
-    top: 75px;
-    z-index: 99;
+    top: var(--top-header-height);
+    z-index: 110;
 }
 
 /* ========== KEY STATISTICS ========== */
@@ -378,9 +394,6 @@ body {
     font-size: 2rem;
     color: var(--text-color);
     margin-bottom: 0.3rem;
-}
-
-.stat-info p {
 }
 
 /* new sub-buttons styles */

@@ -364,6 +364,13 @@
         let lastScrollTop = 0;
         const mainContent = document.getElementById('mainContent');
         const stickyHeader = document.getElementById('stickyHeader');
+        const topHeader = document.querySelector('.top-header');
+
+        function updateStickyOffsets() {
+            if (!topHeader) return;
+            const headerHeight = Math.ceil(topHeader.getBoundingClientRect().height);
+            document.documentElement.style.setProperty('--top-header-height', `${headerHeight}px`);
+        }
 
         // Scroll detection for hiding/showing header
         mainContent.addEventListener('scroll', function() {
@@ -382,6 +389,8 @@
 
         // Initialize as visible
         stickyHeader.classList.add('visible');
+        updateStickyOffsets();
+        window.addEventListener('resize', updateStickyOffsets);
 
         // Theme toggle
         const themeToggle = document.getElementById('theme-toggle');
@@ -463,6 +472,7 @@
         });
 
         document.addEventListener('DOMContentLoaded', function() {
+    updateStickyOffsets();
     // Find the banner and the main content container (fallbacks included)
     setTimeout(function() {
         var banner = document.querySelector('.welcome-banner');
