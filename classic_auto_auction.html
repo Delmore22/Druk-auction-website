@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClassicBid - Dashboard</title>
     <link rel="stylesheet" href="css.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
-<body>
+<body class="dark-theme">
     <!-- Top Header -->
     <div class="top-header">
         <div class="logo-section">
@@ -34,14 +35,28 @@
 
     <!-- Additional Section Below Top Header -->
     <div class="below-header-section">
-        <!-- content can be added here -->
-        <!-- Sub-header buttons (replaces previous key statistics) -->
-        <div class="sub-buttons">
-            <button class="thin-btn"><span class="btn-icon">🎯</span>24 Matching Auctions</button>
-            <button class="thin-btn"><span class="btn-icon">✅</span>12 Active Bids</button>
-            <button class="thin-btn"><span class="btn-icon">👁️</span>8 Watchlist Items</button>
-            <button class="thin-btn"><span class="btn-icon">🔴</span>156 Live Auctions</button>
-            <button class="thin-btn"><span class="btn-icon">⏰</span>3 Ending Soon</button>
+        <div class="below-header-inner">
+            <!-- Sub-header buttons (replaces previous key statistics) -->
+            <div class="sub-buttons">
+                <button class="thin-btn"><span class="btn-icon"><i class="fa-solid fa-tag" aria-hidden="true"></i></span>Offers</button>
+                <button class="thin-btn"><span class="btn-icon"><i class="fa-solid fa-cart-arrow-down" aria-hidden="true"></i></span>Purchased</button>
+                <button class="thin-btn"><span class="btn-icon"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></span>Watch List</button>
+                <button class="thin-btn"><span class="btn-icon"><i class="fa-solid fa-dollar-sign" aria-hidden="true"></i></span>Sold</button>
+            </div>
+
+            <div class="below-header-search">
+                <form id="auctionSearchForm" class="search-form" role="search" aria-label="Search current auctions">
+                    <label for="auctionSearch" class="sr-only">Search auctions</label>
+                    <input
+                        type="search"
+                        id="auctionSearch"
+                        class="auctions-search"
+                        placeholder="Search by model, make, or spec"
+                        aria-label="Search current auctions"
+                    >
+                    <button type="submit" class="search-btn" aria-label="Run auction search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -183,6 +198,10 @@
                         </div>
                         <div class="auction-time">01:33:27</div>
                     </div>
+                    </div>
+
+                    <div id="searchEmptyState" class="search-empty-state" hidden>
+                        No auctions match your search.
                     </div>
                     
                     <!-- Pagination Controls -->
@@ -394,6 +413,7 @@
 
         // Theme toggle
         const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
         themeToggle.addEventListener('click', function() {
             document.body.classList.toggle('dark-theme');
             themeToggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
@@ -517,17 +537,45 @@ let currentView = 'tile';
 let currentPage = 1;
 const itemsPerPage = 8;
 let allAuctionItems = [];
+let filteredAuctionItems = [];
 
 function initializeAuctionView() {
     // Get all auction items
     const container = document.getElementById('auctionsContainer');
     allAuctionItems = Array.from(container.querySelectorAll('.auction-item'));
+    filteredAuctionItems = [...allAuctionItems];
 
     // Apply card backgrounds and list thumbnails from /cars-photos
     loadAuctionPhotos();
+
+    initializeAuctionSearch();
     
     // Initialize with tile view
     switchView('tile');
+}
+
+function initializeAuctionSearch() {
+    const searchForm = document.getElementById('auctionSearchForm');
+    const searchInput = document.getElementById('auctionSearch');
+    if (!searchForm || !searchInput) return;
+
+    searchForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const query = searchInput.value.trim().toLowerCase();
+        applyAuctionSearch(query);
+    });
+}
+
+function applyAuctionSearch(query) {
+    filteredAuctionItems = allAuctionItems.filter(item => {
+        const name = item.querySelector('h4')?.textContent.toLowerCase() || '';
+        const details = item.querySelector('p')?.textContent.toLowerCase() || '';
+        const slug = (item.getAttribute('data-car-name') || '').toLowerCase();
+        return name.includes(query) || details.includes(query) || slug.includes(query);
+    });
+
+    currentPage = 1;
+    updatePagination();
 }
 
 function loadAuctionPhotos() {
@@ -572,30 +620,42 @@ function switchView(viewType) {
 }
 
 function updatePagination() {
-    const container = document.getElementById('auctionsContainer');
     const startIdx = (currentPage - 1) * itemsPerPage;
     const endIdx = startIdx + itemsPerPage;
-    const totalPages = Math.ceil(allAuctionItems.length / itemsPerPage);
+    const visibleItems = filteredAuctionItems;
+    const totalPages = Math.max(1, Math.ceil(visibleItems.length / itemsPerPage));
+    const emptyState = document.getElementById('searchEmptyState');
     
-    // Show/hide items based on current page
+    // Show/hide items based on active search and page
     allAuctionItems.forEach((item, idx) => {
-        if (idx >= startIdx && idx < endIdx) {
+        if (!visibleItems.includes(item)) {
+            item.style.display = 'none';
+            return;
+        }
+
+        const filteredIndex = visibleItems.indexOf(item);
+        if (filteredIndex >= startIdx && filteredIndex < endIdx) {
             item.style.display = '';
         } else {
             item.style.display = 'none';
         }
     });
     
-    // Update page info
-    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+    if (visibleItems.length === 0) {
+        document.getElementById('pageInfo').textContent = 'No results';
+        if (emptyState) emptyState.hidden = false;
+    } else {
+        document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+        if (emptyState) emptyState.hidden = true;
+    }
     
     // Enable/disable pagination buttons
-    document.getElementById('prevBtn').disabled = currentPage === 1;
-    document.getElementById('nextBtn').disabled = currentPage === totalPages;
+    document.getElementById('prevBtn').disabled = currentPage === 1 || visibleItems.length === 0;
+    document.getElementById('nextBtn').disabled = currentPage === totalPages || visibleItems.length === 0;
 }
 
 function nextPage() {
-    const totalPages = Math.ceil(allAuctionItems.length / itemsPerPage);
+    const totalPages = Math.max(1, Math.ceil(filteredAuctionItems.length / itemsPerPage));
     if (currentPage < totalPages) {
         currentPage++;
         updatePagination();
