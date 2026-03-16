@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car Detail</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Car Details - Druk Classic Bid</title>
     <link rel="stylesheet" href="css.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
-<body>
+<body class="dark-theme car-details-page">
     <!-- Top Header -->
     <div class="top-header">
         <div class="logo-section">
-            <div class="logo-icon">🏎️</div>
+            <div class="logo-icon"><img src="images/logo_icon.png" alt="Classic Bid Logo"></div>
             <div class="logo-text">
-                <h1>Druk ClassicBid Auctions</h1>
+                <h1>Druk Classic Bid Auctions</h1>
                 <p>Premium Classic Auto Marketplace</p>
             </div>
         </div>
         <div class="user-section">
+            <button id="theme-toggle" class="theme-toggle-btn">🌙</button>
             <div class="notification-icon">
                 🔔
                 <span class="notification-badge">4</span>
@@ -32,13 +33,75 @@
         </div>
     </div>
 
+    <!-- Additional Section Below Top Header -->
+    <div class="below-header-section">
+        <div class="below-header-inner">
+            <div class="sub-buttons">
+                <button class="thin-btn"><span class="btn-icon"><i class="fa-solid fa-tag" aria-hidden="true"></i></span>Offers</button>
+                <button class="thin-btn"><span class="btn-icon"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i></span>Purchased</button>
+                <button class="thin-btn"><span class="btn-icon"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></span>Watch List</button>
+                <button class="thin-btn"><span class="btn-icon"><i class="fa-solid fa-money-check-dollar" aria-hidden="true"></i></span>Sold</button>
+            </div>
+
+            <div class="below-header-search">
+                <form id="carDetailsSearchForm" class="search-form" role="search" aria-label="Search vehicle details">
+                    <label for="carDetailsSearch" class="sr-only">Search vehicle details</label>
+                    <input
+                        type="search"
+                        id="carDetailsSearch"
+                        class="auctions-search"
+                        placeholder="Search details, specs, or notes"
+                        aria-label="Search vehicle details"
+                    >
+                    <button type="button" id="carDetailsSearchTriggerBtn" class="search-btn" aria-label="Run search">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        <span id="carDetailsFilterBadge" class="active-filter-badge" hidden>0</span>
+                    </button>
+                </form>
+
+                <div id="carDetailsFiltersPanel" class="search-filters-panel" hidden>
+                    <h4>Search Filters</h4>
+
+                    <div class="filter-group">
+                        <p>Make</p>
+                        <label><input type="checkbox" data-filter-group="make" value="ford"> Ford</label>
+                        <label><input type="checkbox" data-filter-group="make" value="chevrolet"> Chevrolet</label>
+                        <label><input type="checkbox" data-filter-group="make" value="cadillac"> Cadillac</label>
+                        <label><input type="checkbox" data-filter-group="make" value="porsche"> Porsche</label>
+                        <label><input type="checkbox" data-filter-group="make" value="jaguar"> Jaguar</label>
+                        <label><input type="checkbox" data-filter-group="make" value="mercury"> Mercury</label>
+                    </div>
+
+                    <div class="filter-group">
+                        <p>Engine</p>
+                        <label><input type="checkbox" data-filter-group="engine" value="v8"> V8</label>
+                        <label><input type="checkbox" data-filter-group="engine" value="inline-6"> Inline-6</label>
+                    </div>
+
+                    <div class="filter-group">
+                        <p>Body Style</p>
+                        <label><input type="checkbox" data-filter-group="body" value="convertible"> Convertible</label>
+                        <label><input type="checkbox" data-filter-group="body" value="coupe"> Coupe</label>
+                        <label><input type="checkbox" data-filter-group="body" value="hardtop"> Hardtop</label>
+                        <label><input type="checkbox" data-filter-group="body" value="wagon"> Wagon</label>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button type="button" id="carDetailsApplySearchFiltersBtn" class="filter-btn apply">Apply Filters</button>
+                        <button type="button" id="carDetailsClearSearchFiltersBtn" class="filter-btn clear">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content Area -->
     <main class="main-container">
         <!-- Left Sidebar -->
         <aside class="left-sidebar">
             <div class="sidebar-header">
-                <h3>Sidebar Title</h3>
-                <button class="collapse-btn"><i class="fas fa-angle-left"></i></button>
+                <h3 class="sidebar-title">Navigation</h3>
+                <button class="collapse-btn" onclick="toggleLeftSidebar()"><i class="fas fa-angle-left"></i></button>
             </div>
             <ul class="nav-list">
                 <li><a href="#">Dashboard</a></li>
@@ -51,11 +114,12 @@
         <!-- Main Content -->
         <div class="main-content">
             <section class="car-detail">
-                <h2>Car Detail</h2>
+                <h2>Vehicle Details</h2>
                 <div class="car-info">
-                    <img src="path/to/car-image.jpg" alt="Car Image">
+                    <img src="cars-photos/1967-ford-mustang-fastback.png" alt="1967 Ford Mustang Fastback">
                     <div class="car-description">
-                        <h3>Make: Ford</h3>
+                        <h3>1967 Ford Mustang Fastback</h3>
+                        <p>Make: Ford</p>
                         <p>Model: Mustang GT</p>
                         <p>Year: 1967</p>
                         <p>Mileage: 50,000 miles</p>
@@ -75,20 +139,136 @@
 
         <!-- Right Sidebar -->
         <aside class="right-sidebar">
-            <h3>Quick Actions</h3>
+            <div class="sidebar-header">
+                <button class="collapse-btn" onclick="toggleRightSidebar()"><i class="fas fa-angle-right"></i></button>
+                <h3 class="sidebar-title">Quick Actions</h3>
+            </div>
+            
+            <div class="collapsed-icons">
+                <div class="collapsed-icon"><i class="fas fa-envelope"></i></div>
+                <div class="collapsed-icon"><i class="fas fa-share-alt"></i></div>
+                <div class="collapsed-icon"><i class="fas fa-star"></i></div>
+            </div>
+            
+            <div class="right-sidebar-content">
             <ul class="quick-actions">
                 <li><a href="#"><i class="fas fa-envelope"></i> Contact Seller</a></li>
                 <li><a href="#"><i class="fas fa-share-alt"></i> Share on Social Media</a></li>
                 <li><a href="#"><i class="fas fa-star"></i> Add to Watchlist</a></li>
             </ul>
+            </div>
         </aside>
     </main>
 
     <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; 2023 Auction House. All rights reserved.</p>
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Druk ClassicBid Auctions</h3>
+                <p>Your premier destination for classic car auctions and marketplace.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#">Dashboard</a></li>
+                    <li><a href="#">Auction Houses</a></li>
+                    <li><a href="#">My Vehicles</a></li>
+                    <li><a href="#">Watchlist</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Info</h3>
+                <p>Email: info@drukclassicbid.com</p>
+                <p>Phone: (555) 123-4567</p>
+                <p>Address: 123 Classic Car Lane, Auto City, AC 12345</p>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-links">
+                    <a href="#" class="social-icon">📘 Facebook</a>
+                    <a href="#" class="social-icon">🐦 Twitter</a>
+                    <a href="#" class="social-icon">📷 Instagram</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Druk ClassicBid Auctions. All rights reserved.</p>
+        </div>
     </footer>
 
-    <script src="scripts.js"></script>
+    <script>
+        (function () {
+            function syncStickyOffset() {
+                var header = document.querySelector('.top-header');
+                if (!header) {
+                    return;
+                }
+
+                document.documentElement.style.setProperty('--top-header-height', header.offsetHeight + 'px');
+            }
+
+            window.addEventListener('load', syncStickyOffset);
+            window.addEventListener('resize', syncStickyOffset);
+        })();
+
+        function toggleLeftSidebar() {
+            var sidebar = document.querySelector('.left-sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('collapsed');
+            }
+        }
+
+        function toggleRightSidebar() {
+            var sidebar = document.querySelector('.right-sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('collapsed');
+            }
+        }
+
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
+            themeToggle.addEventListener('click', function () {
+                document.body.classList.toggle('dark-theme');
+                themeToggle.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
+            });
+        }
+
+        // Search filter functionality
+        const carDetailsSearchTriggerBtn = document.getElementById('carDetailsSearchTriggerBtn');
+        const carDetailsFiltersPanel = document.getElementById('carDetailsFiltersPanel');
+        const carDetailsFilterBadge = document.getElementById('carDetailsFilterBadge');
+        const carDetailsApplySearchFiltersBtn = document.getElementById('carDetailsApplySearchFiltersBtn');
+        const carDetailsClearSearchFiltersBtn = document.getElementById('carDetailsClearSearchFiltersBtn');
+
+        if (carDetailsSearchTriggerBtn) {
+            carDetailsSearchTriggerBtn.addEventListener('click', function () {
+                carDetailsFiltersPanel.hidden = !carDetailsFiltersPanel.hidden;
+            });
+        }
+
+        if (carDetailsApplySearchFiltersBtn) {
+            carDetailsApplySearchFiltersBtn.addEventListener('click', function () {
+                var checkboxes = carDetailsFiltersPanel.querySelectorAll('input[type="checkbox"]:checked');
+                carDetailsFilterBadge.textContent = checkboxes.length;
+                carDetailsFilterBadge.hidden = checkboxes.length === 0;
+                carDetailsFiltersPanel.hidden = true;
+            });
+        }
+
+        if (carDetailsClearSearchFiltersBtn) {
+            carDetailsClearSearchFiltersBtn.addEventListener('click', function () {
+                var checkboxes = carDetailsFiltersPanel.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(function (checkbox) {
+                    checkbox.checked = false;
+                });
+                carDetailsFilterBadge.textContent = '0';
+                carDetailsFilterBadge.hidden = true;
+                carDetailsFiltersPanel.hidden = true;
+            });
+        }
+    </script>
 </body>
 </html>
