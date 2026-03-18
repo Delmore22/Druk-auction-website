@@ -66,8 +66,59 @@
             var applyBtn = document.getElementById('applySearchFiltersBtn');
             var clearBtn = document.getElementById('clearSearchFiltersBtn');
             var searchWrap = document.querySelector('.below-header-search');
+            var filterInputs = Array.prototype.slice.call(document.querySelectorAll('#searchFiltersPanel input[type="checkbox"]'));
 
             if (triggerBtn && filtersPanel) {
+                function syncSearchUiState() {
+                    if (typeof window.setAuctionSearchUiState !== 'function') return;
+
+                    var savedFilters = {
+                        make: [],
+                        engine: [],
+                        body: []
+                    };
+
+                    filterInputs.forEach(function (input) {
+                        if (!input.checked) return;
+                        if (savedFilters[input.dataset.filterGroup]) {
+                            savedFilters[input.dataset.filterGroup].push(input.value);
+                        }
+                    });
+
+                    window.setAuctionSearchUiState({
+                        query: searchInput ? searchInput.value : '',
+                        filters: savedFilters
+                    });
+                }
+
+                function updateFilterBadge() {
+                    if (!filterBadge) return;
+
+                    var checkedCount = filtersPanel.querySelectorAll('input[type="checkbox"]:checked').length;
+                    filterBadge.textContent = String(checkedCount);
+                    filterBadge.hidden = checkedCount === 0;
+                }
+
+                function restoreSearchUiState() {
+                    if (typeof window.getAuctionSearchUiState !== 'function') {
+                        updateFilterBadge();
+                        return;
+                    }
+
+                    var savedState = window.getAuctionSearchUiState();
+
+                    if (searchInput) {
+                        searchInput.value = savedState.query || '';
+                    }
+
+                    filterInputs.forEach(function (input) {
+                        var selectedValues = savedState.filters[input.dataset.filterGroup] || [];
+                        input.checked = selectedValues.indexOf(input.value) !== -1;
+                    });
+
+                    updateFilterBadge();
+                }
+
                 function openPanel() {
                     filtersPanel.hidden = false;
                 }
@@ -79,6 +130,7 @@
                 if (searchInput) {
                     searchInput.addEventListener('focus', openPanel);
                     searchInput.addEventListener('click', openPanel);
+                    searchInput.addEventListener('input', syncSearchUiState);
                 }
 
                 triggerBtn.addEventListener('click', function () {
@@ -94,11 +146,8 @@
 
                 if (applyBtn) {
                     applyBtn.addEventListener('click', function () {
-                        var checked = filtersPanel.querySelectorAll('input[type="checkbox"]:checked');
-                        if (filterBadge) {
-                            filterBadge.textContent = String(checked.length);
-                            filterBadge.hidden = checked.length === 0;
-                        }
+                        updateFilterBadge();
+                        syncSearchUiState();
                         closePanel();
                     });
                 }
@@ -108,13 +157,18 @@
                         filtersPanel.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
                             cb.checked = false;
                         });
-                        if (filterBadge) {
-                            filterBadge.textContent = '0';
-                            filterBadge.hidden = true;
-                        }
+                        updateFilterBadge();
+                        syncSearchUiState();
                         closePanel();
                     });
                 }
+
+                filterInputs.forEach(function (input) {
+                    input.addEventListener('change', function () {
+                        updateFilterBadge();
+                        syncSearchUiState();
+                    });
+                });
 
                 if (searchWrap) {
                     document.addEventListener('click', function (event) {
@@ -123,6 +177,8 @@
                         }
                     });
                 }
+
+                restoreSearchUiState();
             }
 
             // Load car details

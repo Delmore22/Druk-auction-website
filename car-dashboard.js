@@ -156,6 +156,29 @@ function initializeAuctionSearch() {
 
     if (!searchWrap || !searchForm || !searchInput || !searchTriggerBtn || !activeFilterBadge || !panel || !applyFiltersBtn || !clearFiltersBtn) return;
 
+    const applySavedSearchUiState = savedState => {
+        searchInput.value = savedState.query || '';
+
+        filterInputs.forEach(input => {
+            const group = input.dataset.filterGroup;
+            const selectedValues = savedState.filters[group] || [];
+            input.checked = selectedValues.includes(input.value);
+        });
+    };
+
+    const persistSearchUiState = () => {
+        if (typeof window.setAuctionSearchUiState !== 'function') return;
+
+        window.setAuctionSearchUiState({
+            query: searchInput.value,
+            filters: {
+                make: Array.from(searchFilterState.make),
+                engine: Array.from(searchFilterState.engine),
+                body: Array.from(searchFilterState.body)
+            }
+        });
+    };
+
     const openPanel = () => {
         panel.hidden = false;
     };
@@ -180,6 +203,7 @@ function initializeAuctionSearch() {
         });
 
         updateFilterBadge();
+        persistSearchUiState();
     };
 
     const updateFilterBadge = () => {
@@ -198,8 +222,23 @@ function initializeAuctionSearch() {
         applyAuctionSearch(query, searchFilterState);
     };
 
+    const restoreSearchUiState = () => {
+        if (typeof window.getAuctionSearchUiState !== 'function') {
+            collectFilters();
+            applyAuctionSearch(searchInput.value.trim().toLowerCase(), searchFilterState);
+            return;
+        }
+
+        const savedState = window.getAuctionSearchUiState();
+        applySavedSearchUiState(savedState);
+
+        collectFilters();
+        applyAuctionSearch(searchInput.value.trim().toLowerCase(), searchFilterState);
+    };
+
     searchInput.addEventListener('focus', openPanel);
     searchInput.addEventListener('click', openPanel);
+    searchInput.addEventListener('input', persistSearchUiState);
 
     searchTriggerBtn.addEventListener('click', function() {
         if (panel.hidden) {
@@ -238,7 +277,16 @@ function initializeAuctionSearch() {
         }
     });
 
-    collectFilters();
+    window.addEventListener('storage', function(event) {
+        if (event.key !== 'auctionSearchUiState') return;
+        restoreSearchUiState();
+    });
+
+    window.addEventListener('focus', function() {
+        restoreSearchUiState();
+    });
+
+    restoreSearchUiState();
 }
 
 function applyAuctionSearch(query, filters = searchFilterState) {

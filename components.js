@@ -51,6 +51,46 @@
         }
     }
 
+    var SEARCH_UI_STATE_KEY = 'auctionSearchUiState';
+
+    function normalizeSearchUiState(rawState) {
+        var source = rawState || {};
+        var filters = source.filters || {};
+
+        function normalizeGroup(groupName) {
+            var values = filters[groupName];
+            return Array.isArray(values) ? values.filter(function (value) {
+                return typeof value === 'string' && value.length > 0;
+            }) : [];
+        }
+
+        return {
+            query: typeof source.query === 'string' ? source.query : '',
+            filters: {
+                make: normalizeGroup('make'),
+                engine: normalizeGroup('engine'),
+                body: normalizeGroup('body')
+            }
+        };
+    }
+
+    window.getAuctionSearchUiState = function () {
+        var raw = storageGet(SEARCH_UI_STATE_KEY);
+        if (!raw) {
+            return normalizeSearchUiState();
+        }
+
+        try {
+            return normalizeSearchUiState(JSON.parse(raw));
+        } catch (err) {
+            return normalizeSearchUiState();
+        }
+    };
+
+    window.setAuctionSearchUiState = function (state) {
+        storageSet(SEARCH_UI_STATE_KEY, JSON.stringify(normalizeSearchUiState(state)));
+    };
+
     function isUiDebugEnabled() {
         var params = new URLSearchParams(window.location.search);
         if (params.get('debugUI') === '1') return true;
