@@ -248,6 +248,24 @@
             var section = document.getElementById('carDetailSection');
             if (!section) return;
             var minBid = car.currentBid + 100;
+            var photoGalleryHtml = '';
+
+            if (car.id === '1967-ford-mustang-fastback') {
+                photoGalleryHtml =
+                    '<div class="car-photo-gallery">' +
+                        '<div class="car-photo-grid">' +
+                            '<img src="cars-photos/1967-ford-mustang-fastback-02.png" alt="1967 Ford Mustang Fastback photo 2" loading="lazy">' +
+                            '<img src="cars-photos/1967-ford-mustang-fastback-03.png" alt="1967 Ford Mustang Fastback photo 3" loading="lazy">' +
+                            '<img src="cars-photos/1967-ford-mustang-fastback-04.png" alt="1967 Ford Mustang Fastback photo 4" loading="lazy">' +
+                            '<img src="cars-photos/1967-ford-mustang-fastback-05.png" alt="1967 Ford Mustang Fastback photo 5" loading="lazy">' +
+                            '<img src="cars-photos/1967-ford-mustang-fastback-06.png" alt="1967 Ford Mustang Fastback photo 6" loading="lazy">' +
+                            '<img src="cars-photos/1967-ford-mustang-fastback-07.png" alt="1967 Ford Mustang Fastback photo 7" loading="lazy">' +
+                            '<img src="cars-photos/1967-ford-mustang-fastback-08.png" alt="1967 Ford Mustang Fastback photo 8" loading="lazy">' +
+                            '<img src="cars-photos/1967-ford-mustang-fastback-09.png" alt="1967 Ford Mustang Fastback photo 9" loading="lazy">' +
+                        '</div>' +
+                    '</div>';
+            }
+
             section.innerHTML =
                 '<h2>' + car.year + ' ' + car.make + ' ' + car.model + '</h2>' +
                 '<div class="car-info">' +
@@ -262,6 +280,7 @@
                         '<p class="car-description-text">' + car.description + '</p>' +
                     '</div>' +
                 '</div>' +
+                photoGalleryHtml +
                 '<div class="bid-section">' +
                     '<h3>Bid Now</h3>' +
                     '<p class="current-bid">Current Bid: $' + car.currentBid.toLocaleString() + '</p>' +

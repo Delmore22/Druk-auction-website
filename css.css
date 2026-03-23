@@ -1149,6 +1149,27 @@ body.car-details-page {
     font-weight: 600;
 }
 
+.car-details-page .car-photo-gallery {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.car-details-page .car-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: calc(0.65rem - 2px);
+}
+
+.car-details-page .car-photo-grid img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+}
+
 .car-details-page .site-footer {
     padding: 2rem 2rem 1rem;
 }
@@ -1242,6 +1263,10 @@ body.car-details-page {
 
     .car-details-page .bid-section form {
         grid-template-columns: 1fr;
+    }
+
+    .car-details-page .car-photo-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
