@@ -14,7 +14,7 @@ body {
     min-height: 100vh;
     background-color: #000; /* fallback for older browsers */
     background-image: url('images/car-homepage.png');
-    background-size: aut;
+    background-size: auto;
     background-position: center;
     background-repeat: no-repeat;
 }
