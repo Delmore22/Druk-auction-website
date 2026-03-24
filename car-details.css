@@ -77,6 +77,31 @@ body.car-details-page {
     border-top: 1px solid var(--border-color);
 }
 
+.car-details-page .bid-status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.75rem;
+}
+
+.car-details-page .bid-status-pill-sale {
+    background: #c62828;
+}
+
+.car-details-page .bid-status-pill-sold {
+    background: #2e7d32;
+}
+
+.car-details-page .bid-status-pill-reserve {
+    background: #1565c0;
+}
+
 .car-details-page .bid-section form {
     display: grid;
     grid-template-columns: 1fr auto;

@@ -100,7 +100,7 @@ let searchFilterState = {
 function normalizeStatus(rawStatus) {
     const normalized = String(rawStatus || 'Sale').trim().toLowerCase();
     if (normalized === 'sold') return { label: 'Sold', className: 'status-sold' };
-    if (normalized === 'appending') return { label: 'Appending', className: 'status-appending' };
+    if (normalized === 'appending' || normalized === 'reserve') return { label: 'Reserve', className: 'status-appending' };
     return { label: 'Sale', className: 'status-sale' };
 }
 
@@ -114,9 +114,27 @@ function applyMarketplaceData(cars) {
 
         const priceEl = item.querySelector('.sale-price');
         const labelEl = item.querySelector('.sale-label');
+        const detailsEl = item.querySelector('.auction-details');
 
         if (priceEl && Number.isFinite(car.currentBid)) {
             priceEl.textContent = `$${car.currentBid.toLocaleString('en-US')}`;
+        }
+
+        if (detailsEl) {
+            let mileageEl = detailsEl.querySelector('.auction-mileage');
+            if (!mileageEl) {
+                mileageEl = document.createElement('p');
+                mileageEl.className = 'auction-mileage';
+                const descriptionEl = detailsEl.querySelector('p');
+                if (descriptionEl && descriptionEl.parentNode === detailsEl) {
+                    descriptionEl.insertAdjacentElement('afterend', mileageEl);
+                } else {
+                    detailsEl.appendChild(mileageEl);
+                }
+            }
+
+            const mileageValue = typeof car.mileage === 'string' ? car.mileage : String(car.mileage || 'N/A');
+            mileageEl.textContent = `Miles: ${mileageValue}`;
         }
 
         if (labelEl) {

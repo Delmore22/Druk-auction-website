@@ -281,6 +281,45 @@ function showCarError(msg) {
     if (section) section.innerHTML = '<p class="car-detail-error">' + msg + '</p>';
 }
 
+function normalizeCarStatus(rawStatus) {
+    var normalized = String(rawStatus || 'Sale').trim().toLowerCase();
+    if (normalized === 'sold') return 'sold';
+    if (normalized === 'appending' || normalized === 'reserve') return 'appending';
+    return 'sale';
+}
+
+function buildBidSectionHtml(car, minBid) {
+    var status = normalizeCarStatus(car.status);
+
+    if (status === 'sold') {
+        return (
+            '<div class="bid-section bid-section-sold">' +
+                '<h3 class="bid-status-pill bid-status-pill-sold">Sold</h3>' +
+                '<p class="current-bid">Sold At: $' + car.currentBid.toLocaleString() + '</p>' +
+            '</div>'
+        );
+    }
+
+    var sectionTitle = status === 'appending' ? 'Make Offer' : 'Bid Now';
+    var buttonLabel = status === 'appending' ? 'Submit Offer' : 'Place Bid';
+    var amountLabel = status === 'appending' ? 'Your Offer ($):' : 'Your Bid ($):';
+    var statusClass = status === 'appending' ? 'bid-section-reserve' : 'bid-section-sale';
+    var statusPillClass = status === 'appending' ? 'bid-status-pill-reserve' : 'bid-status-pill-sale';
+
+    return (
+        '<div class="bid-section ' + statusClass + '">' +
+            '<h3 class="bid-status-pill ' + statusPillClass + '">' + sectionTitle + '</h3>' +
+            '<p class="current-bid">Current Bid: $' + car.currentBid.toLocaleString() + '</p>' +
+            '<p class="auction-time-remaining"><i class="fas fa-clock"></i> Time Remaining: ' + car.timeRemaining + '</p>' +
+            '<form action="#" method="post">' +
+                '<label for="bid-amount">' + amountLabel + '</label>' +
+                '<input type="number" id="bid-amount" name="bid-amount" min="' + minBid + '" step="100" required>' +
+                '<button type="submit">' + buttonLabel + '</button>' +
+            '</form>' +
+        '</div>'
+    );
+}
+
 function renderCarDetail(car) {
     var section = document.getElementById('carDetailSection');
     if (!section) return;
@@ -318,14 +357,5 @@ function renderCarDetail(car) {
             '</div>' +
         '</div>' +
         photoGalleryHtml +
-        '<div class="bid-section">' +
-            '<h3>Bid Now</h3>' +
-            '<p class="current-bid">Current Bid: $' + car.currentBid.toLocaleString() + '</p>' +
-            '<p class="auction-time-remaining"><i class="fas fa-clock"></i> Time Remaining: ' + car.timeRemaining + '</p>' +
-            '<form action="#" method="post">' +
-                '<label for="bid-amount">Your Bid ($):</label>' +
-                '<input type="number" id="bid-amount" name="bid-amount" min="' + minBid + '" step="100" required>' +
-                '<button type="submit">Place Bid</button>' +
-            '</form>' +
-        '</div>';
+        buildBidSectionHtml(car, minBid);
 }

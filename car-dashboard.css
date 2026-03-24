@@ -207,6 +207,13 @@
     color: var(--tertiary-text);
 }
 
+.auction-details .auction-mileage {
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--secondary-text);
+}
+
 .sale-tag {
     display: flex;
     flex-direction: column;
@@ -456,6 +463,12 @@
     font-size: 0.78rem;
     line-height: 1.4;
     color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+.tile-view .auction-details .auction-mileage {
+    margin-top: 0.3rem;
+    color: #ffd166;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
 }
 

@@ -146,12 +146,52 @@
         if (item) item.classList.add('active');
     }
 
+    function initShrinkingHeader() {
+        var header = document.querySelector('.top-header');
+        if (!header) return;
+        header.addEventListener('transitionend', updateStickyOffsets);
+        // Keep sticky offsets in sync while header height animates.
+        if ('ResizeObserver' in window) {
+            var headerResizeObserver = new ResizeObserver(updateStickyOffsets);
+            headerResizeObserver.observe(header);
+        }
+
+        var ticking = false;
+
+        function applyState() {
+            var mainContent = document.querySelector('.main-content');
+            // Sum both — only one is ever non-zero at a time, covering all layout cases.
+            var scrollTop = (window.scrollY || 0) + (mainContent ? mainContent.scrollTop : 0);
+            var isShrunk = header.classList.contains('shrunk');
+            if (!isShrunk && scrollTop > 30) {
+                header.classList.add('shrunk');
+                updateStickyOffsets();
+            } else if (isShrunk && scrollTop < 2) {
+                header.classList.remove('shrunk');
+                updateStickyOffsets();
+            }
+            ticking = false;
+        }
+
+        function onScroll() {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(applyState);
+        }
+
+        // Listen on both — whichever is the real scroll container will fire.
+        window.addEventListener('scroll', onScroll, { passive: true });
+        var mainContent = document.querySelector('.main-content');
+        if (mainContent) mainContent.addEventListener('scroll', onScroll, { passive: true });
+    }
+
     function initComponents() {
         updateStickyOffsets();
         window.addEventListener('resize', updateStickyOffsets);
         initThemeToggle();
         initActiveNav();
         initSidebarState();
+        initShrinkingHeader();
         debugUiState('init');
     }
 

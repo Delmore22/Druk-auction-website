@@ -94,6 +94,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 120;
+    transition: padding 0.3s ease;
 }
 
 .logo-section {
@@ -109,6 +110,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: width 0.3s ease, height 0.3s ease;
 }
 
 .logo-icon img {
@@ -121,11 +123,28 @@ body {
 .logo-text h1 {
     font-size: 1.2rem;
     color: var(--text-color);
+    transition: font-size 0.3s ease;
 }
 
 .logo-text p {
     font-size: 0.8rem;
     color: var(--tertiary-text);
+    transition: opacity 0.3s ease, font-size 0.3s ease;
+}
+
+/* ===== Shrunk header (on scroll) ===== */
+.top-header.shrunk .logo-icon {
+    width: 82px;
+    height: 50px;
+}
+
+.top-header.shrunk .logo-text h1 {
+    font-size: 1rem;
+}
+
+.top-header.shrunk .logo-text p {
+    opacity: 0;
+    font-size: 0;
 }
 
 .user-section {
