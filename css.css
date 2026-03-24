@@ -240,7 +240,6 @@ body {
 .left-sidebar.collapsed {
     width: 60px;
     overflow: visible;
-    z-index: 130;
 }
 
 .sidebar-header {
@@ -676,7 +675,6 @@ body {
 .right-sidebar.collapsed {
     width: 60px;
     overflow: visible;
-    z-index: 130;
 }
 
 .right-sidebar-content {
