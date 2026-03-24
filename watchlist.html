@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassicBid - Watchlist</title>
+    <link rel="stylesheet" href="css.css">
+    <link rel="stylesheet" href="secondary-pages.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="dark-theme watchlist-page" data-page="watchlist">
+    <div id="header-placeholder"></div>
+
+    <div id="below-header-placeholder"></div>
+
+    <div class="main-container">
+        <div id="left-sidebar-placeholder"></div>
+
+        <main class="main-content">
+            <div class="section-shell">
+                <section class="page-hero">
+                    <div class="page-eyebrow"><i class="fas fa-star"></i> Saved Opportunities</div>
+                    <h1>Watchlist</h1>
+                    <p>Monitor the vehicles you are following most closely, spot price movement quickly, and keep your next bids organized before the next live event.</p>
+                    <div class="hero-actions">
+                        <a class="hero-btn primary" href="car-dashboard.html">Browse Auctions</a>
+                        <a class="hero-btn" href="#watchlist-items">Review Tracked Vehicles</a>
+                    </div>
+                </section>
+
+                <section class="summary-grid" aria-label="Watchlist summary">
+                    <article class="summary-card">
+                        <div class="summary-label">Tracked Lots</div>
+                        <div class="summary-value">17</div>
+                        <div class="summary-note">Across 5 upcoming sales</div>
+                    </article>
+                    <article class="summary-card">
+                        <div class="summary-label">Bid Alerts</div>
+                        <div class="summary-value">6</div>
+                        <div class="summary-note">Lots with movement in the last 24 hours</div>
+                    </article>
+                    <article class="summary-card">
+                        <div class="summary-label">High Match</div>
+                        <div class="summary-value">4</div>
+                        <div class="summary-note">Vehicles above your target score threshold</div>
+                    </article>
+                    <article class="summary-card">
+                        <div class="summary-label">Next Closing</div>
+                        <div class="summary-value">2h</div>
+                        <div class="summary-note">Until the first watched lot ends</div>
+                    </article>
+                </section>
+
+                <section class="section-grid">
+                    <div class="panel-card" id="watchlist-items">
+                        <div class="card-heading">
+                            <div>
+                                <h2>Tracked Vehicles</h2>
+                                <p>Vehicles with the strongest fit for your current buying plan.</p>
+                            </div>
+                            <a class="page-link" href="car-dashboard.html">See all auctions</a>
+                        </div>
+
+                        <div class="chip-row">
+                            <span class="chip">All</span>
+                            <span class="chip">Closing soon</span>
+                            <span class="chip">No reserve</span>
+                            <span class="chip">Price drops</span>
+                        </div>
+
+                        <div class="record-list">
+                            <article class="record-item">
+                                <div>
+                                    <strong>1970 Chevelle SS 454</strong>
+                                    <p>Strong condition report and verified drivetrain. Current bidding is still inside your target range.</p>
+                                </div>
+                                <div class="record-meta">
+                                    <span class="record-pill success">Hot</span>
+                                    <p>Current bid: $68,500</p>
+                                </div>
+                            </article>
+
+                            <article class="record-item">
+                                <div>
+                                    <strong>1968 Camaro SS</strong>
+                                    <p>Seller added underbody photos this morning and the lot now has three new bidder saves.</p>
+                                </div>
+                                <div class="record-meta">
+                                    <span class="record-pill">Active</span>
+                                    <p>Current bid: $54,000</p>
+                                </div>
+                            </article>
+
+                            <article class="record-item">
+                                <div>
+                                    <strong>1965 Shelby GT350</strong>
+                                    <p>High interest lot. You may want to set a cap now because the auction closes tonight.</p>
+                                </div>
+                                <div class="record-meta">
+                                    <span class="record-pill warning">Closing</span>
+                                    <p>Ends in 2 hours</p>
+                                </div>
+                            </article>
+
+                            <article class="record-item">
+                                <div>
+                                    <strong>1957 Chevrolet Bel Air Fuelie</strong>
+                                    <p>Reserve remains unmet, which keeps it in range if bidding stays flat through tomorrow.</p>
+                                </div>
+                                <div class="record-meta">
+                                    <span class="record-pill neutral">Watch</span>
+                                    <p>Reserve not met</p>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+
+                    <aside class="aside-card">
+                        <div class="card-heading">
+                            <div>
+                                <h3>Bid Strategy</h3>
+                                <p>Recommended next moves.</p>
+                            </div>
+                        </div>
+
+                        <ul class="action-list">
+                            <li>
+                                <strong>Set stronger alerts</strong>
+                                Turn on threshold alerts for the Shelby and Chevelle before tonight's close.
+                            </li>
+                            <li>
+                                <strong>Refresh comps</strong>
+                                Pull fresh sale comps on the Camaro because demand is moving faster than expected.
+                            </li>
+                            <li>
+                                <strong>Review reserves</strong>
+                                The Bel Air may be a buy if the seller softens on reserve in the next cycle.
+                            </li>
+                        </ul>
+                    </aside>
+                </section>
+
+                <section class="list-card">
+                    <div class="card-heading">
+                        <div>
+                            <h2>Market Signals</h2>
+                            <p>Quick read on the categories dominating your watchlist this week.</p>
+                        </div>
+                    </div>
+                    <div class="spotlight-grid">
+                        <article class="spotlight-card">
+                            <h3>Muscle Cars Leading</h3>
+                            <p>Four of your top six watched vehicles sit in the muscle segment, which is seeing the fastest closing pace.</p>
+                        </article>
+                        <article class="spotlight-card">
+                            <h3>Reserve Pressure</h3>
+                            <p>Two saved lots still have reserves above current market behavior, creating potential negotiation room after the auction.</p>
+                        </article>
+                        <article class="spotlight-card">
+                            <h3>Photo Updates Matter</h3>
+                            <p>Lots with newly added underside, engine, or documentation photos are converting bidder saves faster this month.</p>
+                        </article>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <aside class="right-sidebar" id="rightSidebar">
+            <div class="sidebar-header">
+                <button class="collapse-btn" onclick="toggleRightSidebar()">
+                    <span id="rightArrow">▶</span>
+                </button>
+                <span class="sidebar-title">Watchlist Tools</span>
+            </div>
+
+            <div class="collapsed-icons">
+                <a class="collapsed-icon" href="car-dashboard.html" title="Add Saved Lot">★</a>
+                <a class="collapsed-icon" href="#watchlist-items" title="Set Close Alert">⏰</a>
+                <a class="collapsed-icon" href="#watchlist-items" title="Adjust Price Caps">$</a>
+            </div>
+
+            <div class="right-sidebar-content">
+                <a class="quick-action" href="car-dashboard.html">
+                    <div class="action-icon">★</div>
+                    <div class="action-details">
+                        <h4>Add Saved Lot</h4>
+                        <p>Track a vehicle you want to revisit</p>
+                    </div>
+                </a>
+
+                <a class="quick-action" href="#watchlist-items">
+                    <div class="action-icon">⏰</div>
+                    <div class="action-details">
+                        <h4>Set Close Alert</h4>
+                        <p>Get reminded before bidding ends</p>
+                    </div>
+                </a>
+
+                <a class="quick-action" href="#watchlist-items">
+                    <div class="action-icon">$</div>
+                    <div class="action-details">
+                        <h4>Adjust Price Caps</h4>
+                        <p>Update your target bid thresholds</p>
+                    </div>
+                </a>
+            </div>
+        </aside>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="components.js"></script>
+</body>
+</html>
