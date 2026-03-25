@@ -288,34 +288,87 @@ function normalizeCarStatus(rawStatus) {
     return 'sale';
 }
 
-function buildBidSectionHtml(car, minBid) {
+function buildAuctionPanelHtml(car) {
     var status = normalizeCarStatus(car.status);
-
+    var statusLabel, statusClass;
     if (status === 'sold') {
-        return (
-            '<div class="bid-section bid-section-sold">' +
-                '<h3 class="bid-status-pill bid-status-pill-sold">Sold</h3>' +
-                '<p class="current-bid">Sold At: $' + car.currentBid.toLocaleString() + '</p>' +
-            '</div>'
-        );
+        statusLabel = 'Sold';
+        statusClass = 'ap-status-sold';
+    } else if (status === 'appending') {
+        statusLabel = 'Reserve Not Met';
+        statusClass = 'ap-status-reserve';
+    } else {
+        statusLabel = 'On Sale';
+        statusClass = 'ap-status-sale';
     }
 
-    var sectionTitle = status === 'appending' ? 'Make Offer' : 'Bid Now';
-    var buttonLabel = status === 'appending' ? 'Submit Offer' : 'Place Bid';
-    var amountLabel = status === 'appending' ? 'Your Offer ($):' : 'Your Bid ($):';
-    var statusClass = status === 'appending' ? 'bid-section-reserve' : 'bid-section-sale';
-    var statusPillClass = status === 'appending' ? 'bid-status-pill-reserve' : 'bid-status-pill-sale';
+    var actionsHtml;
+    if (status === 'sold') {
+        actionsHtml =
+            '<div class="ap-sold-notice">' +
+                '<i class="fas fa-check-circle"></i> Sold for $' + car.currentBid.toLocaleString() +
+            '</div>';
+    } else {
+        var bidBtns = '';
+        if (status === 'sale') {
+            var buyNow = car.buyNowPrice ? car.buyNowPrice : Math.round(car.currentBid * 1.1);
+            bidBtns += '<button type="button" class="ap-btn ap-btn-buynow">BUY NOW $' + buyNow.toLocaleString() + '</button>';
+        }
+        bidBtns +=
+            '<button type="button" class="ap-btn ap-btn-bid">BID $' + car.currentBid.toLocaleString() + '</button>' +
+            '<button type="button" class="ap-btn ap-btn-offer">MAKE OFFER</button>';
+        actionsHtml = bidBtns;
+    }
+
+    var footerHtml = status !== 'sold'
+        ? '<div class="ap-footer">' +
+              '<span class="ap-floor-note"><i class="fas fa-check-circle"></i> Starting Bid&nbsp;=&nbsp;Floor</span>' +
+              '<a href="#" class="ap-fees-link">View Fees</a>' +
+          '</div>'
+        : '';
+
+    var timeLeft = status === 'sold' ? '&mdash;' : 'Ends in ' + car.timeRemaining;
 
     return (
-        '<div class="bid-section ' + statusClass + '">' +
-            '<h3 class="bid-status-pill ' + statusPillClass + '">' + sectionTitle + '</h3>' +
-            '<p class="current-bid">Current Bid: $' + car.currentBid.toLocaleString() + '</p>' +
-            '<p class="auction-time-remaining"><i class="fas fa-clock"></i> Time Remaining: ' + car.timeRemaining + '</p>' +
-            '<form action="#" method="post">' +
-                '<label for="bid-amount">' + amountLabel + '</label>' +
-                '<input type="number" id="bid-amount" name="bid-amount" min="' + minBid + '" step="100" required>' +
-                '<button type="submit">' + buttonLabel + '</button>' +
-            '</form>' +
+        '<div class="auction-panel">' +
+            '<div class="ap-header">' +
+                '<span class="ap-sale-type">Timed Sale&nbsp;<i class="fas fa-info-circle ap-info-icon" title="Timed auction \u2014 highest valid bid wins when the timer expires"></i></span>' +
+            '</div>' +
+            '<div class="ap-info-grid">' +
+                '<span class="ap-label">Status</span>' +
+                '<span class="ap-value"><span class="ap-status-badge ' + statusClass + '">' + statusLabel + '</span></span>' +
+                '<span class="ap-label">Time Left</span>' +
+                '<span class="ap-value ap-time-value">' + timeLeft + '</span>' +
+                '<span class="ap-label">Current Bid</span>' +
+                '<span class="ap-value ap-current-bid">$' + car.currentBid.toLocaleString() + '</span>' +
+                '<span class="ap-label">Pickup</span>' +
+                '<span class="ap-value">' + (car.pickup || '&mdash;') + '</span>' +
+                '<span class="ap-label">Location</span>' +
+                '<span class="ap-value">' + (car.location || '&mdash;') + '</span>' +
+                '<span class="ap-label">Seller</span>' +
+                '<span class="ap-value ap-seller-name">' + (car.seller || '&mdash;') + '</span>' +
+            '</div>' +
+            '<div class="ap-actions">' +
+                actionsHtml +
+            '</div>' +
+            footerHtml +
+            '<div class="ap-zip-section">' +
+                '<span class="ap-zip-label">Estimate Transport Cost</span>' +
+                '<div class="ap-zip-row">' +
+                    '<input type="text" class="ap-zip-input" placeholder="ZIP code" maxlength="5" aria-label="ZIP code for transport estimate">' +
+                    '<button type="button" class="ap-zip-btn">GO</button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="ap-history-section">' +
+                '<h4 class="ap-history-title">Vehicle History</h4>' +
+                '<div class="ap-history-grid">' +
+                    '<div class="ap-history-col"><span class="ap-history-label">Owners</span><span class="ap-history-val">&mdash;</span></div>' +
+                    '<div class="ap-history-col"><span class="ap-history-label">AC&amp;INT</span><span class="ap-history-val">&mdash;</span></div>' +
+                    '<div class="ap-history-col"><span class="ap-history-label">Titles/Probs</span><span class="ap-history-val">&mdash;</span></div>' +
+                    '<div class="ap-history-col"><span class="ap-history-label">ODO</span><span class="ap-history-val">&mdash;</span></div>' +
+                    '<a href="#" class="ap-carfax-btn" target="_blank" rel="noopener noreferrer" aria-label="View CARFAX vehicle history report"><i class="fas fa-car"></i>&nbsp;CARFAX</a>' +
+                '</div>' +
+            '</div>' +
         '</div>'
     );
 }
@@ -323,7 +376,6 @@ function buildBidSectionHtml(car, minBid) {
 function renderCarDetail(car) {
     var section = document.getElementById('carDetailSection');
     if (!section) return;
-    var minBid = car.currentBid + 100;
     var photoGalleryHtml = '';
 
     if (car.id === '1967-ford-mustang-fastback') {
@@ -344,18 +396,24 @@ function renderCarDetail(car) {
 
     section.innerHTML =
         '<h2>' + car.year + ' ' + car.make + ' ' + car.model + '</h2>' +
-        '<div class="car-info">' +
-            '<img src="' + car.photo + '" alt="' + car.year + ' ' + car.make + ' ' + car.model + '">' +
-            '<div class="car-description">' +
-                '<h3>' + car.year + ' ' + car.make + ' ' + car.model + '</h3>' +
-                '<p><strong>Engine:</strong> ' + car.engine + '</p>' +
-                '<p><strong>Transmission:</strong> ' + car.transmission + '</p>' +
-                '<p><strong>Body Style:</strong> ' + car.bodyStyle + '</p>' +
-                '<p><strong>Mileage:</strong> ' + car.mileage + ' miles</p>' +
-                '<p><strong>Condition:</strong> ' + car.condition + '</p>' +
-                '<p class="car-description-text">' + car.description + '</p>' +
+        '<div class="car-detail-layout">' +
+            '<div class="car-detail-main">' +
+                '<div class="car-info">' +
+                    '<img src="' + car.photo + '" alt="' + car.year + ' ' + car.make + ' ' + car.model + '">' +
+                    '<div class="car-description">' +
+                        '<h3>' + car.year + ' ' + car.make + ' ' + car.model + '</h3>' +
+                        '<p><strong>Engine:</strong> ' + car.engine + '</p>' +
+                        '<p><strong>Transmission:</strong> ' + car.transmission + '</p>' +
+                        '<p><strong>Body Style:</strong> ' + car.bodyStyle + '</p>' +
+                        '<p><strong>Mileage:</strong> ' + car.mileage + ' miles</p>' +
+                        '<p><strong>Condition:</strong> ' + car.condition + '</p>' +
+                        '<p class="car-description-text">' + car.description + '</p>' +
+                    '</div>' +
+                '</div>' +
+                photoGalleryHtml +
             '</div>' +
-        '</div>' +
-        photoGalleryHtml +
-        buildBidSectionHtml(car, minBid);
+            '<div class="car-detail-panel">' +
+                buildAuctionPanelHtml(car) +
+            '</div>' +
+        '</div>';
 }
