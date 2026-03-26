@@ -34,6 +34,7 @@
     --live-badge-start: #ff0000;
     --live-badge-end: #ff4444;
     --bg-texture-overlay: rgba(255, 255, 255, 0.8);
+    --nav-icon-hover-color: #333;
 }
 
 .dark-theme {
@@ -62,6 +63,7 @@
     --live-badge-start: #ff0000;
     --live-badge-end: #ff4444;
     --bg-texture-overlay: rgba(18, 18, 18, 0.6);
+    --nav-icon-hover-color: #ffffff;
 }
 
 body {
@@ -170,6 +172,37 @@ body {
 .theme-toggle-btn:hover {
     background: var(--accent-color);
     color: var(--accent-text);
+}
+
+.theme-toggle-btn .fa-moon {
+    color: #d4af37;
+}
+
+.theme-toggle-btn:hover .fa-moon {
+    color: var(--accent-text);
+    animation: themeMoonShake 0.55s ease-in-out;
+}
+
+.theme-toggle-btn .fa-sun {
+    display: inline-block;
+    transition: transform 0.45s ease, filter 0.25s ease;
+    opacity: 0.9;
+    transform: scale(0.95) rotate(-22deg) rotateY(0deg);
+}
+
+.theme-toggle-btn:hover .fa-sun {
+    transform: scale(0.95) rotate(-22deg) rotateY(180deg);
+    opacity: 0.95;
+    filter: drop-shadow(0 0 3px rgba(244, 179, 40, 0.24));
+}
+
+@keyframes themeMoonShake {
+    0% { transform: rotate(0deg); }
+    20% { transform: rotate(-12deg); }
+    40% { transform: rotate(10deg); }
+    60% { transform: rotate(-8deg); }
+    80% { transform: rotate(6deg); }
+    100% { transform: rotate(0deg); }
 }
 
 .notification-icon {
@@ -308,6 +341,17 @@ body {
     font-weight: 600;
 }
 
+.left-sidebar .nav-item:hover {
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.12), transparent);
+    border-left-color: #d4af37;
+}
+
+.left-sidebar .nav-item.active {
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.24), rgba(212, 175, 55, 0.08) 58%, transparent);
+    border-left-color: #d4af37;
+    color: #f2d889;
+}
+
 .nav-icon {
     width: 1.25rem;
     height: 1.25rem;
@@ -321,6 +365,28 @@ body {
     width: 100%;
     height: 100%;
     display: block;
+}
+
+.left-sidebar .nav-icon .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: #bfbfbf;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.left-sidebar .nav-item:hover .nav-icon .icon {
+    color: var(--nav-icon-hover-color);
+    transform: scale(1.08);
+}
+
+.left-sidebar .nav-item.active .nav-icon .icon {
+    color: #d4af37;
+    transform: scale(1.1);
 }
 
 .left-sidebar.collapsed .nav-item::after {
@@ -355,7 +421,6 @@ body {
     height: 8px;
     background: #1f2937;
     border-left: 1px solid rgba(255, 255, 255, 0.12);
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
     opacity: 0;
     pointer-events: none;
     z-index: 199;

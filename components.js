@@ -110,6 +110,13 @@
     function initThemeToggle() {
         var btn = document.getElementById('theme-toggle');
         if (!btn) return;
+        function setThemeToggleIcon(isDark) {
+            btn.innerHTML = isDark
+                ? '<i class="fa-solid fa-moon" aria-hidden="true"></i>'
+                : '<i class="fa-regular fa-sun" aria-hidden="true"></i>';
+            btn.setAttribute('aria-label', isDark ? 'Dark theme active' : 'Light theme active');
+            btn.setAttribute('title', isDark ? 'Dark theme active' : 'Light theme active');
+        }
         // Apply saved theme preference
         var savedTheme = storageGet('theme');
         if (savedTheme === 'light') {
@@ -117,12 +124,12 @@
         } else if (savedTheme === 'dark') {
             document.body.classList.add('dark-theme');
         }
-        btn.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
+        setThemeToggleIcon(document.body.classList.contains('dark-theme'));
         btn.addEventListener('click', function () {
             document.body.classList.toggle('dark-theme');
             var isDark = document.body.classList.contains('dark-theme');
             storageSet('theme', isDark ? 'dark' : 'light');
-            btn.textContent = isDark ? '☀️' : '🌙';
+            setThemeToggleIcon(isDark);
         });
     }
 
