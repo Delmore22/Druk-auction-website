@@ -9,6 +9,11 @@
     ];
 
     function fetchPartial(id, file) {
+        var placeholder = document.getElementById(id);
+        if (!placeholder) {
+            return Promise.resolve();
+        }
+
         return fetch(file)
             .then(function (res) {
                 if (!res.ok) {
@@ -19,12 +24,13 @@
             })
             .then(function (html) {
                 if (!html) return;
-                var placeholder = document.getElementById(id);
                 if (placeholder) {
                     placeholder.outerHTML = html;
                 }
             });
     }
+
+    var stickyOffsetFrame = 0;
 
     function updateStickyOffsets() {
         var header = document.querySelector('.top-header');
@@ -33,6 +39,14 @@
             '--top-header-height',
             header.offsetHeight + 'px'
         );
+    }
+
+    function requestStickyOffsetsUpdate() {
+        if (stickyOffsetFrame) return;
+        stickyOffsetFrame = requestAnimationFrame(function () {
+            stickyOffsetFrame = 0;
+            updateStickyOffsets();
+        });
     }
 
     function storageGet(key) {
@@ -111,9 +125,11 @@
         var btn = document.getElementById('theme-toggle');
         if (!btn) return;
         function setThemeToggleIcon(isDark) {
-            btn.innerHTML = isDark
-                ? '<i class="fa-solid fa-moon" aria-hidden="true"></i>'
-                : '<i class="fa-regular fa-sun" aria-hidden="true"></i>';
+            btn.textContent = '';
+            var icon = document.createElement('i');
+            icon.className = isDark ? 'fa-solid fa-moon' : 'fa-regular fa-sun';
+            icon.setAttribute('aria-hidden', 'true');
+            btn.appendChild(icon);
             btn.setAttribute('aria-label', isDark ? 'Dark theme active' : 'Light theme active');
             btn.setAttribute('title', isDark ? 'Dark theme active' : 'Light theme active');
         }
@@ -164,26 +180,26 @@
     function initShrinkingHeader() {
         var header = document.querySelector('.top-header');
         if (!header) return;
-        header.addEventListener('transitionend', updateStickyOffsets);
+        var mainContent = document.querySelector('.main-content');
+        header.addEventListener('transitionend', requestStickyOffsetsUpdate);
         // Keep sticky offsets in sync while header height animates.
         if ('ResizeObserver' in window) {
-            var headerResizeObserver = new ResizeObserver(updateStickyOffsets);
+            var headerResizeObserver = new ResizeObserver(requestStickyOffsetsUpdate);
             headerResizeObserver.observe(header);
         }
 
         var ticking = false;
 
         function applyState() {
-            var mainContent = document.querySelector('.main-content');
             // Sum both — only one is ever non-zero at a time, covering all layout cases.
             var scrollTop = (window.scrollY || 0) + (mainContent ? mainContent.scrollTop : 0);
             var isShrunk = header.classList.contains('shrunk');
             if (!isShrunk && scrollTop > 30) {
                 header.classList.add('shrunk');
-                updateStickyOffsets();
+                requestStickyOffsetsUpdate();
             } else if (isShrunk && scrollTop < 2) {
                 header.classList.remove('shrunk');
-                updateStickyOffsets();
+                requestStickyOffsetsUpdate();
             }
             ticking = false;
         }
@@ -196,7 +212,6 @@
 
         // Listen on both — whichever is the real scroll container will fire.
         window.addEventListener('scroll', onScroll, { passive: true });
-        var mainContent = document.querySelector('.main-content');
         if (mainContent) mainContent.addEventListener('scroll', onScroll, { passive: true });
     }
 
@@ -297,38 +312,44 @@
 
         function pickActiveTarget() {
             var anchorOffset = 150;
-            var containingCandidates = [];
-            var upcomingCandidates = [];
-            var passedCandidates = [];
+            var containingCandidate = null;
+            var upcomingCandidate = null;
+            var passedCandidate = null;
 
             uniqueTargets.forEach(function (target) {
                 var rect = target.element.getBoundingClientRect();
                 if (rect.top <= anchorOffset && rect.bottom >= anchorOffset) {
-                    containingCandidates.push({ id: target.id, score: anchorOffset - rect.top });
+                    var containingScore = anchorOffset - rect.top;
+                    if (!containingCandidate || containingScore < containingCandidate.score) {
+                        containingCandidate = { id: target.id, score: containingScore };
+                    }
                     return;
                 }
 
                 if (rect.top > anchorOffset) {
-                    upcomingCandidates.push({ id: target.id, score: rect.top - anchorOffset });
+                    var upcomingScore = rect.top - anchorOffset;
+                    if (!upcomingCandidate || upcomingScore < upcomingCandidate.score) {
+                        upcomingCandidate = { id: target.id, score: upcomingScore };
+                    }
                     return;
                 }
 
-                passedCandidates.push({ id: target.id, score: anchorOffset - rect.bottom });
+                var passedScore = anchorOffset - rect.bottom;
+                if (!passedCandidate || passedScore < passedCandidate.score) {
+                    passedCandidate = { id: target.id, score: passedScore };
+                }
             });
 
-            if (containingCandidates.length) {
-                containingCandidates.sort(function (a, b) { return a.score - b.score; });
-                return containingCandidates[0].id;
+            if (containingCandidate) {
+                return containingCandidate.id;
             }
 
-            if (upcomingCandidates.length) {
-                upcomingCandidates.sort(function (a, b) { return a.score - b.score; });
-                return upcomingCandidates[0].id;
+            if (upcomingCandidate) {
+                return upcomingCandidate.id;
             }
 
-            if (passedCandidates.length) {
-                passedCandidates.sort(function (a, b) { return a.score - b.score; });
-                return passedCandidates[0].id;
+            if (passedCandidate) {
+                return passedCandidate.id;
             }
 
             return null;
@@ -372,8 +393,8 @@
     }
 
     function initComponents() {
-        updateStickyOffsets();
-        window.addEventListener('resize', updateStickyOffsets);
+        requestStickyOffsetsUpdate();
+        window.addEventListener('resize', requestStickyOffsetsUpdate);
         initActionButtons();
         initThemeToggle();
         initActiveNav();

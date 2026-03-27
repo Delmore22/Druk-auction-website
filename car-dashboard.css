@@ -17,8 +17,13 @@
     opacity: 0.9;
 }
 
-.content {
-    padding: 20px;
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.welcome-banner.fade-out {
+    animation: fadeOut 3s forwards;
 }
 
 .banner-container {
@@ -164,6 +169,10 @@
     margin: 0 0 1.2rem;
 }
 
+.value-positive {
+    color: #22c55e;
+}
+
 .auction-item {
     display: flex;
     gap: 1rem;
@@ -186,10 +195,15 @@
     height: 40px;
     border-radius: 8px;
     background-color: var(--card-bg);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    overflow: hidden;
     flex-shrink: 0;
+}
+
+.auction-photo-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
 }
 
 .auction-details {
@@ -248,20 +262,6 @@
     color: var(--text-color);
 }
 
-.quick-action {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: var(--placeholder-bg);
-    border-radius: 10px;
-    margin-bottom: 1rem;
-    cursor: pointer;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-    text-decoration: none;
-    color: inherit;
-}
-
 .quick-action:hover {
     background: var(--accent-rgba);
     transform: translateX(5px);
@@ -283,14 +283,6 @@
     }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .quick-action,
-    .quick-action.is-active {
-        animation: none;
-        transition: none;
-    }
-}
-
 .action-icon {
     width: 40px;
     height: 40px;
@@ -301,10 +293,6 @@
     justify-content: center;
     font-size: 1.2rem;
     color: #111827;
-}
-
-.action-icon i {
-    color: inherit;
 }
 
 .action-details h4 {
@@ -453,15 +441,20 @@
     border-color: var(--border-color);
 }
 
-.tile-view .auction-item::before {
-    content: "";
+.tile-view .auction-photo {
+    display: block;
     position: absolute;
     inset: 0;
-    background-image: var(--auction-image);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    width: auto;
+    height: auto;
+    border-radius: 0;
     z-index: 0;
+}
+
+.tile-view .auction-photo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .tile-view .auction-item::after {
@@ -470,10 +463,6 @@
     inset: 0;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 22%, rgba(0, 0, 0, 0.16) 78%);
     z-index: 1;
-}
-
-.tile-view .auction-photo {
-    display: none;
 }
 
 .tile-view .auction-details {

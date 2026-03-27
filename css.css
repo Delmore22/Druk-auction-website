@@ -797,6 +797,28 @@ body {
     animation: collapsedIconActivePulse 260ms ease-out;
 }
 
+.quick-action {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--placeholder-bg);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.quick-action:last-child {
+    margin-bottom: 0;
+}
+
+.action-icon i {
+    color: inherit;
+}
+
 .right-sidebar.collapsed .collapsed-icon::after {
     content: attr(data-tooltip);
     position: absolute;
@@ -817,6 +839,14 @@ body {
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
     z-index: 200;
     transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .quick-action,
+    .quick-action.is-active {
+        animation: none;
+        transition: none;
+    }
 }
 
 .right-sidebar.collapsed .collapsed-icon::before {

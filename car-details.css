@@ -13,14 +13,12 @@ body.car-details-page {
     min-height: calc(100vh - 75px);
 }
 
-.car-details-page .nav-list,
 .car-details-page .quick-actions {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.car-details-page .nav-list a,
 .car-details-page .quick-actions a {
     display: flex;
     align-items: center;
@@ -33,7 +31,6 @@ body.car-details-page {
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
-.car-details-page .nav-list a:hover,
 .car-details-page .quick-actions a:hover {
     background: var(--placeholder-bg);
 }
@@ -82,69 +79,6 @@ body.car-details-page {
 .car-details-page .car-description p {
     margin-bottom: 0.45rem;
     color: var(--secondary-text);
-}
-
-.car-details-page .bid-section {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
-}
-
-.car-details-page .bid-status-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.35rem 0.9rem;
-    border-radius: 999px;
-    color: #fff;
-    font-size: 0.95rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    margin-bottom: 0.75rem;
-}
-
-.car-details-page .bid-status-pill-sale {
-    background: #c62828;
-}
-
-.car-details-page .bid-status-pill-sold {
-    background: #2e7d32;
-}
-
-.car-details-page .bid-status-pill-reserve {
-    background: #1565c0;
-}
-
-.car-details-page .bid-section form {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.6rem;
-    align-items: end;
-    max-width: 480px;
-}
-
-.car-details-page .bid-section label {
-    grid-column: 1 / -1;
-    font-size: 0.9rem;
-    color: var(--secondary-text);
-}
-
-.car-details-page .bid-section input {
-    border: 1px solid var(--border-color);
-    background: var(--card-bg);
-    color: var(--text-color);
-    border-radius: 8px;
-    padding: 0.7rem 0.8rem;
-}
-
-.car-details-page .bid-section button {
-    border: 1px solid var(--border-color);
-    background: var(--accent-color);
-    color: var(--accent-text);
-    border-radius: 8px;
-    padding: 0.7rem 1rem;
-    cursor: pointer;
-    font-weight: 600;
 }
 
 .car-details-page .car-photo-gallery {

@@ -26,7 +26,6 @@ document.addEventListener('components:ready', function() {
     // Show welcome banner once per tab session to avoid replaying on returns.
     setTimeout(function() {
         var banner = document.querySelector('.welcome-banner');
-        var content = document.getElementById('mainContent') || document.querySelector('.main-content');
 
         if (!banner) return;
 
@@ -43,46 +42,28 @@ document.addEventListener('components:ready', function() {
 
         if (!shouldShowBanner) {
             if (banner.parentNode) banner.parentNode.removeChild(banner);
-            if (content) content.style.marginTop = '0';
             return;
         }
-
-        // Ensure banner is visible so the fade animation can be seen
-        banner.style.display = '';
-        banner.style.opacity = '1';
 
         // Trigger fade out animation after a delay
         setTimeout(function() {
             banner.classList.add('fade-out');
             setTimeout(function() {
                 if (banner.parentNode) banner.parentNode.removeChild(banner);
-                if (content) content.style.marginTop = '0';
             }, 3000); // keep in sync with animation duration
         }, 5000);
     }, 2000);
 
-    // Add fade-out animation keyframes (keeps opacity animation only)
-    var style = document.createElement('style');
-    style.innerHTML = `
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-
-        .welcome-banner.fade-out {
-            animation: fadeOut 3s forwards;
-        }
-    `;
-    document.head.appendChild(style);
-
     // Initialize auction view system
     initializeAuctionView();
+    window.addEventListener('pagehide', persistDashboardUiState);
 });
 
 // Auction View Management
 let currentView = 'tile';
 let currentPage = 1;
 const itemsPerPage = 8;
+const DASHBOARD_UI_STATE_KEY = 'dashboardUiState';
 let allCars = [];
 let allAuctionItems = [];
 let filteredAuctionItems = [];
@@ -91,6 +72,59 @@ let searchFilterState = {
     engine: new Set(),
     body: new Set()
 };
+
+function normalizeDashboardUiState(rawState) {
+    const source = rawState || {};
+    return {
+        view: source.view === 'list' ? 'list' : 'tile',
+        page: Number.isInteger(source.page) && source.page > 0 ? source.page : 1,
+        scrollTop: Number.isFinite(source.scrollTop) && source.scrollTop >= 0 ? source.scrollTop : 0
+    };
+}
+
+function getDashboardUiState() {
+    try {
+        const raw = window.sessionStorage.getItem(DASHBOARD_UI_STATE_KEY);
+        if (!raw) {
+            return normalizeDashboardUiState();
+        }
+
+        return normalizeDashboardUiState(JSON.parse(raw));
+    } catch (err) {
+        return normalizeDashboardUiState();
+    }
+}
+
+function persistDashboardUiState() {
+    try {
+        window.sessionStorage.setItem(
+            DASHBOARD_UI_STATE_KEY,
+            JSON.stringify(normalizeDashboardUiState({
+                view: currentView,
+                page: currentPage,
+                scrollTop: mainContent ? mainContent.scrollTop : 0
+            }))
+        );
+    } catch (err) {
+        // Ignore storage failures so dashboard navigation still works.
+    }
+}
+
+function restoreDashboardUiState() {
+    const savedState = getDashboardUiState();
+    const totalPages = Math.max(1, Math.ceil(filteredAuctionItems.length / itemsPerPage));
+
+    switchView(savedState.view);
+    currentPage = Math.min(savedState.page, totalPages);
+    updatePagination();
+
+    if (mainContent && savedState.scrollTop > 0) {
+        requestAnimationFrame(function () {
+            mainContent.scrollTop = savedState.scrollTop;
+            lastScrollTop = savedState.scrollTop;
+        });
+    }
+}
 
 function normalizeStatus(rawStatus) {
     const normalized = String(rawStatus || 'Sale').trim().toLowerCase();
@@ -110,6 +144,7 @@ function renderMarketplaceCards(cars) {
 
     container.textContent = '';
     const fragment = document.createDocumentFragment();
+    const auctionItems = [];
 
     cars.forEach(car => {
         const title = `${car.year} ${car.make} ${car.model}`;
@@ -120,6 +155,7 @@ function renderMarketplaceCards(cars) {
         const item = document.createElement('a');
         item.className = 'auction-item';
         item.setAttribute('data-car-name', car.id);
+        item.dataset.searchText = `${title} ${summary} ${car.id}`.toLowerCase();
         item.href = `car-details.html?car=${encodeURIComponent(car.id)}`;
         item.target = '_blank';
         // Internal same-origin navigation intentionally keeps opener so the
@@ -129,6 +165,13 @@ function renderMarketplaceCards(cars) {
         const photo = document.createElement('div');
         photo.className = 'auction-photo';
         photo.setAttribute('aria-hidden', 'true');
+
+        const photoImage = document.createElement('img');
+        photoImage.className = 'auction-photo-image';
+        photoImage.alt = '';
+        photoImage.loading = 'lazy';
+        photoImage.src = `cars-photos/${car.id}.png`;
+        photo.appendChild(photoImage);
 
         const details = document.createElement('div');
         details.className = 'auction-details';
@@ -161,14 +204,12 @@ function renderMarketplaceCards(cars) {
         item.appendChild(saleTag);
 
         fragment.appendChild(item);
+        auctionItems.push(item);
     });
 
     container.appendChild(fragment);
-
-    allAuctionItems = Array.from(container.querySelectorAll('.auction-item'));
+    allAuctionItems = auctionItems;
     filteredAuctionItems = [...allAuctionItems];
-
-    loadAuctionPhotos();
 }
 
 function loadMarketplaceData() {
@@ -234,7 +275,7 @@ function initializeAuctionView() {
 
     loadMarketplaceData().then(function () {
         initializeAuctionSearch();
-        switchView('tile');
+        restoreDashboardUiState();
     });
 }
 
@@ -248,8 +289,20 @@ function initializeAuctionSearch() {
     const applyFiltersBtn = document.getElementById('applySearchFiltersBtn');
     const clearFiltersBtn = document.getElementById('clearSearchFiltersBtn');
     const filterInputs = Array.from(document.querySelectorAll('#searchFiltersPanel input[type="checkbox"]'));
+    let lastSearchUiStateSignature = '';
 
     if (!searchWrap || !searchForm || !searchInput || !searchTriggerBtn || !activeFilterBadge || !panel || !applyFiltersBtn || !clearFiltersBtn) return;
+
+    const createSearchUiStateSnapshot = () => ({
+        query: searchInput.value,
+        filters: {
+            make: Array.from(searchFilterState.make),
+            engine: Array.from(searchFilterState.engine),
+            body: Array.from(searchFilterState.body)
+        }
+    });
+
+    const getSearchUiStateSignature = snapshot => JSON.stringify(snapshot);
 
     const applySavedSearchUiState = savedState => {
         searchInput.value = savedState.query || '';
@@ -264,14 +317,9 @@ function initializeAuctionSearch() {
     const persistSearchUiState = () => {
         if (typeof window.setAuctionSearchUiState !== 'function') return;
 
-        window.setAuctionSearchUiState({
-            query: searchInput.value,
-            filters: {
-                make: Array.from(searchFilterState.make),
-                engine: Array.from(searchFilterState.engine),
-                body: Array.from(searchFilterState.body)
-            }
-        });
+        const snapshot = createSearchUiStateSnapshot();
+        lastSearchUiStateSignature = getSearchUiStateSignature(snapshot);
+        window.setAuctionSearchUiState(snapshot);
     };
 
     const openPanel = () => {
@@ -325,10 +373,16 @@ function initializeAuctionSearch() {
         }
 
         const savedState = window.getAuctionSearchUiState();
+        const savedStateSignature = getSearchUiStateSignature(savedState);
+        if (savedStateSignature === lastSearchUiStateSignature) {
+            return;
+        }
+
         applySavedSearchUiState(savedState);
 
         collectFilters();
         applyAuctionSearch(searchInput.value.trim().toLowerCase(), searchFilterState);
+        lastSearchUiStateSignature = savedStateSignature;
     };
 
     searchInput.addEventListener('focus', openPanel);
@@ -418,16 +472,11 @@ function applyAuctionSearch(query, filters = searchFilterState) {
     };
 
     filteredAuctionItems = allAuctionItems.filter(item => {
-        const name = item.querySelector('h4')?.textContent.toLowerCase() || '';
-        const details = item.querySelector('p')?.textContent.toLowerCase() || '';
-        const slug = (item.getAttribute('data-car-name') || '').toLowerCase();
-        const combinedText = `${name} ${details} ${slug}`;
+        const combinedText = item.dataset.searchText || '';
 
         const matchesText =
             query.length === 0 ||
-            name.includes(query) ||
-            details.includes(query) ||
-            slug.includes(query);
+            combinedText.includes(query);
 
         const matchesMake = matchesMappedGroup(combinedText, filters.make, makeMap);
         const matchesEngine = matchesMappedGroup(combinedText, filters.engine, engineMap);
@@ -439,23 +488,6 @@ function applyAuctionSearch(query, filters = searchFilterState) {
     currentPage = 1;
     updatePagination();
 }
-
-function loadAuctionPhotos() {
-    allAuctionItems.forEach((item) => {
-        const carName = item.getAttribute('data-car-name');
-        if (!carName) return;
-
-        const imagePath = `cars-photos/${carName}.png`;
-        const photoNode = item.querySelector('.auction-photo');
-
-        // Set both tile and list image sources via CSS variable.
-        item.style.setProperty('--auction-image', `url('${imagePath}')`);
-        if (photoNode) {
-            photoNode.style.backgroundImage = `url('${imagePath}')`;
-        }
-    });
-}
-
 function switchView(viewType) {
     const container = document.getElementById('auctionsContainer');
     const tileBtn = document.querySelector('.tile-btn');
@@ -498,14 +530,14 @@ function updatePagination() {
         const filteredIndex = visibleIndexes.get(item);
 
         if (filteredIndex === undefined) {
-            item.style.display = 'none';
+            item.hidden = true;
             return;
         }
 
         if (filteredIndex >= startIdx && filteredIndex < endIdx) {
-            item.style.display = '';
+            item.hidden = false;
         } else {
-            item.style.display = 'none';
+            item.hidden = true;
         }
     });
 
@@ -520,6 +552,8 @@ function updatePagination() {
     // Enable/disable pagination buttons
     document.getElementById('prevBtn').disabled = currentPage === 1 || visibleItems.length === 0;
     document.getElementById('nextBtn').disabled = currentPage === totalPages || visibleItems.length === 0;
+
+    persistDashboardUiState();
 }
 
 function nextPage() {

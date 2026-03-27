@@ -27,10 +27,13 @@ function Test-Contains {
 $dashboardPath = Join-Path $Root "car-dashboard.js"
 
 $checks = @(
-    (Test-Contains -Path $dashboardPath -Needle "window.setAuctionSearchUiState({" -Label "Search UI state is persisted")
+    (Test-Contains -Path $dashboardPath -Needle "window.setAuctionSearchUiState(snapshot);" -Label "Search UI state is persisted")
     (Test-Contains -Path $dashboardPath -Needle "const savedState = window.getAuctionSearchUiState();" -Label "Search UI state is restored")
     (Test-Contains -Path $dashboardPath -Needle "if (event.key !== 'auctionSearchUiState') return;" -Label "Cross-tab storage sync is scoped")
     (Test-Contains -Path $dashboardPath -Needle "window.addEventListener('focus', function() {" -Label "Window focus triggers state restore")
+    (Test-Contains -Path $dashboardPath -Needle "const DASHBOARD_UI_STATE_KEY = 'dashboardUiState';" -Label "Dashboard session state key exists")
+    (Test-Contains -Path $dashboardPath -Needle "window.addEventListener('pagehide', persistDashboardUiState);" -Label "Dashboard state is captured on page exit")
+    (Test-Contains -Path $dashboardPath -Needle "restoreDashboardUiState();" -Label "Dashboard session state is restored")
     (Test-Contains -Path $dashboardPath -Needle "currentPage = 1;" -Label "Search/view changes reset to page 1")
     (Test-Contains -Path $dashboardPath -Needle "document.getElementById('prevBtn').disabled = currentPage === 1 || visibleItems.length === 0;" -Label "Previous button disable guard exists")
     (Test-Contains -Path $dashboardPath -Needle "document.getElementById('nextBtn').disabled = currentPage === totalPages || visibleItems.length === 0;" -Label "Next button disable guard exists")
