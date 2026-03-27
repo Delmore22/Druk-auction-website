@@ -180,6 +180,9 @@
     border-bottom: 1px solid var(--border-color);
     transition: background 0.3s;
     cursor: pointer;
+    contain: layout paint style;
+    content-visibility: auto;
+    contain-intrinsic-size: 120px;
 }
 
 .auction-item:hover {
@@ -433,6 +436,9 @@
     gap: 0;
     position: relative;
     overflow: hidden;
+    contain: layout paint style;
+    content-visibility: auto;
+    contain-intrinsic-size: 240px;
 }
 
 .tile-view .auction-item:hover {
@@ -455,6 +461,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transform: translateZ(0);
 }
 
 .tile-view .auction-item::after {

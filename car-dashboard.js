@@ -1,11 +1,77 @@
 let lastScrollTop = 0;
 const mainContent = document.getElementById('mainContent');
 const stickyHeader = document.getElementById('stickyHeader');
+const dashboardPerfDebugEnabled = new URLSearchParams(window.location.search).get('debugPerf') === '1';
+const dashboardPerfConsoleEnabled = new URLSearchParams(window.location.search).get('debugPerfLog') === '1';
+
+function initDashboardPerfDebug(scrollHost) {
+    if (!dashboardPerfDebugEnabled || !scrollHost) return;
+
+    let frameCount = 0;
+    let scrollEvents = 0;
+    const perfBadge = document.createElement('div');
+    perfBadge.setAttribute('role', 'status');
+    perfBadge.setAttribute('aria-live', 'polite');
+    perfBadge.style.position = 'fixed';
+    perfBadge.style.right = '12px';
+    perfBadge.style.bottom = '12px';
+    perfBadge.style.zIndex = '9999';
+    perfBadge.style.padding = '8px 10px';
+    perfBadge.style.borderRadius = '8px';
+    perfBadge.style.background = 'rgba(17, 24, 39, 0.88)';
+    perfBadge.style.color = '#f9fafb';
+    perfBadge.style.fontFamily = 'Consolas, "Courier New", monospace';
+    perfBadge.style.fontSize = '12px';
+    perfBadge.style.lineHeight = '1.3';
+    perfBadge.style.pointerEvents = 'none';
+    perfBadge.style.whiteSpace = 'pre';
+    perfBadge.textContent = 'perf: initializing...';
+    document.body.appendChild(perfBadge);
+
+    scrollHost.addEventListener('scroll', function () {
+        scrollEvents += 1;
+    }, { passive: true });
+
+    function trackFrames() {
+        frameCount += 1;
+        requestAnimationFrame(trackFrames);
+    }
+
+    requestAnimationFrame(trackFrames);
+
+    setInterval(function () {
+        const fpsApprox = frameCount;
+        const currentScrollEvents = scrollEvents;
+        const currentScrollTop = scrollHost.scrollTop;
+
+        perfBadge.textContent = [
+            'debugPerf=1',
+            'fps~: ' + fpsApprox,
+            'scroll ev/s: ' + currentScrollEvents,
+            'scrollTop: ' + Math.round(currentScrollTop)
+        ].join('\n');
+
+        if (dashboardPerfConsoleEnabled) {
+            console.log('[dashboard-perf]', {
+                fpsApprox: fpsApprox,
+                scrollEvents: currentScrollEvents,
+                scrollTop: currentScrollTop
+            });
+        }
+        frameCount = 0;
+        scrollEvents = 0;
+    }, 1000);
+}
 
 // Scroll detection for hiding/showing header
 if (mainContent && stickyHeader) {
-    mainContent.addEventListener('scroll', function() {
-        const scrollTop = mainContent.scrollTop;
+    initDashboardPerfDebug(mainContent);
+
+    let headerScrollTicking = false;
+    let pendingScrollTop = 0;
+
+    function applyStickyHeaderVisibility() {
+        const scrollTop = pendingScrollTop;
 
         if (scrollTop > lastScrollTop && scrollTop > 100) {
             // Scrolling down
@@ -16,43 +82,49 @@ if (mainContent && stickyHeader) {
         }
 
         lastScrollTop = scrollTop;
-    });
+        headerScrollTicking = false;
+    }
+
+    mainContent.addEventListener('scroll', function () {
+        pendingScrollTop = mainContent.scrollTop;
+        if (headerScrollTicking) return;
+        headerScrollTicking = true;
+        requestAnimationFrame(applyStickyHeaderVisibility);
+    }, { passive: true });
 
     // Initialize as visible
     stickyHeader.classList.add('visible');
 }
 
-document.addEventListener('components:ready', function() {
-    // Show welcome banner once per tab session to avoid replaying on returns.
-    setTimeout(function() {
-        var banner = document.querySelector('.welcome-banner');
-
-        if (!banner) return;
-
-        var shouldShowBanner = true;
-        try {
-            if (window.sessionStorage.getItem('dashboardWelcomeShown') === '1') {
-                shouldShowBanner = false;
-            } else {
-                window.sessionStorage.setItem('dashboardWelcomeShown', '1');
+// Suppress welcome banner immediately on return visits. Runs synchronously
+// while the DOM is ready (scripts are deferred to end of <body>), so there
+// is no visible flash between page paint and event-loop callbacks.
+(function () {
+    try {
+        if (window.sessionStorage.getItem('dashboardWelcomeShown') === '1') {
+            var banner = document.querySelector('.welcome-banner');
+            if (banner && banner.parentNode) {
+                banner.parentNode.removeChild(banner);
             }
-        } catch (err) {
-            // If storage is unavailable, keep default one-time-per-load behavior.
         }
+    } catch (e) { /* sessionStorage unavailable — banner will show normally */ }
+}());
 
-        if (!shouldShowBanner) {
-            if (banner.parentNode) banner.parentNode.removeChild(banner);
-            return;
-        }
-
-        // Trigger fade out animation after a delay
+document.addEventListener('components:ready', function() {
+    // On the first visit the banner is still in the DOM. Mark it as shown and
+    // schedule the fade-out so it disappears after a short display window.
+    var banner = document.querySelector('.welcome-banner');
+    if (banner) {
+        try {
+            window.sessionStorage.setItem('dashboardWelcomeShown', '1');
+        } catch (e) { /* ignore */ }
         setTimeout(function() {
             banner.classList.add('fade-out');
             setTimeout(function() {
                 if (banner.parentNode) banner.parentNode.removeChild(banner);
-            }, 3000); // keep in sync with animation duration
+            }, 3000); // keep in sync with CSS animation duration
         }, 5000);
-    }, 2000);
+    }
 
     // Initialize auction view system
     initializeAuctionView();
@@ -170,7 +242,11 @@ function renderMarketplaceCards(cars) {
         photoImage.className = 'auction-photo-image';
         photoImage.alt = '';
         photoImage.loading = 'lazy';
-        photoImage.src = `cars-photos/${car.id}.png`;
+        photoImage.decoding = 'async';
+        if ('fetchPriority' in photoImage) {
+            photoImage.fetchPriority = 'low';
+        }
+        photoImage.src = car.photo || `cars-photos/${car.id}.png`;
         photo.appendChild(photoImage);
 
         const details = document.createElement('div');
