@@ -3,55 +3,49 @@ const mainContent = document.getElementById('mainContent');
 const stickyHeader = document.getElementById('stickyHeader');
 
 // Scroll detection for hiding/showing header
-mainContent.addEventListener('scroll', function() {
-    const scrollTop = mainContent.scrollTop;
+if (mainContent && stickyHeader) {
+    mainContent.addEventListener('scroll', function() {
+        const scrollTop = mainContent.scrollTop;
 
-    if (scrollTop > lastScrollTop && scrollTop > 100) {
-        // Scrolling down
-        stickyHeader.classList.remove('visible');
-    } else {
-        // Scrolling up
-        stickyHeader.classList.add('visible');
-    }
-
-    lastScrollTop = scrollTop;
-});
-
-// Initialize as visible
-stickyHeader.classList.add('visible');
-
-// Add click handlers
-document.querySelectorAll('.auction-item').forEach(item => {
-    item.addEventListener('click', function(e) {
-        const href = this.getAttribute('href') || this.dataset.href;
-        const target = this.getAttribute('target');
-        if (href) {
-            e.preventDefault();
-            if (target) {
-                window.open(href, target);
-            } else {
-                window.location.href = href;
-            }
-            return;
+        if (scrollTop > lastScrollTop && scrollTop > 100) {
+            // Scrolling down
+            stickyHeader.classList.remove('visible');
+        } else {
+            // Scrolling up
+            stickyHeader.classList.add('visible');
         }
-        alert('Opening auction details...');
-    });
-});
 
-document.querySelectorAll('.quick-action').forEach(action => {
-    action.addEventListener('click', function() {
-        const actionName = this.querySelector('h4').textContent;
-        alert(`Opening: ${actionName}`);
+        lastScrollTop = scrollTop;
     });
-});
+
+    // Initialize as visible
+    stickyHeader.classList.add('visible');
+}
 
 document.addEventListener('components:ready', function() {
-    // Find the banner and the main content container (fallbacks included)
+    // Show welcome banner once per tab session to avoid replaying on returns.
     setTimeout(function() {
         var banner = document.querySelector('.welcome-banner');
         var content = document.getElementById('mainContent') || document.querySelector('.main-content');
 
         if (!banner) return;
+
+        var shouldShowBanner = true;
+        try {
+            if (window.sessionStorage.getItem('dashboardWelcomeShown') === '1') {
+                shouldShowBanner = false;
+            } else {
+                window.sessionStorage.setItem('dashboardWelcomeShown', '1');
+            }
+        } catch (err) {
+            // If storage is unavailable, keep default one-time-per-load behavior.
+        }
+
+        if (!shouldShowBanner) {
+            if (banner.parentNode) banner.parentNode.removeChild(banner);
+            if (content) content.style.marginTop = '0';
+            return;
+        }
 
         // Ensure banner is visible so the fade animation can be seen
         banner.style.display = '';
@@ -89,6 +83,7 @@ document.addEventListener('components:ready', function() {
 let currentView = 'tile';
 let currentPage = 1;
 const itemsPerPage = 8;
+let allCars = [];
 let allAuctionItems = [];
 let filteredAuctionItems = [];
 let searchFilterState = {
@@ -104,78 +99,143 @@ function normalizeStatus(rawStatus) {
     return { label: 'Sale', className: 'status-sale' };
 }
 
-function applyMarketplaceData(cars) {
-    const carsById = new Map(cars.map(car => [car.id, car]));
+function getAuctionCardSummary(car) {
+    const parts = [car.engine, car.transmission, car.condition].filter(Boolean);
+    return parts.join(' • ');
+}
 
-    allAuctionItems.forEach(item => {
-        const carId = item.getAttribute('data-car-name');
-        const car = carsById.get(carId);
-        if (!car) return;
+function renderMarketplaceCards(cars) {
+    const container = document.getElementById('auctionsContainer');
+    if (!container) return;
 
-        const priceEl = item.querySelector('.sale-price');
-        const labelEl = item.querySelector('.sale-label');
-        const detailsEl = item.querySelector('.auction-details');
+    container.textContent = '';
+    const fragment = document.createDocumentFragment();
 
-        if (priceEl && Number.isFinite(car.currentBid)) {
-            priceEl.textContent = `$${car.currentBid.toLocaleString('en-US')}`;
-        }
+    cars.forEach(car => {
+        const title = `${car.year} ${car.make} ${car.model}`;
+        const status = normalizeStatus(car.status);
+        const summary = getAuctionCardSummary(car);
+        const bid = Number.isFinite(car.currentBid) ? car.currentBid.toLocaleString('en-US') : '0';
 
-        if (detailsEl) {
-            let mileageEl = detailsEl.querySelector('.auction-mileage');
-            if (!mileageEl) {
-                mileageEl = document.createElement('p');
-                mileageEl.className = 'auction-mileage';
-                const descriptionEl = detailsEl.querySelector('p');
-                if (descriptionEl && descriptionEl.parentNode === detailsEl) {
-                    descriptionEl.insertAdjacentElement('afterend', mileageEl);
-                } else {
-                    detailsEl.appendChild(mileageEl);
-                }
-            }
+        const item = document.createElement('a');
+        item.className = 'auction-item';
+        item.setAttribute('data-car-name', car.id);
+        item.href = `car-details.html?car=${encodeURIComponent(car.id)}`;
+        item.target = '_blank';
+        // Internal same-origin navigation intentionally keeps opener so the
+        // detail tab can focus and close back to the dashboard tab.
+        item.rel = 'opener';
 
-            const mileageValue = typeof car.mileage === 'string' ? car.mileage : String(car.mileage || 'N/A');
-            mileageEl.textContent = `Miles: ${mileageValue}`;
-        }
+        const photo = document.createElement('div');
+        photo.className = 'auction-photo';
+        photo.setAttribute('aria-hidden', 'true');
 
-        if (labelEl) {
-            const status = normalizeStatus(car.status);
-            labelEl.textContent = status.label;
-            labelEl.classList.remove('status-sale', 'status-sold', 'status-appending');
-            labelEl.classList.add(status.className);
-        }
+        const details = document.createElement('div');
+        details.className = 'auction-details';
+
+        const heading = document.createElement('h4');
+        heading.textContent = title;
+
+        const description = document.createElement('p');
+        description.textContent = summary;
+
+        details.appendChild(heading);
+        details.appendChild(description);
+
+        const saleTag = document.createElement('div');
+        saleTag.className = 'sale-tag';
+
+        const saleLabel = document.createElement('span');
+        saleLabel.className = `sale-label ${status.className}`;
+        saleLabel.textContent = status.label;
+
+        const salePrice = document.createElement('span');
+        salePrice.className = 'sale-price';
+        salePrice.textContent = `$${bid}`;
+
+        saleTag.appendChild(saleLabel);
+        saleTag.appendChild(salePrice);
+
+        item.appendChild(photo);
+        item.appendChild(details);
+        item.appendChild(saleTag);
+
+        fragment.appendChild(item);
     });
+
+    container.appendChild(fragment);
+
+    allAuctionItems = Array.from(container.querySelectorAll('.auction-item'));
+    filteredAuctionItems = [...allAuctionItems];
+
+    loadAuctionPhotos();
 }
 
 function loadMarketplaceData() {
-    fetch('data/cars.json')
+    return fetch('data/cars.json')
         .then(response => {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return response.json();
         })
         .then(data => {
-            if (!data || !Array.isArray(data.cars)) return;
-            applyMarketplaceData(data.cars);
+            if (!data || !Array.isArray(data.cars)) {
+                allCars = [];
+                renderMarketplaceCards([]);
+                return [];
+            }
+
+            allCars = data.cars;
+            renderMarketplaceCards(allCars);
+            return allCars;
         })
         .catch(() => {
-            // Keep existing placeholders if data cannot be loaded.
+            allCars = [];
+            renderMarketplaceCards([]);
+            return [];
         });
 }
 
+function bindDashboardControls() {
+    const tileBtn = document.querySelector('.tile-btn');
+    const listBtn = document.querySelector('.list-btn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    if (tileBtn && !tileBtn.dataset.bound) {
+        tileBtn.dataset.bound = '1';
+        tileBtn.addEventListener('click', function () {
+            switchView('tile');
+        });
+    }
+
+    if (listBtn && !listBtn.dataset.bound) {
+        listBtn.dataset.bound = '1';
+        listBtn.addEventListener('click', function () {
+            switchView('list');
+        });
+    }
+
+    if (prevBtn && !prevBtn.dataset.bound) {
+        prevBtn.dataset.bound = '1';
+        prevBtn.addEventListener('click', previousPage);
+    }
+
+    if (nextBtn && !nextBtn.dataset.bound) {
+        nextBtn.dataset.bound = '1';
+        nextBtn.addEventListener('click', nextPage);
+    }
+}
+
 function initializeAuctionView() {
-    // Get all auction items
     const container = document.getElementById('auctionsContainer');
-    allAuctionItems = Array.from(container.querySelectorAll('.auction-item'));
-    filteredAuctionItems = [...allAuctionItems];
+    if (!container) return;
 
-    loadMarketplaceData();
+    bindDashboardControls();
 
-    // Apply card backgrounds and list thumbnails from /cars-photos
-    loadAuctionPhotos();
-
-    initializeAuctionSearch();
-
-    // Initialize with tile view
-    switchView('tile');
+    loadMarketplaceData().then(function () {
+        initializeAuctionSearch();
+        switchView('tile');
+    });
 }
 
 function initializeAuctionSearch() {
@@ -425,17 +485,23 @@ function updatePagination() {
     const startIdx = (currentPage - 1) * itemsPerPage;
     const endIdx = startIdx + itemsPerPage;
     const visibleItems = filteredAuctionItems;
+    const visibleIndexes = new Map();
     const totalPages = Math.max(1, Math.ceil(visibleItems.length / itemsPerPage));
     const emptyState = document.getElementById('searchEmptyState');
 
+    visibleItems.forEach((item, index) => {
+        visibleIndexes.set(item, index);
+    });
+
     // Show/hide items based on active search and page
-    allAuctionItems.forEach((item, idx) => {
-        if (!visibleItems.includes(item)) {
+    allAuctionItems.forEach((item) => {
+        const filteredIndex = visibleIndexes.get(item);
+
+        if (filteredIndex === undefined) {
             item.style.display = 'none';
             return;
         }
 
-        const filteredIndex = visibleItems.indexOf(item);
         if (filteredIndex >= startIdx && filteredIndex < endIdx) {
             item.style.display = '';
         } else {

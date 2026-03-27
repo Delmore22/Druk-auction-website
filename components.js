@@ -131,6 +131,14 @@
             storageSet('theme', isDark ? 'dark' : 'light');
             setThemeToggleIcon(isDark);
         });
+
+        // Sync theme across tabs: when another tab saves a new theme, apply it here.
+        window.addEventListener('storage', function (event) {
+            if (event.key !== 'theme') return;
+            var isDark = event.newValue === 'dark';
+            document.body.classList.toggle('dark-theme', isDark);
+            setThemeToggleIcon(isDark);
+        });
     }
 
     function initSidebarState() {
@@ -346,9 +354,27 @@
         requestUpdate();
     }
 
+    function initActionButtons() {
+        document.addEventListener('click', function (event) {
+            var actionButton = event.target.closest('button[data-action]');
+            if (!actionButton) return;
+
+            var action = actionButton.getAttribute('data-action');
+            if (action === 'toggle-left-sidebar') {
+                window.toggleLeftSidebar();
+                return;
+            }
+
+            if (action === 'toggle-right-sidebar') {
+                window.toggleRightSidebar();
+            }
+        });
+    }
+
     function initComponents() {
         updateStickyOffsets();
         window.addEventListener('resize', updateStickyOffsets);
+        initActionButtons();
         initThemeToggle();
         initActiveNav();
         initSidebarState();
@@ -358,7 +384,7 @@
         debugUiState('init');
     }
 
-    // Global sidebar toggles — called via onclick in the sidebar partials
+    // Global sidebar toggles shared by all pages
     window.toggleLeftSidebar = function () {
         var sidebar = document.getElementById('leftSidebar');
         var arrow   = document.getElementById('leftArrow');

@@ -38,83 +38,13 @@
                             Marketplace
                         </h3>
                         <div class="view-toggle">
-                            <button class="view-btn tile-btn active" onclick="switchView('tile')" title="Tile View">⊞</button>
-                            <button class="view-btn list-btn" onclick="switchView('list')" title="List View">≡</button>
+                            <button class="view-btn tile-btn active" title="Tile View" type="button">⊞</button>
+                            <button class="view-btn list-btn" title="List View" type="button">≡</button>
                         </div>
                     </div>
                     
                     <div id="auctionsContainer" class="auctions-container tile-view">
-                    <a class="auction-item" data-car-name="1967-ford-mustang-fastback" href="car-details.html?car=1967-ford-mustang-fastback" target="_blank">
-                        <div class="auction-photo" aria-hidden="true"></div>
-                        <div class="auction-details">
-                            <h4>1967 Ford Mustang Fastback</h4>
-                            <p>289 V8 • 4-Speed • Restored</p>
-                        </div>
-                        <div class="sale-tag"><span class="sale-label">Sale</span><span class="sale-price">$00,000</span></div>
-                    </a>
-
-                    <a class="auction-item" data-car-name="1957-chevrolet-Bel-Air" href="car-details.html?car=1957-chevrolet-Bel-Air" target="_blank">
-                        <div class="auction-photo" aria-hidden="true"></div>
-                        <div class="auction-details">
-                            <h4>1957 Chevrolet Bel Air</h4>
-                            <p>283 V8 • Fuel Injection • Two-Tone</p>
-                        </div>
-                        <div class="sale-tag"><span class="sale-label">Sale</span><span class="sale-price">$00,000</span></div>
-                    </a>
-
-                    <a class="auction-item" data-car-name="1955-chevrolet-nomad" href="car-details.html?car=1955-chevrolet-nomad" target="_blank">
-                        <div class="auction-photo" aria-hidden="true"></div>
-                        <div class="auction-details">
-                            <h4>1955 Chevrolet Nomad</h4>
-                            <p>265 V8 • Wagon • Frame-Off Build</p>
-                        </div>
-                        <div class="sale-tag"><span class="sale-label">Sale</span><span class="sale-price">$00,000</span></div>
-                    </a>
-
-                    <a class="auction-item" data-car-name="1958-chevrolet--impala" href="car-details.html?car=1958-chevrolet--impala" target="_blank">
-                        <div class="auction-photo" aria-hidden="true"></div>
-                        <div class="auction-details">
-                            <h4>1958 Chevrolet Impala</h4>
-                            <p>348 V8 • Tri-Power • Hardtop</p>
-                        </div>
-                        <div class="sale-tag"><span class="sale-label">Sale</span><span class="sale-price">$00,000</span></div>
-                    </a>
-
-                    <a class="auction-item" data-car-name="1959-cadillac-series-62" href="car-details.html?car=1959-cadillac-series-62" target="_blank">
-                        <div class="auction-photo" aria-hidden="true"></div>
-                        <div class="auction-details">
-                            <h4>1959 Cadillac Series 62</h4>
-                            <p>390 V8 • Tailfins • Convertible</p>
-                        </div>
-                        <div class="sale-tag"><span class="sale-label">Sale</span><span class="sale-price">$00,000</span></div>
-                    </a>
-
-                    <a class="auction-item" data-car-name="1960-prosche-356b-cabriolet" href="car-details.html?car=1960-prosche-356b-cabriolet" target="_blank">
-                        <div class="auction-photo" aria-hidden="true"></div>
-                        <div class="auction-details">
-                            <h4>1960 Prosche 356B Cabriolet</h4>
-                            <p>1600 Super • 4-Speed • Open Top</p>
-                        </div>
-                        <div class="sale-tag"><span class="sale-label">Sale</span><span class="sale-price">$00,000</span></div>
-                    </a>
-
-                    <a class="auction-item" data-car-name="1969-jaguar-e-type" href="car-details.html?car=1969-jaguar-e-type" target="_blank">
-                        <div class="auction-photo" aria-hidden="true"></div>
-                        <div class="auction-details">
-                            <h4>1969 Jaguar E-Type</h4>
-                            <p>4.2L Inline-6 • Series 2 • Coupe</p>
-                        </div>
-                        <div class="sale-tag"><span class="sale-label">Sale</span><span class="sale-price">$00,000</span></div>
-                    </a>
-
-                    <a class="auction-item" data-car-name="1969-mercury-cougar" href="car-details.html?car=1969-mercury-cougar" target="_blank">
-                        <div class="auction-photo" aria-hidden="true"></div>
-                        <div class="auction-details">
-                            <h4>1969 Mercury Cougar</h4>
-                            <p>351 Windsor • XR-7 Trim • Survivor</p>
-                        </div>
-                        <div class="sale-tag"><span class="sale-label">Sale</span><span class="sale-price">$00,000</span></div>
-                    </a>
+                        <!-- Data-driven marketplace cards are rendered by car-dashboard.js -->
                     </div>
 
                     <div id="searchEmptyState" class="search-empty-state" hidden>
@@ -123,9 +53,9 @@
                     
                     <!-- Pagination Controls -->
                     <div class="pagination-controls">
-                        <button class="pagination-btn" onclick="previousPage()" id="prevBtn">← Previous</button>
+                        <button class="pagination-btn" id="prevBtn" type="button">← Previous</button>
                         <span id="pageInfo" class="page-info">Page 1</span>
-                        <button class="pagination-btn" onclick="nextPage()" id="nextBtn">Next →</button>
+                        <button class="pagination-btn" id="nextBtn" type="button">Next →</button>
                     </div>
                 </div>
             </div>
@@ -209,7 +139,7 @@
         <!-- Right Sidebar -->
         <div class="right-sidebar" id="rightSidebar">
             <div class="sidebar-header">
-                <button class="collapse-btn" onclick="toggleRightSidebar()">
+                <button class="collapse-btn" data-action="toggle-right-sidebar" type="button">
                     <span id="rightArrow">▶</span>
                 </button>
                 <span class="sidebar-title">Quick Actions</span>

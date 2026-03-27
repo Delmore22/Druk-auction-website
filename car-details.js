@@ -222,27 +222,57 @@ function initBackToAuctions() {
 
     backButton.addEventListener('click', function () {
         var fallbackUrl = 'car-dashboard.html';
+        var referrer = document.referrer || '';
+        var referrerIsDashboard = false;
+
+        if (referrer) {
+            try {
+                var refUrl = new URL(referrer, window.location.href);
+                referrerIsDashboard =
+                    refUrl.origin === window.location.origin &&
+                    /\/car-dashboard\.html$/i.test(refUrl.pathname);
+            } catch (err) {
+                referrerIsDashboard = false;
+            }
+        }
+
         var openerWindow = window.opener;
+        var trustedOpener = null;
 
         if (openerWindow && !openerWindow.closed) {
             try {
-                openerWindow.focus();
+                if (openerWindow.location && openerWindow.location.origin === window.location.origin) {
+                    trustedOpener = openerWindow;
+                }
+            } catch (err) {
+                trustedOpener = null;
+            }
+        }
+
+        if (trustedOpener) {
+            try {
+                trustedOpener.focus();
                 window.close();
 
+                // If close is blocked, navigate this tab as a safe fallback.
                 window.setTimeout(function () {
                     if (!window.closed) {
                         window.location.href = fallbackUrl;
                     }
-                }, 150);
+                }, 200);
                 return;
             } catch (err) {
-                window.location.href = fallbackUrl;
-                return;
+                // Fall through to history/referrer handling if opener access fails.
             }
         }
 
-        if (document.referrer && document.referrer.indexOf('car-dashboard.html') !== -1) {
+        if (referrerIsDashboard && window.history.length > 1) {
             window.history.back();
+            return;
+        }
+
+        if (referrerIsDashboard) {
+            window.location.href = referrer;
             return;
         }
 
