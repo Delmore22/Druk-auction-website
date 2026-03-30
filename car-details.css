@@ -13,40 +13,6 @@ body.car-details-page {
     min-height: calc(100vh - 75px);
 }
 
-.car-details-page .quick-actions {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.car-details-page .quick-actions a {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    color: var(--text-color);
-    padding: 0.85rem 1rem;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.car-details-page .quick-actions a:hover {
-    background: var(--placeholder-bg);
-}
-
-.car-details-page .quick-actions a:hover,
-.car-details-page .quick-actions a:focus-visible {
-    border-color: var(--accent-color);
-    color: var(--accent-color);
-    transform: translateX(2px);
-}
-
-.car-details-page .quick-actions a:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--accent-color) 45%, transparent);
-    outline-offset: 2px;
-}
-
 .car-details-page .car-detail {
     background: var(--header-bg);
     border-radius: 12px;

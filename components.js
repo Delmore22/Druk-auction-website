@@ -410,10 +410,36 @@
         var sidebar = document.getElementById('leftSidebar');
         var arrow   = document.getElementById('leftArrow');
         if (!sidebar) return;
-        sidebar.classList.toggle('collapsed');
+        if (sidebar.dataset.sidebarAnimating === '1') return;
+
         var isCollapsed = sidebar.classList.contains('collapsed');
-        if (arrow) arrow.textContent = isCollapsed ? '▶' : '◀';
-        storageSet('leftSidebarCollapsed', String(isCollapsed));
+        sidebar.dataset.sidebarAnimating = '1';
+
+        function finish() {
+            sidebar.dataset.sidebarAnimating = '0';
+            sidebar.classList.remove('is-expanding');
+            sidebar.removeEventListener('transitionend', onTransitionEnd);
+        }
+
+        function onTransitionEnd(event) {
+            if (event.target !== sidebar || event.propertyName !== 'width') return;
+            finish();
+        }
+
+        if (isCollapsed) {
+            sidebar.classList.remove('collapsed');
+            sidebar.classList.add('is-expanding');
+            if (arrow) arrow.textContent = '◀';
+            storageSet('leftSidebarCollapsed', 'false');
+            sidebar.addEventListener('transitionend', onTransitionEnd);
+            window.setTimeout(finish, 350);
+        } else {
+            sidebar.classList.add('collapsed');
+            if (arrow) arrow.textContent = '▶';
+            storageSet('leftSidebarCollapsed', 'true');
+            window.setTimeout(finish, 0);
+        }
+
         debugUiState('toggleLeftSidebar');
     };
 
@@ -421,10 +447,36 @@
         var sidebar = document.getElementById('rightSidebar');
         var arrow   = document.getElementById('rightArrow');
         if (!sidebar) return;
-        sidebar.classList.toggle('collapsed');
+        if (sidebar.dataset.sidebarAnimating === '1') return;
+
         var isCollapsed = sidebar.classList.contains('collapsed');
-        if (arrow) arrow.textContent = isCollapsed ? '◀' : '▶';
-        storageSet('rightSidebarCollapsed', String(isCollapsed));
+        sidebar.dataset.sidebarAnimating = '1';
+
+        function finish() {
+            sidebar.dataset.sidebarAnimating = '0';
+            sidebar.classList.remove('is-expanding');
+            sidebar.removeEventListener('transitionend', onTransitionEnd);
+        }
+
+        function onTransitionEnd(event) {
+            if (event.target !== sidebar || event.propertyName !== 'width') return;
+            finish();
+        }
+
+        if (isCollapsed) {
+            sidebar.classList.remove('collapsed');
+            sidebar.classList.add('is-expanding');
+            if (arrow) arrow.textContent = '▶';
+            storageSet('rightSidebarCollapsed', 'false');
+            sidebar.addEventListener('transitionend', onTransitionEnd);
+            window.setTimeout(finish, 350);
+        } else {
+            sidebar.classList.add('collapsed');
+            if (arrow) arrow.textContent = '◀';
+            storageSet('rightSidebarCollapsed', 'true');
+            window.setTimeout(finish, 0);
+        }
+
         debugUiState('toggleRightSidebar');
     };
 

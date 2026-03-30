@@ -31,22 +31,40 @@
         <!-- Right Sidebar -->
         <aside class="right-sidebar" id="rightSidebar">
             <div class="sidebar-header">
-                <button class="collapse-btn" data-action="toggle-right-sidebar" type="button"><i class="fas fa-angle-right"></i></button>
-                <h3 class="sidebar-title">Quick Actions</h3>
+                <button class="collapse-btn" data-action="toggle-right-sidebar" type="button">
+                    <span id="rightArrow">▶</span>
+                </button>
+                <span class="sidebar-title">Quick Actions</span>
             </div>
             
             <div class="collapsed-icons">
-                <div class="collapsed-icon" data-tooltip="Contact Seller"><i class="fas fa-envelope"></i></div>
-                <div class="collapsed-icon" data-tooltip="Share on Social Media"><i class="fas fa-share-alt"></i></div>
-                <div class="collapsed-icon" data-tooltip="Add to Watchlist"><i class="fas fa-star"></i></div>
+                <a class="collapsed-icon" href="#" data-tooltip="Contact Seller" title="Contact Seller" aria-label="Contact Seller"><i class="fas fa-envelope" aria-hidden="true"></i></a>
+                <a class="collapsed-icon" href="#" data-tooltip="Share on Social Media" title="Share on Social Media" aria-label="Share on Social Media"><i class="fas fa-share-alt" aria-hidden="true"></i></a>
+                <a class="collapsed-icon" href="#" data-tooltip="Add to Watchlist" title="Add to Watchlist" aria-label="Add to Watchlist"><i class="fas fa-star" aria-hidden="true"></i></a>
             </div>
             
             <div class="right-sidebar-content">
-            <ul class="quick-actions">
-                <li><a href="#"><i class="fas fa-envelope"></i> Contact Seller</a></li>
-                <li><a href="#"><i class="fas fa-share-alt"></i> Share on Social Media</a></li>
-                <li><a href="#"><i class="fas fa-star"></i> Add to Watchlist</a></li>
-            </ul>
+                <a class="quick-action" href="#">
+                    <div class="action-icon" aria-hidden="true"><i class="fas fa-envelope"></i></div>
+                    <div class="action-details">
+                        <h4>Contact Seller</h4>
+                        <p>Send a direct message about this vehicle</p>
+                    </div>
+                </a>
+                <a class="quick-action" href="#">
+                    <div class="action-icon" aria-hidden="true"><i class="fas fa-share-alt"></i></div>
+                    <div class="action-details">
+                        <h4>Share on Social Media</h4>
+                        <p>Send the listing to your network</p>
+                    </div>
+                </a>
+                <a class="quick-action" href="#">
+                    <div class="action-icon" aria-hidden="true"><i class="fas fa-star"></i></div>
+                    <div class="action-details">
+                        <h4>Add to Watchlist</h4>
+                        <p>Save this car for later review</p>
+                    </div>
+                </a>
             </div>
         </aside>
     </main>
