@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Druk Classic Bid — CSS Style Guide</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* ── BASE ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --sg-bg:       #f4f4f4;
+            --sg-surface:  #ffffff;
+            --sg-border:   #ddd;
+            --sg-text:     #1a1a1a;
+            --sg-muted:    #555;
+            --sg-accent:   #DAA520;
+            --sg-code-bg:  #1e1e1e;
+            --sg-code-fg:  #d4d4d4;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--sg-bg);
+            color: var(--sg-text);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* ── LAYOUT ── */
+        .sg-wrap {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            min-height: 100vh;
+        }
+
+        /* ── SIDEBAR NAV ── */
+        .sg-nav {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 1.5rem 0;
+            border-right: 1px solid #333;
+            print-color-adjust: exact;
+        }
+
+        .sg-nav-logo {
+            padding: 0 1.25rem 1.5rem;
+            border-bottom: 1px solid #333;
+            margin-bottom: 1rem;
+        }
+
+        .sg-nav-logo h1 {
+            font-size: 0.95rem;
+            color: var(--sg-accent);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .sg-nav-logo p {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .sg-nav a {
+            display: block;
+            padding: 0.45rem 1.25rem;
+            color: #c0c0c0;
+            text-decoration: none;
+            font-size: 0.85rem;
+            border-left: 3px solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .sg-nav a:hover, .sg-nav a.active {
+            color: var(--sg-accent);
+            border-left-color: var(--sg-accent);
+        }
+
+        .sg-nav-group {
+            margin-top: 1rem;
+            padding: 0 1.25rem 0.3rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #555;
+        }
+
+        /* ── MAIN ── */
+        .sg-main {
+            padding: 2.5rem 3rem;
+            max-width: 1000px;
+        }
+
+        /* ── SECTIONS ── */
+        .sg-section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 2rem;
+        }
+
+        .sg-section-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--sg-text);
+            border-bottom: 3px solid var(--sg-accent);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .sg-subsection {
+            margin-bottom: 2.5rem;
+        }
+
+        .sg-subsection-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--sg-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 1rem;
+        }
+
+        /* ── COVER BANNER ── */
+        .sg-cover {
+            background: linear-gradient(135deg, rgba(8,145,178,0.92), rgba(30,64,175,0.88));
+            color: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sg-cover::after {
+            content: '';
+            position: absolute;
+            inset: auto -40px -60px auto;
+            width: 220px; height: 220px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 50%;
+        }
+
+        .sg-cover h1 { font-size: 2rem; margin-bottom: 0.4rem; }
+        .sg-cover p  { color: rgba(255,255,255,0.8); font-size: 0.95rem; }
+        .sg-cover .sg-cover-meta {
+            margin-top: 1.25rem;
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.65);
+        }
+
+        /* ── PREVIEW BOXES ── */
+        .sg-preview {
+            background: var(--sg-surface);
+            border: 1px solid var(--sg-border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .sg-preview.dark {
+            background: #1a1a1a;
+            border-color: #333;
+        }
+
+        /* ── CODE BLOCK ── */
+        .sg-code {
+            background: var(--sg-code-bg);
+            color: var(--sg-code-fg);
+            font-family: 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.82rem;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+            white-space: pre;
+        }
+
+        /* ── COLOR SWATCHES ── */
+        .sg-swatch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+        }
+
+        .sg-swatch {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--sg-border);
+            font-size: 0.81rem;
+        }
+
+        .sg-swatch-color {
+            height: 72px;
+        }
+
+        .sg-swatch-info {
+            padding: 0.6rem 0.75rem;
+            background: white;
+        }
+
+        .sg-swatch-name { font-weight: 700; color: #1a1a1a; }
+        .sg-swatch-value { color: #666; font-size: 0.78rem; margin-top: 2px; }
+        .sg-swatch-token { color: #999; font-size: 0.74rem; font-family: monospace; margin-top: 1px; }
+
+        /* ── TYPOGRAPHY SPECIMENS ── */
+        .sg-type-row {
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid var(--sg-border);
+        }
+
+        .sg-type-meta {
+            width: 160px;
+            flex-shrink: 0;
+            font-size: 0.78rem;
+            color: #999;
+            font-family: monospace;
+        }
+
+        /* ── SPACING SCALE ── */
+        .sg-space-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .sg-space-bar {
+            height: 18px;
+            background: var(--sg-accent);
+            border-radius: 3px;
+            opacity: 0.75;
+        }
+
+        .sg-space-label {
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: var(--sg-muted);
+            min-width: 90px;
+        }
+
+        /* ── RADIUS SCALE ── */
+        .sg-radius-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .sg-radius-box {
+            width: 80px;
+            height: 60px;
+            background: var(--sg-accent);
+            opacity: 0.7;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 6px;
+            font-size: 0.72rem;
+            color: white;
+            font-weight: 700;
+        }
+
+        /* ── SHADOW SCALE ── */
+        .sg-shadow-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .sg-shadow-box {
+            width: 120px;
+            height: 80px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: #666;
+            gap: 4px;
+        }
+
+        .sg-shadow-label {
+            font-weight: 700;
+            color: #333;
+            font-size: 0.78rem;
+        }
+
+        /* ── SITE COMPONENT RESETS ── */
+
+        /* Buttons */
+        .sg-btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* Cards */
+        .sg-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        /* Pills / Chips */
+        .sg-pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            align-items: center;
+        }
+
+        /* Notes */
+        .sg-note {
+            background: #fffbeb;
+            border-left: 4px solid var(--sg-accent);
+            padding: 0.75rem 1rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.87rem;
+            color: #555;
+            margin-top: 0.75rem;
+        }
+
+        .sg-note strong { color: #333; }
+
+        .sg-rule {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+            font-size: 0.87rem;
+            color: var(--sg-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .sg-rule::before { content: "→"; color: var(--sg-accent); font-weight: 700; flex-shrink: 0; }
+
+        /* Two-col token table */
+        .sg-token-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sg-token-table th {
+            text-align: left;
+            padding: 0.5rem 0.75rem;
+            background: #f0f0f0;
+            color: #333;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sg-token-table td {
+            padding: 0.5rem 0.75rem;
+            border-top: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .sg-token-table td code {
+            font-family: monospace;
+            font-size: 0.82rem;
+            background: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .sg-dot {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.1);
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        /* ── PRINT ── */
+        @media print {
+            .sg-nav { display: none; }
+            .sg-wrap { grid-template-columns: 1fr; }
+            .sg-main { padding: 1.5rem; max-width: 100%; }
+            .sg-cover, .sg-preview.dark { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .sg-section { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+<div class="sg-wrap">
+
+    <!-- ── SIDE NAV ── -->
+    <nav class="sg-nav">
+        <div class="sg-nav-logo">
+            <h1>Style Guide</h1>
+            <p>Druk Classic Bid — v1.0</p>
+        </div>
+
+        <div class="sg-nav-group">Foundations</div>
+        <a href="#colors">Color Palette</a>
+        <a href="#typography">Typography</a>
+        <a href="#spacing">Spacing Scale</a>
+        <a href="#radius">Border Radius</a>
+        <a href="#shadows">Shadows</a>
+
+        <a href="#icons">Icons (Font Awesome)</a>
+
+        <div class="sg-nav-group">Components</div>
+        <a href="#buttons">Buttons</a>
+        <a href="#cards">Cards</a>
+        <a href="#pills">Pills &amp; Chips</a>
+        <a href="#tabs">Tabs</a>
+        <a href="#forms">Form Controls</a>
+        <a href="#sidebar-actions">Sidebar Actions</a>
+
+        <div class="sg-nav-group">Patterns</div>
+        <a href="#hero">Page Hero</a>
+        <a href="#layout">Layout Grid</a>
+        <a href="#stat-cards">Stat Cards</a>
+        <a href="#rules">Usage Rules</a>
+    </nav>
+
+    <!-- ── MAIN CONTENT ── -->
+    <main class="sg-main">
+
+        <!-- COVER -->
+        <div class="sg-cover">
+            <h1>Druk Classic Bid — CSS Style Guide</h1>
+            <p>Single source of truth for design tokens, components, and layout patterns. Use this document before writing any new CSS.</p>
+            <div class="sg-cover-meta">
+                <span>Date: April 2026</span>
+                <span>Base font: Segoe UI / Tahoma / Verdana</span>
+                <span>Two themes: Light &amp; Dark</span>
+            </div>
+        </div>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 1. COLOR PALETTE -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="colors">
+            <h2 class="sg-section-title">Color Palette</h2>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Accent (Both Themes)</div>
+                <div class="sg-swatch-grid">
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#DAA520"></div>
+                        <div class="sg-swatch-info">
+                            <div class="sg-swatch-name">Gold — Primary Accent</div>
+                            <div class="sg-swatch-value">#DAA520</div>
+                            <div class="sg-swatch-token">--accent-color</div>
+                        </div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#FFD700"></div>
+                        <div class="sg-swatch-info">
+                            <div class="sg-swatch-name">Gold Light — Gradient End</div>
+                            <div class="sg-swatch-value">#FFD700</div>
+                            <div class="sg-swatch-token">--gradient-end</div>
+                        </div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:rgba(218,165,32,0.1);border:1px solid #ddd"></div>
+                        <div class="sg-swatch-info">
+                            <div class="sg-swatch-name">Gold Tint — Hover/BG</div>
+                            <div class="sg-swatch-value">rgba(218,165,32,0.1)</div>
+                            <div class="sg-swatch-token">--accent-rgba</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Light Theme Surfaces</div>
+                <div class="sg-swatch-grid">
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#f5f5f5;border-bottom:1px solid #ddd"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Page Background</div><div class="sg-swatch-value">#f5f5f5</div><div class="sg-swatch-token">--bg-color</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#ffffff;border-bottom:1px solid #ddd"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Header / Card BG</div><div class="sg-swatch-value">#ffffff</div><div class="sg-swatch-token">--header-bg</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#fafafa;border-bottom:1px solid #ddd"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Sub-header BG</div><div class="sg-swatch-value">#fafafa</div><div class="sg-swatch-token">--subheader-bg</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#f9f9f9;border-bottom:1px solid #ddd"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Placeholder / Inset</div><div class="sg-swatch-value">#f9f9f9</div><div class="sg-swatch-token">--placeholder-bg</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#f0f0f0;border-bottom:1px solid #ddd"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Card BG</div><div class="sg-swatch-value">#f0f0f0</div><div class="sg-swatch-token">--card-bg</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#e0e0e0;border-bottom:1px solid #ddd"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Hover Background</div><div class="sg-swatch-value">#e0e0e0</div><div class="sg-swatch-token">--hover-bg</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Dark Theme Surfaces</div>
+                <div class="sg-swatch-grid">
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#1a1a1a"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Page Background</div><div class="sg-swatch-value">#1a1a1a</div><div class="sg-swatch-token">--bg-color (dark)</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#2d2d2d"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Header / Sidebar</div><div class="sg-swatch-value">#2d2d2d</div><div class="sg-swatch-token">--header-bg (dark)</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#3a3a3a"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Card BG</div><div class="sg-swatch-value">#3a3a3a</div><div class="sg-swatch-token">--card-bg (dark)</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#2a2a2a"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Placeholder / Inset</div><div class="sg-swatch-value">#2a2a2a</div><div class="sg-swatch-token">--placeholder-bg (dark)</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#4a4a4a"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Hover Background</div><div class="sg-swatch-value">#4a4a4a</div><div class="sg-swatch-token">--hover-bg (dark)</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Text</div>
+                <div class="sg-swatch-grid">
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#333"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Primary Text (light)</div><div class="sg-swatch-value">#333</div><div class="sg-swatch-token">--text-color</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#666;border-bottom:1px solid #ddd"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Secondary Text (light)</div><div class="sg-swatch-value">#666</div><div class="sg-swatch-token">--secondary-text</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#888"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Tertiary Text</div><div class="sg-swatch-value">#888</div><div class="sg-swatch-token">--tertiary-text</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#e0e0e0"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Primary Text (dark)</div><div class="sg-swatch-value">#e0e0e0</div><div class="sg-swatch-token">--text-color (dark)</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#b0b0b0"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Secondary Text (dark)</div><div class="sg-swatch-value">#b0b0b0</div><div class="sg-swatch-token">--secondary-text (dark)</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Status / Semantic</div>
+                <div class="sg-swatch-grid">
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#16a34a"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Success</div><div class="sg-swatch-value">#16a34a</div><div class="sg-swatch-token">.record-pill.success</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#d97706"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Warning</div><div class="sg-swatch-value">#d97706</div><div class="sg-swatch-token">.record-pill.warning</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#2563eb"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Info / Default Pill</div><div class="sg-swatch-value">#2563eb</div><div class="sg-swatch-token">.record-pill (default)</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#475569"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Neutral</div><div class="sg-swatch-value">#475569</div><div class="sg-swatch-token">.record-pill.neutral</div></div>
+                    </div>
+                    <div class="sg-swatch">
+                        <div class="sg-swatch-color" style="background:#ff4444"></div>
+                        <div class="sg-swatch-info"><div class="sg-swatch-name">Notification / Danger</div><div class="sg-swatch-value">#ff4444</div><div class="sg-swatch-token">--notification-bg</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Page Hero Gradient</div>
+                <div class="sg-preview">
+                    <div style="background:radial-gradient(circle at top right,rgba(255,215,0,0.16),transparent 38%),linear-gradient(135deg,rgba(8,145,178,0.92),rgba(30,64,175,0.88));border-radius:12px;padding:1.5rem;color:white;">
+                        <strong>Page Hero Background</strong>
+                        <p style="font-size:0.85rem;opacity:0.8;margin-top:4px;">Start: rgba(8,145,178,0.92) → End: rgba(30,64,175,0.88) + gold radial overlay top-right</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 2. TYPOGRAPHY -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="typography">
+            <h2 class="sg-section-title">Typography</h2>
+
+            <div class="sg-note"><strong>Font Stack:</strong> 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif — applied on <code>body</code> in css.css</div>
+            <br>
+
+            <div class="sg-preview">
+                <div class="sg-type-row">
+                    <div class="sg-type-meta">Page Hero H1<br>clamp(1.8–2.6rem)<br>weight 700</div>
+                    <div style="font-size:clamp(1.8rem,3vw,2.6rem);font-weight:700;font-family:'Segoe UI',sans-serif">1967 Ford Mustang</div>
+                </div>
+                <div class="sg-type-row">
+                    <div class="sg-type-meta">Section H2<br>1.8rem, weight 700</div>
+                    <div style="font-size:1.8rem;font-weight:700;font-family:'Segoe UI',sans-serif">My Vehicles</div>
+                </div>
+                <div class="sg-type-row">
+                    <div class="sg-type-meta">Card H2<br>1.1rem, weight 700</div>
+                    <div style="font-size:1.1rem;font-weight:700;font-family:'Segoe UI',sans-serif">Fleet Status</div>
+                </div>
+                <div class="sg-type-row">
+                    <div class="sg-type-meta">Stat Value<br>1.9–2rem, weight 700</div>
+                    <div style="font-size:1.9rem;font-weight:700;font-family:'Segoe UI',sans-serif">$1.82M</div>
+                </div>
+                <div class="sg-type-row">
+                    <div class="sg-type-meta">Body<br>~15px / 1rem</div>
+                    <div style="font-size:1rem;font-family:'Segoe UI',sans-serif">The vehicle is scheduled for a studio photo shoot next week.</div>
+                </div>
+                <div class="sg-type-row">
+                    <div class="sg-type-meta">Secondary / Caption<br>0.85–0.92rem, #666</div>
+                    <div style="font-size:0.9rem;color:#666;font-family:'Segoe UI',sans-serif">Reserve signed off. Final photo review scheduled.</div>
+                </div>
+                <div class="sg-type-row">
+                    <div class="sg-type-meta">Label / Eyebrow<br>0.78rem, UPPERCASE<br>letter-spacing 0.04em</div>
+                    <div style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;font-weight:700;font-family:'Segoe UI',sans-serif">Listing Management</div>
+                </div>
+                <div class="sg-type-row">
+                    <div class="sg-type-meta">Stat Label<br>0.82rem, UPPERCASE<br>letter-spacing 0.05em, muted</div>
+                    <div style="font-size:0.82rem;text-transform:uppercase;letter-spacing:0.05em;color:#666;font-family:'Segoe UI',sans-serif">In Collection</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 5. ICONS -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="icons">
+            <h2 class="sg-section-title">Icons — Font Awesome 6</h2>
+
+            <div class="sg-note"><strong>Library:</strong> Font Awesome 6.5.2 Free — loaded via CDN on every page.<br>
+            <code>&lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"&gt;</code></div>
+            <br>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Usage Pattern</div>
+                <div class="sg-code">&lt;!-- Solid style (most common) --&gt;
+&lt;i class="fas fa-{icon-name}" aria-hidden="true"&gt;&lt;/i&gt;
+
+&lt;!-- Regular style --&gt;
+&lt;i class="far fa-{icon-name}" aria-hidden="true"&gt;&lt;/i&gt;
+
+&lt;!-- Brand icons --&gt;
+&lt;i class="fab fa-{icon-name}" aria-hidden="true"&gt;&lt;/i&gt;
+
+&lt;!-- Always add aria-hidden="true" when icon is decorative --&gt;
+&lt;!-- Always add aria-label on the parent when icon is the only content --&gt;</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Icons in Use Across the Site</div>
+                <table class="sg-token-table">
+                    <thead><tr><th>Icon</th><th>Class</th><th>Used For</th></tr></thead>
+                    <tbody>
+                        <tr><td><i class="fas fa-car-side" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-car-side</code></td><td>Page eyebrow — vehicle/listing pages</td></tr>
+                        <tr><td><i class="fas fa-gavel" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-gavel</code></td><td>Auctions / bidding</td></tr>
+                        <tr><td><i class="fas fa-plus" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-plus</code></td><td>Add Vehicle sidebar action</td></tr>
+                        <tr><td><i class="fas fa-pen-to-square" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-pen-to-square</code></td><td>Update listing notes</td></tr>
+                        <tr><td><i class="fas fa-truck" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-truck</code></td><td>Arrange transport</td></tr>
+                        <tr><td><i class="fas fa-envelope" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-envelope</code></td><td>Contact seller</td></tr>
+                        <tr><td><i class="fas fa-share-alt" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-share-alt</code></td><td>Share on social media</td></tr>
+                        <tr><td><i class="fas fa-star" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-star</code></td><td>Add to watchlist</td></tr>
+                        <tr><td><i class="fas fa-chevron-left" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-chevron-left</code></td><td>Back button</td></tr>
+                        <tr><td><i class="fas fa-cloud-download-alt" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-cloud-download-alt</code></td><td>Import from inventory tab</td></tr>
+                        <tr><td><i class="fas fa-keyboard" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-keyboard</code></td><td>Manual entry tab</td></tr>
+                        <tr><td><i class="fas fa-question-circle" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-question-circle</code></td><td>Form help sidebar</td></tr>
+                        <tr><td><i class="fas fa-moon" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-moon</code></td><td>Dark theme toggle</td></tr>
+                        <tr><td><i class="fas fa-sun" style="font-size:1.1rem;color:#DAA520"></i></td><td><code>fa-sun</code></td><td>Light theme toggle</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Sizing Conventions</div>
+                <div class="sg-preview">
+                    <div style="display:flex;align-items:center;gap:2rem;flex-wrap:wrap">
+                        <div style="text-align:center">
+                            <i class="fas fa-car-side" style="font-size:0.85rem;color:#DAA520"></i>
+                            <div style="font-size:0.75rem;color:#888;margin-top:4px">0.85rem<br>eyebrow / label</div>
+                        </div>
+                        <div style="text-align:center">
+                            <i class="fas fa-car-side" style="font-size:1rem;color:#DAA520"></i>
+                            <div style="font-size:0.75rem;color:#888;margin-top:4px">1rem<br>tab icon</div>
+                        </div>
+                        <div style="text-align:center">
+                            <i class="fas fa-car-side" style="font-size:1.1rem;color:#DAA520"></i>
+                            <div style="font-size:0.75rem;color:#888;margin-top:4px">1.1rem<br>sidebar collapsed</div>
+                        </div>
+                        <div style="text-align:center">
+                            <i class="fas fa-car-side" style="font-size:1.2rem;color:#DAA520"></i>
+                            <div style="font-size:0.75rem;color:#888;margin-top:4px">1.2rem<br>collapsed-icon btn</div>
+                        </div>
+                        <div style="text-align:center">
+                            <i class="fas fa-car-side" style="font-size:1.5rem;color:#DAA520"></i>
+                            <div style="font-size:0.75rem;color:#888;margin-top:4px">1.5rem<br>stat card icon</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 4. SPACING -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="spacing">
+            <h2 class="sg-section-title">Spacing Scale</h2>
+            <div class="sg-note"><strong>Rule:</strong> Use multiples of 4px. Prefer rem for component padding, px is acceptable for micro adjustments.</div>
+            <br>
+            <div>
+                <div class="sg-space-row"><span class="sg-space-label">4px — 0.25rem</span><div class="sg-space-bar" style="width:4px"></div></div>
+                <div class="sg-space-row"><span class="sg-space-label">8px — 0.5rem</span><div class="sg-space-bar" style="width:8px"></div></div>
+                <div class="sg-space-row"><span class="sg-space-label">12px — 0.75rem</span><div class="sg-space-bar" style="width:12px"></div></div>
+                <div class="sg-space-row"><span class="sg-space-label">16px — 1rem</span><div class="sg-space-bar" style="width:16px"></div></div>
+                <div class="sg-space-row"><span class="sg-space-label">20px — 1.25rem</span><div class="sg-space-bar" style="width:20px"></div></div>
+                <div class="sg-space-row"><span class="sg-space-label">24px — 1.5rem</span><div class="sg-space-bar" style="width:24px"></div></div>
+                <div class="sg-space-row"><span class="sg-space-label">32px — 2rem</span><div class="sg-space-bar" style="width:32px"></div></div>
+                <div class="sg-space-row"><span class="sg-space-label">40px — 2.5rem</span><div class="sg-space-bar" style="width:40px"></div></div>
+                <div class="sg-space-row"><span class="sg-space-label">48px — 3rem</span><div class="sg-space-bar" style="width:48px"></div></div>
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 4. BORDER RADIUS -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="radius">
+            <h2 class="sg-section-title">Border Radius</h2>
+            <div class="sg-radius-grid">
+                <div>
+                    <div class="sg-radius-box" style="border-radius:4px">4px</div>
+                    <p style="font-size:0.8rem;margin-top:6px;color:#666">Inputs, small buttons</p>
+                </div>
+                <div>
+                    <div class="sg-radius-box" style="border-radius:8px">8px</div>
+                    <p style="font-size:0.8rem;margin-top:6px;color:#666">Provider cards, form sections</p>
+                </div>
+                <div>
+                    <div class="sg-radius-box" style="border-radius:10px">10px</div>
+                    <p style="font-size:0.8rem;margin-top:6px;color:#666">Quick action rows</p>
+                </div>
+                <div>
+                    <div class="sg-radius-box" style="border-radius:12px">12px</div>
+                    <p style="font-size:0.8rem;margin-top:6px;color:#666">Dashboard stat cards, tabs</p>
+                </div>
+                <div>
+                    <div class="sg-radius-box" style="border-radius:14px">14px</div>
+                    <p style="font-size:0.8rem;margin-top:6px;color:#666">Record items, spotlight cards</p>
+                </div>
+                <div>
+                    <div class="sg-radius-box" style="border-radius:16px">16px</div>
+                    <p style="font-size:0.8rem;margin-top:6px;color:#666">Panel, aside, list cards</p>
+                </div>
+                <div>
+                    <div class="sg-radius-box" style="border-radius:18px">18px</div>
+                    <p style="font-size:0.8rem;margin-top:6px;color:#666">Page hero</p>
+                </div>
+                <div>
+                    <div class="sg-radius-box" style="border-radius:999px;width:80px">999px</div>
+                    <p style="font-size:0.8rem;margin-top:6px;color:#666">Pills, chips, hero buttons</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 5. SHADOWS -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="shadows">
+            <h2 class="sg-section-title">Shadows</h2>
+            <div class="sg-shadow-grid">
+                <div class="sg-shadow-box" style="box-shadow:0 2px 8px rgba(0,0,0,0.2)">
+                    <span class="sg-shadow-label">sm</span>
+                    <span style="font-size:0.72rem;color:#999">0 2px 8px</span>
+                    <span style="font-size:0.72rem;color:#999">inputs, small cards</span>
+                </div>
+                <div class="sg-shadow-box" style="box-shadow:0 10px 24px rgba(0,0,0,0.08)">
+                    <span class="sg-shadow-label">md</span>
+                    <span style="font-size:0.72rem;color:#999">0 10px 24px</span>
+                    <span style="font-size:0.72rem;color:#999">panel/aside/list cards</span>
+                </div>
+                <div class="sg-shadow-box" style="box-shadow:0 12px 30px rgba(0,0,0,0.18)">
+                    <span class="sg-shadow-label">lg</span>
+                    <span style="font-size:0.72rem;color:#999">0 12px 30px</span>
+                    <span style="font-size:0.72rem;color:#999">page hero</span>
+                </div>
+                <div class="sg-shadow-box" style="box-shadow:0 10px 22px rgba(0,0,0,0.12)">
+                    <span class="sg-shadow-label">hover</span>
+                    <span style="font-size:0.72rem;color:#999">0 10px 22px</span>
+                    <span style="font-size:0.72rem;color:#999">quick-action hover</span>
+                </div>
+                <div class="sg-shadow-box" style="box-shadow:0 4px 12px rgba(0,0,0,0.2)">
+                    <span class="sg-shadow-label">stat hover</span>
+                    <span style="font-size:0.72rem;color:#999">0 4px 12px</span>
+                    <span style="font-size:0.72rem;color:#999">stat card hover</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 6. BUTTONS -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="buttons">
+            <h2 class="sg-section-title">Buttons</h2>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Primary — Accent (Gold)</div>
+                <div class="sg-preview">
+                    <div class="sg-btn-row">
+                        <button style="background:#DAA520;color:#111827;border:none;padding:0.75rem 1.5rem;border-radius:4px;font-weight:600;font-size:0.95rem;cursor:pointer">Add Vehicle</button>
+                        <button style="background:#b45309;color:#fff;border:none;padding:10px 20px;border-radius:4px;font-weight:600;font-size:0.9rem;cursor:pointer">Connect</button>
+                    </div>
+                </div>
+                <div class="sg-code">background: var(--accent-color);   /* #DAA520 */
+color: #111827;
+border-radius: 4px;
+font-weight: 600;
+padding: 10px 20px;</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Hero Buttons (Page Hero)</div>
+                <div class="sg-preview" style="background:linear-gradient(135deg,rgba(8,145,178,0.92),rgba(30,64,175,0.88));border-radius:10px;padding:1.5rem">
+                    <div class="sg-btn-row">
+                        <a href="#" style="border:1px solid rgba(255,255,255,0.28);background:rgba(255,255,255,0.12);color:#fff;padding:0.75rem 1rem;border-radius:999px;text-decoration:none;font-weight:600;font-size:0.9rem">Secondary Hero</a>
+                        <a href="#" style="background:#fff;color:#0f172a;padding:0.75rem 1rem;border-radius:999px;text-decoration:none;font-weight:600;font-size:0.9rem">Primary Hero</a>
+                    </div>
+                </div>
+                <div class="sg-code">.hero-btn         { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.28); border-radius: 999px; }
+.hero-btn.primary { background: #ffffff; color: #0f172a; }</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Form Submit / Cancel</div>
+                <div class="sg-preview">
+                    <div class="sg-btn-row">
+                        <button style="background:#DAA520;color:#fff;border:none;padding:10px 30px;border-radius:4px;font-weight:600;font-size:0.95rem;cursor:pointer">Add Vehicle</button>
+                        <button style="background:#f9f9f9;color:#333;border:1px solid rgba(0,0,0,0.1);padding:10px 30px;border-radius:4px;font-weight:600;font-size:0.95rem;cursor:pointer">Cancel</button>
+                    </div>
+                </div>
+                <div class="sg-code">.btn-submit { background: var(--accent-color); color: white; }
+.btn-cancel { background: var(--placeholder-bg); color: var(--text-color); border: 1px solid var(--border-color); }</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Back / Text Button</div>
+                <div class="sg-preview">
+                    <button style="background:none;border:none;color:#DAA520;font-size:0.95rem;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="fas fa-chevron-left"></i> Back</button>
+                </div>
+                <div class="sg-code">.back-button { background: none; border: none; color: var(--accent-color); font-size: 0.95rem; }</div>
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 7. CARDS -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="cards">
+            <h2 class="sg-section-title">Cards</h2>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Summary Card</div>
+                <div class="sg-preview">
+                    <div class="sg-card-grid">
+                        <div style="background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:16px;padding:1.25rem;box-shadow:0 10px 24px rgba(0,0,0,0.08)">
+                            <div style="color:#666;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.65rem">In Collection</div>
+                            <div style="font-size:1.9rem;font-weight:700;color:#333">24</div>
+                            <div style="margin-top:0.5rem;color:#666;font-size:0.9rem">6 vehicles added this quarter</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:16px;padding:1.25rem;box-shadow:0 10px 24px rgba(0,0,0,0.08)">
+                            <div style="color:#666;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.65rem">Ready to List</div>
+                            <div style="font-size:1.9rem;font-weight:700;color:#333">8</div>
+                            <div style="margin-top:0.5rem;color:#666;font-size:0.9rem">Photo set and reserve approved</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sg-code">background: var(--header-bg);
+border: 1px solid var(--border-color);
+border-radius: 16px;
+padding: 1.25rem;
+box-shadow: 0 10px 24px rgba(0,0,0,0.08);</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Spotlight Card (Gold Tint)</div>
+                <div class="sg-preview">
+                    <div class="sg-card-grid">
+                        <div style="padding:1rem;border-radius:14px;background:linear-gradient(180deg,#f9f9f9,rgba(218,165,32,0.08));border:1px solid rgba(0,0,0,0.1)">
+                            <strong style="font-size:1rem;display:block;margin-bottom:0.5rem;color:#333">Fast-Track Listing</strong>
+                            <p style="color:#666;font-size:0.92rem;line-height:1.5">The Mustang and Jaguar are positioned to go live this month.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="sg-code">background: linear-gradient(180deg, var(--placeholder-bg), rgba(218,165,32,0.08));
+border-radius: 14px;
+border: 1px solid var(--border-color);</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Stat Card (Dashboard)</div>
+                <div class="sg-preview">
+                    <div style="background:#fff;padding:1.5rem;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.2);display:flex;justify-content:space-between;align-items:center;max-width:300px">
+                        <div>
+                            <div style="font-size:2rem;font-weight:700;color:#333;margin-bottom:0.3rem">142</div>
+                            <div style="font-size:0.9rem;color:#666">Active Auctions</div>
+                        </div>
+                        <div style="width:50px;height:50px;border-radius:10px;background:rgba(59,130,246,0.1);color:#3b82f6;display:flex;align-items:center;justify-content:center;font-size:1.5rem">
+                            <i class="fas fa-gavel"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="sg-code">background: var(--header-bg);
+border-radius: 12px;
+box-shadow: 0 2px 8px var(--shadow);
+/* Icon colors: icon-blue #3b82f6, icon-green #22c55e, icon-purple, icon-orange */</div>
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 8. PILLS & CHIPS -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="pills">
+            <h2 class="sg-section-title">Pills &amp; Chips</h2>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Status Pills (record-pill)</div>
+                <div class="sg-preview">
+                    <div class="sg-pill-row">
+                        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:90px;padding:0.42rem 0.7rem;border-radius:999px;font-size:0.8rem;font-weight:700;color:#fff;background:#16a34a">Ready</span>
+                        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:90px;padding:0.42rem 0.7rem;border-radius:999px;font-size:0.8rem;font-weight:700;color:#fff;background:#d97706">Pending</span>
+                        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:90px;padding:0.42rem 0.7rem;border-radius:999px;font-size:0.8rem;font-weight:700;color:#fff;background:#2563eb">Review</span>
+                        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:90px;padding:0.42rem 0.7rem;border-radius:999px;font-size:0.8rem;font-weight:700;color:#fff;background:#475569">In Shop</span>
+                    </div>
+                </div>
+                <div class="sg-code">.record-pill          { background: #2563eb; }   /* Info / default */
+.record-pill.success  { background: #16a34a; }   /* Ready / complete */
+.record-pill.warning  { background: #d97706; }   /* Pending / caution */
+.record-pill.neutral  { background: #475569; }   /* In progress / neutral */</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Filter Chips</div>
+                <div class="sg-preview">
+                    <div class="sg-pill-row">
+                        <span style="display:inline-flex;align-items:center;padding:0.4rem 0.8rem;border-radius:999px;background:#f9f9f9;color:#333;border:1px solid rgba(0,0,0,0.1);font-size:0.85rem">All vehicles</span>
+                        <span style="display:inline-flex;align-items:center;padding:0.4rem 0.8rem;border-radius:999px;background:#f9f9f9;color:#333;border:1px solid rgba(0,0,0,0.1);font-size:0.85rem">Ready to list</span>
+                        <span style="display:inline-flex;align-items:center;padding:0.4rem 0.8rem;border-radius:999px;background:#f9f9f9;color:#333;border:1px solid rgba(0,0,0,0.1);font-size:0.85rem">Restoration queue</span>
+                    </div>
+                </div>
+                <div class="sg-code">.chip {
+    background: var(--placeholder-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}</div>
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 9. TABS -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="tabs">
+            <h2 class="sg-section-title">Tabs</h2>
+
+            <div class="sg-preview" style="padding-bottom:0">
+                <div style="display:flex;gap:15px;border-bottom:1px solid rgba(0,0,0,0.1);padding-bottom:0">
+                    <button style="background:rgba(218,165,32,0.1);border:1px solid rgba(0,0,0,0.1);border-bottom:none;border-radius:12px 12px 0 0;color:#333;padding:12px 18px 11px;font-size:0.95rem;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:-1px;position:relative;top:1px;box-shadow:0 -4px 0 0 #DAA520 inset,0 8px 16px rgba(15,23,42,0.12);cursor:pointer">
+                        <i class="fas fa-cloud-download-alt"></i> Import from Inventory
+                    </button>
+                    <button style="background:#f9f9f9;border:1px solid rgba(0,0,0,0.1);border-bottom:none;border-radius:12px 12px 0 0;color:#666;padding:12px 18px 11px;font-size:0.95rem;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:-1px;position:relative;top:1px;cursor:pointer">
+                        <i class="fas fa-keyboard"></i> Manual Entry
+                    </button>
+                </div>
+            </div>
+            <div class="sg-code">/* Inactive tab */
+.option-toggle {
+    background: var(--placeholder-bg);
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    margin-bottom: -1px;
+}
+
+/* Active tab */
+.option-toggle.active {
+    background: var(--accent-rgba);     /* rgba(218,165,32,0.1) */
+    color: #111827;
+    box-shadow: 0 -4px 0 0 var(--accent-color) inset;  /* gold underline */
+    transform: translateY(-1px);
+}
+
+/* Hover */
+.option-toggle:hover {
+    background: var(--accent-color);    /* solid gold */
+    color: #111827;
+    transform: translateY(-2px);
+}</div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 10. FORM CONTROLS -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="forms">
+            <h2 class="sg-section-title">Form Controls</h2>
+
+            <div class="sg-preview">
+                <div style="max-width:400px;display:grid;gap:16px">
+                    <div>
+                        <label style="display:block;margin-bottom:5px;font-weight:500;font-size:0.95rem;color:#333">Make</label>
+                        <input type="text" placeholder="e.g. Ford" style="width:100%;padding:10px;border:1px solid rgba(0,0,0,0.1);border-radius:4px;background:#f9f9f9;color:#333;font-size:0.95rem">
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:5px;font-weight:500;font-size:0.95rem;color:#333">Body Type</label>
+                        <select style="width:100%;padding:10px;border:1px solid rgba(0,0,0,0.1);border-radius:4px;background:#f9f9f9;color:#333;font-size:0.95rem">
+                            <option>-- Select Body Type --</option>
+                            <option>Coupe</option>
+                            <option>Sedan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:5px;font-weight:500;font-size:0.95rem;color:#333">Description</label>
+                        <textarea rows="3" placeholder="Enter details..." style="width:100%;padding:10px;border:1px solid rgba(0,0,0,0.1);border-radius:4px;background:#f9f9f9;color:#333;font-size:0.95rem;resize:vertical"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="sg-code">.form-group input,
+.form-group select,
+.form-group textarea {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--placeholder-bg);
+    color: var(--text-color);
+    padding: 10px;
+}
+
+/* Focus ring */
+:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(218,165,32,0.15);
+    outline: none;
+}
+
+/* Fieldset card */
+.form-section {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 52px 20px 20px;   /* top padding reserves space for legend */
+    background: var(--header-bg);
+    position: relative;
+}
+
+.form-section legend {
+    position: absolute;
+    top: 18px; left: 20px;
+    font-weight: 600;
+}</div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 11. SIDEBAR ACTIONS -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="sidebar-actions">
+            <h2 class="sg-section-title">Sidebar Actions</h2>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Collapsed Icon Button</div>
+                <div class="sg-preview">
+                    <div style="display:flex;gap:12px">
+                        <a href="#" style="width:40px;height:40px;background:linear-gradient(135deg,#DAA520,#FFD700);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;text-decoration:none;color:#111827"><i class="fas fa-plus"></i></a>
+                        <a href="#" style="width:40px;height:40px;background:linear-gradient(135deg,#DAA520,#FFD700);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;text-decoration:none;color:#111827"><i class="fas fa-envelope"></i></a>
+                        <a href="#" style="width:40px;height:40px;background:linear-gradient(135deg,#DAA520,#FFD700);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;text-decoration:none;color:#111827"><i class="fas fa-star"></i></a>
+                    </div>
+                </div>
+                <div class="sg-code">.collapsed-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, #DAA520, #FFD700);  /* always gold */
+    border-radius: 8px;
+    color: #111827;
+}
+.collapsed-icon:hover { transform: scale(1.1); }</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Quick Action Row</div>
+                <div class="sg-preview">
+                    <div style="max-width:280px">
+                        <a href="#" style="display:flex;align-items:center;gap:1rem;padding:1rem;background:#f9f9f9;border-radius:10px;margin-bottom:0.75rem;text-decoration:none;color:inherit">
+                            <div style="width:40px;height:40px;background:rgba(218,165,32,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#DAA520"><i class="fas fa-plus"></i></div>
+                            <div>
+                                <strong style="display:block;font-size:0.95rem;color:#333">Add Vehicle</strong>
+                                <span style="font-size:0.85rem;color:#666">Create a new garage record</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="sg-code">.quick-action {
+    background: var(--placeholder-bg);
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex; align-items: center; gap: 1rem;
+}
+.quick-action:hover {
+    background: var(--accent-rgba);    /* rgba(218,165,32,0.1) */
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+}</div>
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 12. PAGE HERO PATTERN -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="hero">
+            <h2 class="sg-section-title">Page Hero Pattern</h2>
+
+            <div class="sg-preview" style="padding:0;background:none;border:none">
+                <div style="position:relative;overflow:hidden;background:radial-gradient(circle at top right,rgba(255,215,0,0.16),transparent 38%),linear-gradient(135deg,rgba(8,145,178,0.92),rgba(30,64,175,0.88));color:#fff;border-radius:18px;padding:2rem;box-shadow:0 12px 30px rgba(0,0,0,0.18)">
+                    <div style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.35rem 0.75rem;border:1px solid rgba(255,255,255,0.2);border-radius:999px;font-size:0.78rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:1rem"><i class="fas fa-car-side"></i> Listing Management</div>
+                    <h1 style="font-size:2rem;margin-bottom:0.65rem">Add Vehicles to Your Listing</h1>
+                    <p style="color:rgba(255,255,255,0.86);max-width:52ch;line-height:1.6">Choose how you'd like to add vehicles to your collection. Import from an existing inventory system or enter manually.</p>
+                    <div style="display:flex;gap:0.75rem;margin-top:1.5rem">
+                        <a href="#" style="border:1px solid rgba(255,255,255,0.28);background:rgba(255,255,255,0.12);color:#fff;padding:0.75rem 1rem;border-radius:999px;text-decoration:none;font-weight:600;font-size:0.9rem">View Fleet</a>
+                        <a href="#" style="background:#fff;color:#0f172a;padding:0.75rem 1rem;border-radius:999px;text-decoration:none;font-weight:600;font-size:0.9rem">Go to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+            <div class="sg-code">/* Used on: My Vehicles, Watchlist, Network, car-add-vehicle */
+.page-hero {
+    background:
+        radial-gradient(circle at top right, rgba(255,215,0,0.16), transparent 38%),
+        linear-gradient(135deg, rgba(8,145,178,0.92), rgba(30,64,175,0.88));
+    border-radius: 18px;
+    padding: 2rem;
+    color: #ffffff;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+}
+.page-eyebrow { border-radius: 999px; border: 1px solid rgba(255,255,255,0.2); font-size: 0.78rem; text-transform: uppercase; }</div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 13. LAYOUT GRID -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="layout">
+            <h2 class="sg-section-title">Layout Grid</h2>
+
+            <div class="sg-note"><strong>Main container:</strong> flex row — left sidebar + main content + right sidebar.<br>Content area uses <code>.section-shell</code> (flex column, gap 1.5rem) to stack page sections.</div>
+            <br>
+
+            <table class="sg-token-table">
+                <thead><tr><th>Region</th><th>Class</th><th>Default Width / Behaviour</th></tr></thead>
+                <tbody>
+                    <tr><td>Left Sidebar</td><td><code>.left-sidebar</code></td><td>~220px, collapsible</td></tr>
+                    <tr><td>Main Content</td><td><code>.main-content</code></td><td>flex 1, min-width 0</td></tr>
+                    <tr><td>Right Sidebar</td><td><code>.right-sidebar</code></td><td>~260px, collapsible</td></tr>
+                    <tr><td>Section Shell</td><td><code>.section-shell</code></td><td>flex-col, gap 1.5rem</td></tr>
+                    <tr><td>Two-col content grid</td><td><code>.section-grid</code></td><td>1.9fr + min 280px aside</td></tr>
+                    <tr><td>Summary stats row</td><td><code>.summary-grid</code></td><td>auto-fit, minmax 180px</td></tr>
+                    <tr><td>Spotlight row</td><td><code>.spotlight-grid</code></td><td>auto-fit, minmax 220px</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 14. STAT CARDS (Dashboard) -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="stat-cards">
+            <h2 class="sg-section-title">Stat Card Icon Colors (Dashboard)</h2>
+
+            <table class="sg-token-table">
+                <thead><tr><th>Class</th><th>Swatch</th><th>Background</th><th>Icon Color</th></tr></thead>
+                <tbody>
+                    <tr><td><code>.icon-blue</code></td><td><span class="sg-dot" style="background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.3)"></span></td><td>rgba(59,130,246,0.1)</td><td>#3b82f6</td></tr>
+                    <tr><td><code>.icon-green</code></td><td><span class="sg-dot" style="background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3)"></span></td><td>rgba(34,197,94,0.1)</td><td>#22c55e</td></tr>
+                    <tr><td><code>.icon-purple</code></td><td><span class="sg-dot" style="background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.3)"></span></td><td>rgba(139,92,246,0.1)</td><td>#8b5cf6</td></tr>
+                    <tr><td><code>.icon-orange</code></td><td><span class="sg-dot" style="background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.3)"></span></td><td>rgba(249,115,22,0.1)</td><td>#f97316</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 15. USAGE RULES -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="rules">
+            <h2 class="sg-section-title">Usage Rules</h2>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Always Do</div>
+                <div class="sg-rule"><strong>Always try Font Awesome first for any icon need.</strong> Only use another icon solution if Font Awesome 6 Free does not have a suitable icon for the use case.</div>
+                <div class="sg-rule">Use <code>var(--accent-color)</code> for gold accents — never hardcode <code>#DAA520</code> on its own anywhere that needs theming.</div>
+                <div class="sg-rule">Use <code>var(--border-color)</code> for all borders. Never use raw hex border colors in new components.</div>
+                <div class="sg-rule">Use <code>var(--text-color)</code> and <code>var(--secondary-text)</code> for all body text.</div>
+                <div class="sg-rule">Read this file before writing CSS for a new page or component.</div>
+                <div class="sg-rule">Add <code>transition: all 0.3s ease</code> (or specific properties) on interactive elements.</div>
+                <div class="sg-rule">Follow existing border-radius sizes — pick the closest match from the Radius Scale section.</div>
+                <div class="sg-rule">Sidebar icons always use the gold gradient background: <code>linear-gradient(135deg, #DAA520, #FFD700)</code>.</div>
+                <div class="sg-rule">Interactive rows (quick-action, record-item) hover with <code>var(--accent-rgba)</code> background.</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Never Do</div>
+                <div class="sg-rule">Do not override <code>--accent-color</code> at the page level unless the page has a completely different brand identity.</div>
+                <div class="sg-rule">Do not use <code>rgba(255,255,255,0.x)</code> backgrounds for solid cards in light theme — use the surface tokens instead.</div>
+                <div class="sg-rule">Do not add new status colors without adding them to this style guide.</div>
+                <div class="sg-rule">Do not use inline <code>style=""</code> color values on production pages — those values belong in CSS with a token.</div>
+                <div class="sg-rule">Do not use blue (<code>#0078d4</code>) as the page accent color — it has been superseded by site-global gold.</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">CSS File Responsibilities</div>
+                <table class="sg-token-table">
+                    <thead><tr><th>File</th><th>Owns</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>css.css</code></td><td>All global tokens, layout grid, header, sidebars, footer, theme switch</td></tr>
+                        <tr><td><code>secondary-pages.css</code></td><td>Page hero, section-shell, summary/panel/aside/list cards, chips, pills, record items</td></tr>
+                        <tr><td><code>car-dashboard.css</code></td><td>Stat cards, auction listing grid, welcome banner, search/filter bar</td></tr>
+                        <tr><td><code>car-details.css</code></td><td>Vehicle detail layout, photo gallery, lightbox, bid section</td></tr>
+                        <tr><td><code>car-add-vehicle.css</code></td><td>Add Vehicle page: tab strip, inventory provider cards, manual entry form</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+    // Highlight active nav link on scroll
+    var sections = document.querySelectorAll('.sg-section');
+    var navLinks = document.querySelectorAll('.sg-nav a');
+
+    window.addEventListener('scroll', function () {
+        var scrollPos = window.scrollY + 120;
+
+        sections.forEach(function (section) {
+            if (section.offsetTop <= scrollPos && section.offsetTop + section.offsetHeight > scrollPos) {
+                navLinks.forEach(function (link) { link.classList.remove('active'); });
+                var active = document.querySelector('.sg-nav a[href="#' + section.id + '"]');
+                if (active) active.classList.add('active');
+            }
+        });
+    });
+</script>
+</body>
+</html>

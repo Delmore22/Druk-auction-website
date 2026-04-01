@@ -176,7 +176,7 @@ function initCarPhotoLightbox() {
         var target = event.target;
         if (!target) return;
 
-        var galleryImage = target.closest('.car-photo-grid img');
+        var galleryImage = target.closest('img[data-lightbox-index]');
         if (galleryImage) {
             var imageIndex = Number(galleryImage.getAttribute('data-lightbox-index'));
             if (!Number.isNaN(imageIndex) && lightboxSrcs[imageIndex]) {
@@ -566,32 +566,483 @@ function buildAuctionPanelElement(car) {
     return panel;
 }
 
-function createPhotoGallery(car) {
-    lightboxSrcs = [];
-    currentLightboxIndex = 0;
+function getStableSeed(text) {
+    return String(text || '').split('').reduce(function (total, character, index) {
+        return total + character.charCodeAt(0) * (index + 1);
+    }, 0);
+}
 
-    if (car.id !== '1967-ford-mustang-fastback') {
-        return null;
+function getAuctionIdentifier(car) {
+    var seed = getStableSeed(car.id || car.model || 'vehicle');
+    return String(1000000 + (seed % 9000000));
+}
+
+function getVehiclePhotoSources(car, titleText) {
+    var sources = [];
+
+    if (car.photo) {
+        sources.push({ src: car.photo, alt: titleText + ' primary photo' });
     }
 
-    var gallery = createElement('div', 'car-photo-gallery');
-    var grid = createElement('div', 'car-photo-grid');
+    if (car.id === '1967-ford-mustang-fastback') {
+        ['02', '03', '04', '05', '06', '07', '08', '09'].forEach(function (suffix, index) {
+            sources.push({
+                src: 'cars-photos/1967-ford-mustang-fastback-' + suffix + '.png',
+                alt: titleText + ' photo ' + (index + 2)
+            });
+        });
+    }
 
-    ['02', '03', '04', '05', '06', '07', '08', '09'].forEach(function (suffix, index) {
-        var src = 'cars-photos/1967-ford-mustang-fastback-' + suffix + '.png';
-        var alt = '1967 Ford Mustang Fastback photo ' + (index + 2);
-        var image = document.createElement('img');
-        image.src = src;
-        image.alt = alt;
-        image.loading = 'lazy';
-        image.setAttribute('data-lightbox-index', String(index));
-        grid.appendChild(image);
+    return sources;
+}
 
-        lightboxSrcs.push({ src: src, alt: alt });
+function getVehicleLocationParts(car) {
+    var location = String(car.location || '').split(',');
+    return {
+        city: location[0] ? location[0].trim() : '-',
+        region: location[1] ? location[1].trim() : '-'
+    };
+}
+
+function getFuelType(engineText) {
+    var normalized = String(engineText || '').toLowerCase();
+    if (normalized.indexOf('electric') !== -1) return 'Electric';
+    if (normalized.indexOf('diesel') !== -1) return 'Diesel';
+    if (normalized.indexOf('hybrid') !== -1) return 'Hybrid';
+    return 'Gasoline';
+}
+
+function getDerivedViews(car) {
+    return 40 + (getStableSeed(car.id) % 180);
+}
+
+function getDerivedPhotoCount(photoSources) {
+    return Math.max(1, photoSources.length);
+}
+
+function getMarketRange(car) {
+    var baseValue = Number.isFinite(car.currentBid) ? car.currentBid : (Number.isFinite(car.startingBid) ? car.startingBid : 0);
+    var lower = Math.max(1000, Math.round((baseValue * 0.93) / 100) * 100);
+    var upper = Math.max(lower + 500, Math.round(((car.buyNowPrice || (baseValue * 1.14))) / 100) * 100);
+    return {
+        lower: lower,
+        upper: upper
+    };
+}
+
+function getTransportEstimate(car) {
+    var seed = getStableSeed(car.pickup || car.location || car.id);
+    return {
+        destination: car.pickup || car.location || 'Destination pending',
+        price: 850 + (seed % 1450),
+        etaDays: 3 + (seed % 6)
+    };
+}
+
+function getAnnouncementItems(car) {
+    var items = [];
+
+    items.push({
+        title: 'Condition Summary',
+        detail: (car.condition || 'Condition pending') + ' - ' + (car.description || 'Vehicle summary not yet provided.')
     });
 
-    gallery.appendChild(grid);
-    return gallery;
+    items.push({
+        title: 'Powertrain',
+        detail: [car.engine || 'Engine pending', car.transmission || 'Transmission pending'].join(' - ')
+    });
+
+    items.push({
+        title: 'Collection Details',
+        detail: [car.pickup || '-', car.location || '-'].join(' | ')
+    });
+
+    if (car.seller) {
+        items.push({
+            title: 'Seller Notes',
+            detail: 'Offered by ' + car.seller + ' with live auction support through Druk Classic Bid.'
+        });
+    }
+
+    return items;
+}
+
+function getDisclosureItems(car) {
+    return [
+        'Auction data is provided for preview and may be updated before the lot closes.',
+        'Transport timing and reserve guidance are estimates based on current listing information.',
+        'Review the photo gallery and vehicle details before placing a bid or submitting an offer.',
+        'Seller contact and pickup information should be reconfirmed before final settlement.'
+    ];
+}
+
+function getConditionReportItems(car, photoCount) {
+    var seed = getStableSeed(car.id);
+    return [
+        { title: 'Exterior', count: Math.max(1, photoCount - 1) },
+        { title: 'Interior', count: 2 + (seed % 3) },
+        { title: 'Mechanical', count: 2 + (seed % 4) },
+        { title: 'Driveability', count: 1 + (seed % 2) },
+        { title: 'Documents', count: 1 + (seed % 3) },
+        { title: 'History', count: 1 + ((seed + 1) % 2) }
+    ];
+}
+
+function createDetailMetaItem(label, value) {
+    var item = createElement('div', 'cdv-meta-item');
+    item.appendChild(createElement('span', 'cdv-meta-label', label));
+    item.appendChild(createElement('strong', 'cdv-meta-value', value));
+    return item;
+}
+
+function buildMediaMetaStrip(car, photoSources) {
+    var auctionId = getAuctionIdentifier(car);
+    var metaStrip = createElement('div', 'cdv-meta-strip');
+    var bids = normalizeCarStatus(car.status) === 'sold' ? 'Closed' : 'Open';
+
+    [
+        ['Auction ID', '#' + auctionId],
+        ['Seller', car.seller || 'Seller pending'],
+        ['Listing Type', normalizeCarStatus(car.status) === 'sold' ? 'Sold' : 'Ready to Sell'],
+        ['Inspected By', 'Druk Verified'],
+        ['Bids', bids],
+        ['Views', String(getDerivedViews(car))],
+        ['Photos', String(getDerivedPhotoCount(photoSources))]
+    ].forEach(function (entry) {
+        metaStrip.appendChild(createDetailMetaItem(entry[0], entry[1]));
+    });
+
+    return metaStrip;
+}
+
+function buildMediaSection(car, titleText) {
+    var mediaSection = createElement('section', 'cdv-media-section');
+    var photoSources = getVehiclePhotoSources(car, titleText);
+
+    lightboxSrcs = photoSources.slice();
+    currentLightboxIndex = 0;
+
+    var mediaGrid = createElement('div', photoSources.length > 1 ? 'cdv-media-grid' : 'cdv-media-grid is-single');
+    var hero = createElement('div', 'cdv-media-hero');
+    var heroImage = document.createElement('img');
+    heroImage.src = photoSources[0] ? photoSources[0].src : '';
+    heroImage.alt = photoSources[0] ? photoSources[0].alt : titleText;
+    heroImage.loading = 'eager';
+    heroImage.setAttribute('data-lightbox-index', '0');
+    hero.appendChild(heroImage);
+    mediaGrid.appendChild(hero);
+
+    if (photoSources.length > 1) {
+        var thumbGrid = createElement('div', 'cdv-media-thumbs');
+        photoSources.slice(1, 5).forEach(function (photo, index) {
+            var thumb = createElement('div', 'cdv-media-thumb');
+            var image = document.createElement('img');
+            image.src = photo.src;
+            image.alt = photo.alt;
+            image.loading = 'lazy';
+            image.setAttribute('data-lightbox-index', String(index + 1));
+            thumb.appendChild(image);
+
+            if (index === 3 && photoSources.length > 5) {
+                thumb.appendChild(createElement('span', 'cdv-media-more', '+' + (photoSources.length - 5) + ' more'));
+            }
+
+            thumbGrid.appendChild(thumb);
+        });
+        mediaGrid.appendChild(thumbGrid);
+    }
+
+    mediaSection.appendChild(mediaGrid);
+
+    var chips = createElement('div', 'cdv-media-chips');
+    [
+        'Gallery (' + getDerivedPhotoCount(photoSources) + ')',
+        car.condition || 'Condition pending',
+        car.bodyStyle || 'Body style pending',
+        getFuelType(car.engine)
+    ].forEach(function (label, index) {
+        chips.appendChild(createElement('span', index === 0 ? 'cdv-chip is-active' : 'cdv-chip', label));
+    });
+
+    mediaSection.appendChild(chips);
+
+    return mediaSection;
+}
+
+function buildBidStrip(car) {
+    var section = createElement('section', 'cdv-bid-strip');
+    var status = normalizeCarStatus(car.status);
+    var safeBid = Number.isFinite(car.currentBid) ? car.currentBid : 0;
+    var remaining = car.timeRemaining || '-';
+    var reserveValue = Number.isFinite(car.buyNowPrice) ? car.buyNowPrice : Math.round(safeBid * 1.12);
+    var stats = createElement('div', 'cdv-bid-stats');
+    var actions = createElement('div', 'cdv-bid-actions');
+    var statusLabel = status === 'sold' ? 'Sold' : (status === 'appending' ? 'Reserve' : 'Sale');
+    var statusBadge = createElement('span', 'cdv-status-badge cdv-status-' + status, statusLabel);
+
+    [
+        ['Current Bid', '$' + safeBid.toLocaleString()],
+        ['Remaining', status === 'sold' ? 'Auction Closed' : remaining],
+        ['Reserve', '$' + reserveValue.toLocaleString()]
+    ].forEach(function (entry, index) {
+        var stat = createElement('div', 'cdv-bid-stat');
+        stat.appendChild(createElement('span', 'cdv-bid-label', entry[0]));
+        stat.appendChild(createElement('strong', index === 1 ? 'cdv-bid-value is-accent' : 'cdv-bid-value', entry[1]));
+        stats.appendChild(stat);
+    });
+
+    var statusStat = createElement('div', 'cdv-bid-stat');
+    statusStat.appendChild(createElement('span', 'cdv-bid-label', 'Status'));
+    statusStat.appendChild(statusBadge);
+    stats.appendChild(statusStat);
+
+    var primary = createElement('button', 'cdv-bid-button is-primary', status === 'sold' ? 'Auction Closed' : 'Bid +' + Math.max(100, Math.round(safeBid * 0.01)).toLocaleString());
+    primary.type = 'button';
+    primary.disabled = status === 'sold';
+
+    var secondary = createElement('button', 'cdv-bid-button', status === 'sold' ? 'View History' : 'Set Proxy');
+    secondary.type = 'button';
+
+    actions.appendChild(primary);
+    actions.appendChild(secondary);
+
+    section.appendChild(stats);
+    section.appendChild(actions);
+    return section;
+}
+
+function buildOverviewSection(car, titleText) {
+    var wrapper = createElement('section', 'cdv-overview-grid');
+    var summary = createElement('article', 'cdv-card cdv-summary-card');
+    var location = getVehicleLocationParts(car);
+    var summaryMeta = createElement('div', 'cdv-summary-meta');
+    var badges = createElement('div', 'cdv-summary-badges');
+
+    summary.appendChild(createElement('h1', 'cdv-title', titleText));
+    summary.appendChild(createElement('p', 'cdv-subtitle', [car.bodyStyle, car.transmission, car.engine].filter(Boolean).join(' - ')));
+
+    [
+        ['Lot', '#' + getAuctionIdentifier(car)],
+        ['Pickup', car.pickup || '-'],
+        ['Mileage', (car.mileage || '-') + ' miles'],
+        ['Location', [location.city, location.region].filter(Boolean).join(', ') || '-']
+    ].forEach(function (entry) {
+        var row = createElement('div', 'cdv-summary-row');
+        row.appendChild(createElement('span', 'cdv-summary-label', entry[0]));
+        row.appendChild(createElement('span', 'cdv-summary-value', entry[1]));
+        summaryMeta.appendChild(row);
+    });
+
+    [car.condition || 'Condition pending', normalizeCarStatus(car.status) === 'sold' ? 'Sold' : 'Live Auction', getFuelType(car.engine)].forEach(function (text, index) {
+        badges.appendChild(createElement('span', index === 1 ? 'cdv-badge is-accent' : 'cdv-badge', text));
+    });
+
+    summary.appendChild(summaryMeta);
+    summary.appendChild(badges);
+    summary.appendChild(createElement('p', 'cdv-description', car.description || 'Vehicle description pending.'));
+
+    var notes = createElement('article', 'cdv-card cdv-notes-card');
+    notes.appendChild(createElement('h3', 'cdv-card-title', 'Notes'));
+    var textarea = document.createElement('textarea');
+    textarea.className = 'cdv-notes-input';
+    textarea.placeholder = 'Add your notes about this vehicle...';
+    textarea.maxLength = 750;
+    textarea.setAttribute('data-note-car', car.id);
+    notes.appendChild(textarea);
+
+    var footer = createElement('div', 'cdv-notes-footer');
+    var count = createElement('span', 'cdv-notes-count', '750 characters remaining');
+    count.setAttribute('data-note-count', car.id);
+    var save = createElement('button', 'cdv-notes-save', 'Save Note');
+    save.type = 'button';
+    save.setAttribute('data-note-save', car.id);
+    footer.appendChild(count);
+    footer.appendChild(save);
+    notes.appendChild(footer);
+
+    wrapper.appendChild(summary);
+    wrapper.appendChild(notes);
+    return wrapper;
+}
+
+function buildInspectionCard(car) {
+    var card = createElement('article', 'cdv-card');
+    card.appendChild(createElement('h3', 'cdv-card-title', 'Announcements'));
+    var list = createElement('div', 'cdv-list');
+
+    getAnnouncementItems(car).forEach(function (item) {
+        var row = createElement('div', 'cdv-list-row');
+        row.appendChild(createElement('strong', 'cdv-list-title', item.title));
+        row.appendChild(createElement('p', 'cdv-list-text', item.detail));
+        list.appendChild(row);
+    });
+
+    card.appendChild(list);
+    return card;
+}
+
+function buildValueCard(car) {
+    var range = getMarketRange(car);
+    var card = createElement('article', 'cdv-card');
+    card.appendChild(createElement('h3', 'cdv-card-title', 'Market Range'));
+    card.appendChild(createElement('div', 'cdv-report-brand', 'Druk Value Insight'));
+    card.appendChild(createElement('p', 'cdv-muted-text', 'Estimated wholesale range based on current bid position, vehicle segment, and listing condition.'));
+    card.appendChild(createElement('div', 'cdv-range-value', '$' + range.lower.toLocaleString() + ' - $' + range.upper.toLocaleString()));
+    return card;
+}
+
+function buildTransportCard(car) {
+    var estimate = getTransportEstimate(car);
+    var card = createElement('article', 'cdv-card');
+    card.appendChild(createElement('h3', 'cdv-card-title', 'Transportation Quote'));
+    card.appendChild(createElement('p', 'cdv-muted-text', 'Experience streamlined transport estimates based on the current pickup location.'));
+
+    var row = createElement('div', 'cdv-transport-row');
+    var destination = createElement('div', 'cdv-transport-destination');
+    destination.appendChild(createElement('strong', null, estimate.destination));
+    destination.appendChild(createElement('span', 'cdv-muted-text', estimate.etaDays + ' business days'));
+    row.appendChild(destination);
+    row.appendChild(createElement('strong', 'cdv-transport-price', '$' + estimate.price.toLocaleString()));
+    card.appendChild(row);
+    return card;
+}
+
+function buildVehicleDetailsCard(car) {
+    var card = createElement('article', 'cdv-card');
+    var detailsTable = createElement('div', 'cdv-detail-table');
+    var location = getVehicleLocationParts(car);
+
+    card.appendChild(createElement('h3', 'cdv-card-title', 'Vehicle Details'));
+
+    [
+        ['City', [location.city, location.region].filter(Boolean).join(', ') || '-'],
+        ['VIN / Lot', getAuctionIdentifier(car)],
+        ['Odometer', (car.mileage || '-')],
+        ['Transmission', car.transmission || '-'],
+        ['Body Style', car.bodyStyle || '-'],
+        ['Engine', car.engine || '-'],
+        ['Fuel Type', getFuelType(car.engine)],
+        ['Year', String(car.year || '-')],
+        ['Make', car.make || '-'],
+        ['Model', car.model || '-'],
+        ['Pickup', car.pickup || '-'],
+        ['Auction Date', 'Live Now']
+    ].forEach(function (entry) {
+        var row = createElement('div', 'cdv-detail-row');
+        row.appendChild(createElement('span', 'cdv-detail-label', entry[0]));
+        row.appendChild(createElement('span', 'cdv-detail-value', entry[1]));
+        detailsTable.appendChild(row);
+    });
+
+    card.appendChild(detailsTable);
+    return card;
+}
+
+function buildDisclosureCard(car) {
+    var card = createElement('article', 'cdv-card');
+    card.appendChild(createElement('h3', 'cdv-card-title', 'Additional Disclosures'));
+    var list = createElement('div', 'cdv-list');
+
+    getDisclosureItems(car).forEach(function (item) {
+        list.appendChild(createElement('p', 'cdv-list-text', item));
+    });
+
+    card.appendChild(list);
+    return card;
+}
+
+function buildHistoryCard() {
+    var card = createElement('article', 'cdv-card');
+    card.appendChild(createElement('h3', 'cdv-card-title', 'Vehicle History'));
+
+    var header = createElement('div', 'cdv-history-row');
+    header.appendChild(createElement('div', 'cdv-report-brand', 'CARFAX'));
+    var link = createElement('a', 'cdv-inline-link', 'View Report');
+    link.href = '#';
+    header.appendChild(link);
+    card.appendChild(header);
+
+    card.appendChild(createElement('p', 'cdv-muted-text', 'History snapshots, title notes, and ownership disclosures can be surfaced here as your listing data grows.'));
+    return card;
+}
+
+function buildConditionReportCard(car, photoCount) {
+    var card = createElement('article', 'cdv-card');
+    var grid = createElement('div', 'cdv-condition-grid');
+
+    card.appendChild(createElement('h3', 'cdv-card-title', 'Full Condition Report'));
+
+    getConditionReportItems(car, photoCount).forEach(function (item) {
+        var button = createElement('div', 'cdv-condition-item');
+        button.appendChild(createElement('span', 'cdv-condition-title', item.title + ' (' + item.count + ')'));
+        button.appendChild(createElement('span', 'cdv-condition-arrow', '>'));
+        grid.appendChild(button);
+    });
+
+    card.appendChild(grid);
+    return card;
+}
+
+function buildContentSection(car, photoCount) {
+    var section = createElement('section', 'cdv-content-grid');
+    var left = createElement('div', 'cdv-column');
+    var right = createElement('div', 'cdv-column');
+
+    left.appendChild(buildInspectionCard(car));
+    left.appendChild(buildDisclosureCard(car));
+    left.appendChild(buildConditionReportCard(car, photoCount));
+
+    right.appendChild(buildHistoryCard());
+    right.appendChild(buildValueCard(car));
+    right.appendChild(buildTransportCard(car));
+    right.appendChild(buildVehicleDetailsCard(car));
+
+    section.appendChild(left);
+    section.appendChild(right);
+    return section;
+}
+
+function initializeVehicleNotes(carId) {
+    var textarea = document.querySelector('[data-note-car="' + carId + '"]');
+    var count = document.querySelector('[data-note-count="' + carId + '"]');
+    var save = document.querySelector('[data-note-save="' + carId + '"]');
+    var storageKey = 'vehicleNote:' + carId;
+
+    if (!textarea || !count || !save) return;
+
+    try {
+        textarea.value = window.localStorage.getItem(storageKey) || '';
+    } catch (err) {
+        textarea.value = '';
+    }
+
+    function updateCount() {
+        count.textContent = String(750 - textarea.value.length) + ' characters remaining';
+    }
+
+    textarea.addEventListener('input', function () {
+        if (textarea.value.length > 750) {
+            textarea.value = textarea.value.slice(0, 750);
+        }
+        updateCount();
+    });
+
+    save.addEventListener('click', function () {
+        try {
+            window.localStorage.setItem(storageKey, textarea.value);
+            save.textContent = 'Saved';
+            window.setTimeout(function () {
+                save.textContent = 'Save Note';
+            }, 1200);
+        } catch (err) {
+            save.textContent = 'Unavailable';
+            window.setTimeout(function () {
+                save.textContent = 'Save Note';
+            }, 1200);
+        }
+    });
+
+    updateCount();
 }
 
 function renderCarDetail(car) {
@@ -601,38 +1052,14 @@ function renderCarDetail(car) {
     section.textContent = '';
 
     var titleText = [car.year, car.make, car.model].filter(Boolean).join(' ');
-    section.appendChild(createElement('h2', null, titleText));
+    var photoSources = getVehiclePhotoSources(car, titleText);
+    var photoCount = getDerivedPhotoCount(photoSources);
 
-    var layout = createElement('div', 'car-detail-layout');
-    var main = createElement('div', 'car-detail-main');
-    var info = createElement('div', 'car-info');
+    section.appendChild(buildMediaMetaStrip(car, photoSources));
+    section.appendChild(buildBidStrip(car));
+    section.appendChild(buildMediaSection(car, titleText));
+    section.appendChild(buildOverviewSection(car, titleText));
+    section.appendChild(buildContentSection(car, photoCount));
 
-    var heroImage = document.createElement('img');
-    heroImage.src = car.photo || '';
-    heroImage.alt = titleText;
-    info.appendChild(heroImage);
-
-    var description = createElement('div', 'car-description');
-    description.appendChild(createElement('h3', null, titleText));
-    appendLabeledParagraph(description, 'Engine', car.engine);
-    appendLabeledParagraph(description, 'Transmission', car.transmission);
-    appendLabeledParagraph(description, 'Body Style', car.bodyStyle);
-    appendLabeledParagraph(description, 'Mileage', car.mileage, ' miles');
-    appendLabeledParagraph(description, 'Condition', car.condition);
-    description.appendChild(createElement('p', 'car-description-text', car.description || ''));
-
-    info.appendChild(description);
-    main.appendChild(info);
-
-    var gallery = createPhotoGallery(car);
-    if (gallery) {
-        main.appendChild(gallery);
-    }
-
-    var panelWrapper = createElement('div', 'car-detail-panel');
-    panelWrapper.appendChild(buildAuctionPanelElement(car));
-
-    layout.appendChild(main);
-    layout.appendChild(panelWrapper);
-    section.appendChild(layout);
+    initializeVehicleNotes(car.id);
 }

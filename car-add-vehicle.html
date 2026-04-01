@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Vehicle - Druk Classic Bid</title>
+    <link rel="stylesheet" href="css.css">
+    <link rel="stylesheet" href="car-add-vehicle.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="dark-theme car-add-vehicle-page" data-page="car-add-vehicle">
+    <div id="header-placeholder"></div>
+
+    <div id="below-header-placeholder"></div>
+
+    <!-- Main Content Area -->
+    <main class="main-container">
+        <!-- Left Sidebar -->
+        <div id="left-sidebar-placeholder"></div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="section-shell">
+                <section class="page-hero">
+                    <div class="page-eyebrow"><i class="fas fa-car-side"></i> Listing Management</div>
+                    <h1>Add Vehicles to Your Listing</h1>
+                    <p>Choose how you'd like to add vehicles to your collection. Import from an existing inventory system or manually enter vehicles one at a time.</p>
+                </section>
+
+                <section class="add-vehicle-section" id="addVehicleSection">
+                
+                <!-- Import Options -->
+                <div class="import-options">
+                    <button class="option-toggle active" data-option="import-inventory" type="button">
+                        <i class="fas fa-cloud-download-alt"></i>
+                        <span>Import from Inventory</span>
+                    </button>
+                    <button class="option-toggle" data-option="manual-entry" type="button">
+                        <i class="fas fa-keyboard"></i>
+                        <span>Manual Entry</span>
+                    </button>
+                </div>
+
+                <!-- Import from Inventory Section -->
+                <div class="import-section active" id="importInventory">
+                    <h2>Connect Your Inventory System</h2>
+                    <p>Link your existing inventory system to download vehicles for sale.</p>
+                    
+                    <div class="inventory-options">
+                        <div class="inventory-provider">
+                            <div class="provider-info">
+                                <h3>Manheim</h3>
+                                <p>Connect to your Manheim inventory account</p>
+                            </div>
+                            <button class="btn-connect" type="button" data-provider="manheim">Connect</button>
+                        </div>
+                        
+                        <div class="inventory-provider">
+                            <div class="provider-info">
+                                <h3>NADA Guides</h3>
+                                <p>Import from NADA Guides inventory</p>
+                            </div>
+                            <button class="btn-connect" type="button" data-provider="nada">Connect</button>
+                        </div>
+                        
+                        <div class="inventory-provider">
+                            <div class="provider-info">
+                                <h3>CSV Upload</h3>
+                                <p>Upload a CSV file from your inventory system</p>
+                            </div>
+                            <button class="btn-connect" type="button" data-provider="csv">Upload</button>
+                        </div>
+                    </div>
+
+                    <!-- Connected Resources -->
+                    <div class="connected-resources" id="connectedResources" hidden>
+                        <h3>Available Vehicles</h3>
+                        <div class="resource-list" id="resourceList">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </div>
+
+                    <!-- Manual Entry Section -->
+                    <form class="add-vehicle-form" id="addVehicleForm" hidden>
+                    <!-- Basic Information -->
+                    <fieldset class="form-section">
+                        <legend>Basic Information</legend>
+                        
+                        <div class="form-group">
+                            <label for="vehicleYear">Year:</label>
+                            <input type="number" id="vehicleYear" name="year" min="1900" max="2100" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicleMake">Make:</label>
+                            <input type="text" id="vehicleMake" name="make" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicleModel">Model:</label>
+                            <input type="text" id="vehicleModel" name="model" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicleColor">Color:</label>
+                            <input type="text" id="vehicleColor" name="color">
+                        </div>
+                    </fieldset>
+
+                    <!-- Engine & Performance -->
+                    <fieldset class="form-section">
+                        <legend>Engine & Performance</legend>
+                        
+                        <div class="form-group">
+                            <label for="vehicleEngine">Engine Type:</label>
+                            <select id="vehicleEngine" name="engine" required>
+                                <option value="">-- Select Engine --</option>
+                                <option value="V4">V4</option>
+                                <option value="V6">V6</option>
+                                <option value="V8">V8</option>
+                                <option value="V10">V10</option>
+                                <option value="V12">V12</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicleHorsepower">Horsepower:</label>
+                            <input type="number" id="vehicleHorsepower" name="horsepower" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicleTransmission">Transmission:</label>
+                            <select id="vehicleTransmission" name="transmission">
+                                <option value="">-- Select Transmission --</option>
+                                <option value="Manual">Manual</option>
+                                <option value="Automatic">Automatic</option>
+                                <option value="CVT">CVT</option>
+                            </select>
+                        </div>
+                    </fieldset>
+
+                    <!-- Body & Condition -->
+                    <fieldset class="form-section">
+                        <legend>Body & Condition</legend>
+                        
+                        <div class="form-group">
+                            <label for="vehicleBodyType">Body Type:</label>
+                            <select id="vehicleBodyType" name="bodyType" required>
+                                <option value="">-- Select Body Type --</option>
+                                <option value="Coupe">Coupe</option>
+                                <option value="Sedan">Sedan</option>
+                                <option value="Convertible">Convertible</option>
+                                <option value="Wagon">Wagon</option>
+                                <option value="SUV">SUV</option>
+                                <option value="Truck">Truck</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicleMileage">Mileage (miles):</label>
+                            <input type="number" id="vehicleMileage" name="mileage" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicleCondition">Condition:</label>
+                            <select id="vehicleCondition" name="condition">
+                                <option value="">-- Select Condition --</option>
+                                <option value="Excellent">Excellent</option>
+                                <option value="Very Good">Very Good</option>
+                                <option value="Good">Good</option>
+                                <option value="Fair">Fair</option>
+                                <option value="Poor">Poor</option>
+                            </select>
+                        </div>
+                    </fieldset>
+
+                    <!-- Description & Photos -->
+                    <fieldset class="form-section">
+                        <legend>Description & Photos</legend>
+                        
+                        <div class="form-group full-width">
+                            <label for="vehicleDescription">Description:</label>
+                            <textarea id="vehicleDescription" name="description" rows="6" placeholder="Enter details about your vehicle..."></textarea>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="vehiclePhotos">Upload Photos:</label>
+                            <input type="file" id="vehiclePhotos" name="photos" multiple accept="image/*">
+                            <small>You can upload multiple photos</small>
+                        </div>
+                    </fieldset>
+
+                    <!-- Reserve & Pricing -->
+                    <fieldset class="form-section">
+                        <legend>Reserve & Pricing</legend>
+                        
+                        <div class="form-group">
+                            <label for="vehicleReservePrice">Reserve Price ($):</label>
+                            <input type="number" id="vehicleReservePrice" name="reservePrice" min="0" step="0.01">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vehicleEstimateValue">Estimated Value ($):</label>
+                            <input type="number" id="vehicleEstimateValue" name="estimateValue" min="0" step="0.01">
+                        </div>
+                    </fieldset>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+                        <button type="submit" class="btn-submit">Add Vehicle</button>
+                    </div>
+                </form>
+                </section>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <aside class="right-sidebar" id="rightSidebar">
+            <div class="sidebar-header">
+                <button class="collapse-btn" data-action="toggle-right-sidebar" type="button">
+                    <span id="rightArrow">▶</span>
+                </button>
+                <span class="sidebar-title">Form Help</span>
+            </div>
+            
+            <div class="collapsed-icons">
+                <a class="collapsed-icon" href="#" data-tooltip="Form Help" title="Form Help" aria-label="Form Help"><i class="fas fa-question-circle" aria-hidden="true"></i></a>
+            </div>
+            
+            <div class="right-sidebar-content">
+                <div class="help-section">
+                    <h4>Tips for Adding Your Vehicle</h4>
+                    <ul>
+                        <li>Make sure all required fields are filled out</li>
+                        <li>Provide clear, high-quality photos</li>
+                        <li>Be honest about the vehicle's condition</li>
+                        <li>Include accurate mileage and maintenance history</li>
+                        <li>Set a realistic reserve price</li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="components.js"></script>
+    <script src="car-add-vehicle.js"></script>
+</body>
+</html>
