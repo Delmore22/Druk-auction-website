@@ -83,132 +83,636 @@
 
                     <!-- Manual Entry Section -->
                     <form class="add-vehicle-form" id="addVehicleForm" hidden>
-                    <!-- Basic Information -->
-                    <fieldset class="form-section">
-                        <legend>Basic Information</legend>
-                        
-                        <div class="form-group">
-                            <label for="vehicleYear">Year:</label>
-                            <input type="number" id="vehicleYear" name="year" min="1900" max="2100" required>
+                    <nav class="manual-jump" aria-label="Jump to section">
+                        <h3>Jump To Section</h3>
+                        <div class="manual-jump-links">
+                            <a class="jump-link" data-section="basicVehicleInfo" href="#basicVehicleInfo">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-id-card"></i></span>
+                                <span class="jump-text">Basic Vehicle Information</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
+                            <a class="jump-link" data-section="vehicleSpecs" href="#vehicleSpecs">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-cogs"></i></span>
+                                <span class="jump-text">Vehicle Specs</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
+                            <a class="jump-link" data-section="optionalVehicleEquipment" href="#optionalVehicleEquipment">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-toolbox"></i></span>
+                                <span class="jump-text">Optional Equipment</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
+                            <a class="jump-link" data-section="vehicleConditionSection" href="#vehicleConditionSection">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-shield-alt"></i></span>
+                                <span class="jump-text">Vehicle Condition</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
+                            <a class="jump-link" data-section="sellerDisclosureSection" href="#sellerDisclosureSection">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-file-signature"></i></span>
+                                <span class="jump-text">Seller Disclosure</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
+                            <a class="jump-link" data-section="additionalAnnouncementsSection" href="#additionalAnnouncementsSection">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-bullhorn"></i></span>
+                                <span class="jump-text">Announcements</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
+                            <a class="jump-link" data-section="sellerCommentsSection" href="#sellerCommentsSection">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-comment-dots"></i></span>
+                                <span class="jump-text">Seller Comments</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
+                            <a class="jump-link" data-section="sellerInformationSection" href="#sellerInformationSection">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-user-tie"></i></span>
+                                <span class="jump-text">Seller Information</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
+                            <a class="jump-link" data-section="photosSection" href="#photosSection">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-camera"></i></span>
+                                <span class="jump-text">Photos</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
+                            <a class="jump-link" data-section="pricingSection" href="#pricingSection">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-dollar-sign"></i></span>
+                                <span class="jump-text">Pricing</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
+                            <a class="jump-link" data-section="listingDurationSection" href="#listingDurationSection">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-clock"></i></span>
+                                <span class="jump-text">Listing Duration</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
                         </div>
+                    </nav>
 
-                        <div class="form-group">
-                            <label for="vehicleMake">Make:</label>
-                            <input type="text" id="vehicleMake" name="make" required>
-                        </div>
+                    <fieldset class="form-section" id="basicVehicleInfo">
+                        <legend>Basic Vehicle Information</legend>
+                        <div class="form-grid two-column">
+                            <div class="form-group">
+                                <label for="vehicleVin">VIN</label>
+                                <input type="text" id="vehicleVin" name="vin" placeholder="Enter VIN">
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleAccountGroup">Account Group</label>
+                                <select id="vehicleAccountGroup" name="accountGroup">
+                                    <option value="OVE Open">OVE Open</option>
+                                    <option value="Private Dealer">Private Dealer</option>
+                                    <option value="Public Auction">Public Auction</option>
+                                </select>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="vehicleModel">Model:</label>
-                            <input type="text" id="vehicleModel" name="model" required>
-                        </div>
+                            <div class="form-group">
+                                <label for="vehicleType">Vehicle Type</label>
+                                <select id="vehicleType" name="vehicleType">
+                                    <option value="Car">Car</option>
+                                    <option value="Truck">Truck</option>
+                                    <option value="SUV">SUV</option>
+                                    <option value="Van">Van</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleEventSale">Add to Event Sale</label>
+                                <select id="vehicleEventSale" name="eventSale">
+                                    <option value="">Select Event</option>
+                                    <option value="Daily Sale">Daily Sale</option>
+                                    <option value="Weekly Special">Weekly Special</option>
+                                </select>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="vehicleColor">Color:</label>
-                            <input type="text" id="vehicleColor" name="color">
+                            <div class="form-group">
+                                <label for="vehicleBodyType">Body Style</label>
+                                <select id="vehicleBodyType" name="bodyType" required>
+                                    <option value="">Select Body Style</option>
+                                    <option value="Coupe">Coupe</option>
+                                    <option value="Sedan">Sedan</option>
+                                    <option value="Convertible">Convertible</option>
+                                    <option value="Wagon">Wagon</option>
+                                    <option value="SUV">SUV</option>
+                                    <option value="Truck">Truck</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleStockNumber">Stock Number</label>
+                                <input type="text" id="vehicleStockNumber" name="stockNumber" placeholder="Stock Number">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleYear">Year</label>
+                                <input type="number" id="vehicleYear" name="year" min="1900" max="2100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleLocation">Vehicle Location</label>
+                                <select id="vehicleLocation" name="vehicleLocation">
+                                    <option value="At Dealership">At Dealership</option>
+                                    <option value="Off Site">Off Site</option>
+                                    <option value="Auction Yard">Auction Yard</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleMake">Make</label>
+                                <input type="text" id="vehicleMake" name="make" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleFacilityLocation">Facilitation Location</label>
+                                <input type="text" id="vehicleFacilityLocation" name="facilityLocation" placeholder="MN - Manheim Minneapolis">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleModel">Model</label>
+                                <input type="text" id="vehicleModel" name="model" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleTitleStatus">Title Status</label>
+                                <select id="vehicleTitleStatus" name="titleStatus">
+                                    <option value="Not Specified">Not Specified</option>
+                                    <option value="Clean">Clean</option>
+                                    <option value="Lien">Lien</option>
+                                    <option value="Rebuilt">Rebuilt</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleTrim">Trim</label>
+                                <input type="text" id="vehicleTrim" name="trim" placeholder="Not Specified">
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleTitledIn">Titled In</label>
+                                <input type="text" id="vehicleTitledIn" name="titledIn" placeholder="Select state">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleMileage">Odometer</label>
+                                <div class="inline-group">
+                                    <input type="number" id="vehicleMileage" name="mileage" min="0" placeholder="0">
+                                    <select id="vehicleMileageUnit" name="mileageUnit">
+                                        <option value="miles">miles</option>
+                                        <option value="km">km</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehiclePickupLocation">Pickup Location</label>
+                                <input type="text" id="vehiclePickupLocation" name="pickupLocation" placeholder="Not Specified">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleColor">Exterior Color</label>
+                                <input type="text" id="vehicleColor" name="color">
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleInteriorColor">Interior Color</label>
+                                <input type="text" id="vehicleInteriorColor" name="interiorColor" placeholder="Not Specified">
+                            </div>
                         </div>
                     </fieldset>
 
-                    <!-- Engine & Performance -->
-                    <fieldset class="form-section">
-                        <legend>Engine & Performance</legend>
-                        
-                        <div class="form-group">
-                            <label for="vehicleEngine">Engine Type:</label>
-                            <select id="vehicleEngine" name="engine" required>
-                                <option value="">-- Select Engine --</option>
-                                <option value="V4">V4</option>
-                                <option value="V6">V6</option>
-                                <option value="V8">V8</option>
-                                <option value="V10">V10</option>
-                                <option value="V12">V12</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
+                    <fieldset class="form-section" id="vehicleSpecs">
+                        <legend>Vehicle Specs</legend>
+                        <div class="form-grid two-column">
+                            <div class="form-group">
+                                <label for="vehicleEngine">Engine Cylinders</label>
+                                <select id="vehicleEngine" name="engine" required>
+                                    <option value="">Not Specified</option>
+                                    <option value="I4">I4</option>
+                                    <option value="V6">V6</option>
+                                    <option value="V8">V8</option>
+                                    <option value="Electric">Electric</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleTopStyle">Top Style</label>
+                                <select id="vehicleTopStyle" name="topStyle">
+                                    <option value="">Not Specified</option>
+                                    <option value="Hard Top">Hard Top</option>
+                                    <option value="Soft Top">Soft Top</option>
+                                    <option value="None">None</option>
+                                </select>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="vehicleHorsepower">Horsepower:</label>
-                            <input type="number" id="vehicleHorsepower" name="horsepower" min="0">
-                        </div>
+                            <div class="form-group">
+                                <label for="vehicleTransmission">Transmission</label>
+                                <select id="vehicleTransmission" name="transmission">
+                                    <option value="">Not Specified</option>
+                                    <option value="Automatic">Automatic</option>
+                                    <option value="Manual">Manual</option>
+                                    <option value="CVT">CVT</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleInteriorType">Interior Type</label>
+                                <select id="vehicleInteriorType" name="interiorType">
+                                    <option value="">Not Specified</option>
+                                    <option value="Cloth">Cloth</option>
+                                    <option value="Leather">Leather</option>
+                                    <option value="Vinyl">Vinyl</option>
+                                </select>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="vehicleTransmission">Transmission:</label>
-                            <select id="vehicleTransmission" name="transmission">
-                                <option value="">-- Select Transmission --</option>
-                                <option value="Manual">Manual</option>
-                                <option value="Automatic">Automatic</option>
-                                <option value="CVT">CVT</option>
-                            </select>
+                            <div class="form-group">
+                                <label for="vehicleDriveTrain">Drive Train</label>
+                                <select id="vehicleDriveTrain" name="driveTrain">
+                                    <option value="">Not Specified</option>
+                                    <option value="FWD">FWD</option>
+                                    <option value="RWD">RWD</option>
+                                    <option value="AWD">AWD</option>
+                                    <option value="4WD">4WD</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleDoors">Doors</label>
+                                <select id="vehicleDoors" name="doors">
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleFuelType">Fuel Type</label>
+                                <select id="vehicleFuelType" name="fuelType">
+                                    <option value="">Not Specified</option>
+                                    <option value="Gasoline">Gasoline</option>
+                                    <option value="Diesel">Diesel</option>
+                                    <option value="Hybrid">Hybrid</option>
+                                    <option value="Electric">Electric</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleAudio">Audio</label>
+                                <select id="vehicleAudio" name="audio">
+                                    <option value="">Not Specified</option>
+                                    <option value="AM/FM">AM/FM</option>
+                                    <option value="Premium">Premium</option>
+                                    <option value="Navigation Audio">Navigation Audio</option>
+                                </select>
+                            </div>
                         </div>
                     </fieldset>
 
-                    <!-- Body & Condition -->
-                    <fieldset class="form-section">
-                        <legend>Body & Condition</legend>
-                        
-                        <div class="form-group">
-                            <label for="vehicleBodyType">Body Type:</label>
-                            <select id="vehicleBodyType" name="bodyType" required>
-                                <option value="">-- Select Body Type --</option>
-                                <option value="Coupe">Coupe</option>
-                                <option value="Sedan">Sedan</option>
-                                <option value="Convertible">Convertible</option>
-                                <option value="Wagon">Wagon</option>
-                                <option value="SUV">SUV</option>
-                                <option value="Truck">Truck</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="vehicleMileage">Mileage (miles):</label>
-                            <input type="number" id="vehicleMileage" name="mileage" min="0">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="vehicleCondition">Condition:</label>
-                            <select id="vehicleCondition" name="condition">
-                                <option value="">-- Select Condition --</option>
-                                <option value="Excellent">Excellent</option>
-                                <option value="Very Good">Very Good</option>
-                                <option value="Good">Good</option>
-                                <option value="Fair">Fair</option>
-                                <option value="Poor">Poor</option>
-                            </select>
+                    <fieldset class="form-section" id="optionalVehicleEquipment">
+                        <legend>Optional Vehicle Equipment</legend>
+                        <label class="checkbox-line"><input type="checkbox" id="equipmentCheckAll"> Check All</label>
+                        <div class="checkbox-grid">
+                            <label><input type="checkbox" name="equipment[]" value="Air Conditioning"> Air Conditioning</label>
+                            <label><input type="checkbox" name="equipment[]" value="Power Windows"> Power Windows</label>
+                            <label><input type="checkbox" name="equipment[]" value="Alloy Wheels"> Alloy Wheels</label>
+                            <label><input type="checkbox" name="equipment[]" value="GPS"> GPS</label>
+                            <label><input type="checkbox" name="equipment[]" value="Cruise Control"> Cruise Control</label>
+                            <label><input type="checkbox" name="equipment[]" value="Rear Window Defroster"> Rear Window Defroster</label>
+                            <label><input type="checkbox" name="equipment[]" value="Power Brakes"> Power Brakes</label>
+                            <label><input type="checkbox" name="equipment[]" value="Dual Climate Control"> Dual Climate Control</label>
+                            <label><input type="checkbox" name="equipment[]" value="Child Seat"> Child Seat</label>
+                            <label><input type="checkbox" name="equipment[]" value="Air Bag - Side Curtain"> Air Bag - Side Curtain</label>
+                            <label><input type="checkbox" name="equipment[]" value="Antilock Brakes"> Antilock Brakes</label>
+                            <label><input type="checkbox" name="equipment[]" value="Heated Seats"> Heated Seats</label>
+                            <label><input type="checkbox" name="equipment[]" value="Child Seat Anchors"> Child Seat Anchors</label>
+                            <label><input type="checkbox" name="equipment[]" value="Airbags"> Airbags</label>
+                            <label><input type="checkbox" name="equipment[]" value="Power Seats"> Power Seats</label>
+                            <label><input type="checkbox" name="equipment[]" value="Navigational System"> Navigational System</label>
+                            <label><input type="checkbox" name="equipment[]" value="Power Door Locks"> Power Door Locks</label>
+                            <label><input type="checkbox" name="equipment[]" value="Tilt/Telescope Wheel"> Tilt/Telescope Wheel</label>
+                            <label><input type="checkbox" name="equipment[]" value="Power Steering"> Power Steering</label>
+                            <label><input type="checkbox" name="equipment[]" value="DVD"> DVD</label>
+                            <label><input type="checkbox" name="equipment[]" value="Power Mirrors"> Power Mirrors</label>
+                            <label><input type="checkbox" name="equipment[]" value="Tinted Glass"> Tinted Glass</label>
                         </div>
                     </fieldset>
 
-                    <!-- Description & Photos -->
-                    <fieldset class="form-section">
-                        <legend>Description & Photos</legend>
-                        
+                    <fieldset class="form-section" id="vehicleConditionSection">
+                        <legend>Vehicle Condition</legend>
+                        <div class="form-grid one-column">
+                            <div class="radio-group-row">
+                                <span>Structural Damage</span>
+                                <label><input type="radio" name="structuralDamage" value="yes"> Yes</label>
+                                <label><input type="radio" name="structuralDamage" value="no" checked> No</label>
+                            </div>
+                            <div class="alert-note">Structural Damage is damage to the main load-bearing platform of a vehicle. Selecting yes may invalidate condition comments for this listing.</div>
+
+                            <div class="radio-group-row">
+                                <span>Sold As Is</span>
+                                <label><input type="radio" name="soldAsIs" value="yes"> Yes</label>
+                                <label><input type="radio" name="soldAsIs" value="no" checked> No</label>
+                            </div>
+
+                            <div class="radio-group-row">
+                                <span>Salvage</span>
+                                <label><input type="radio" name="salvage" value="yes"> Yes</label>
+                                <label><input type="radio" name="salvage" value="no" checked> No</label>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-section" id="sellerDisclosureSection">
+                        <legend>Seller Disclosure</legend>
+                        <div class="warning-banner">Undisclosed damage may result in arbitration and additional costs being assessed.</div>
+
+                        <div class="condition-block" data-condition-block="interior">
+                            <h4>Interior Condition</h4>
+                            <label class="checkbox-line"><input type="checkbox" name="interiorNoDamage"> No Damage</label>
+                            <div class="condition-rows" id="interiorConditionRows">
+                                <div class="condition-row">
+                                    <select name="interiorDescription[]">
+                                        <option value="">Description</option>
+                                        <option>Seat Wear</option>
+                                        <option>Trim Damage</option>
+                                        <option>Stain</option>
+                                    </select>
+                                    <select name="interiorCondition[]">
+                                        <option value="">Condition</option>
+                                        <option>Scratched</option>
+                                        <option>Torn</option>
+                                        <option>Broken</option>
+                                    </select>
+                                    <select name="interiorSeverity[]">
+                                        <option value="">Severity</option>
+                                        <option>Minor</option>
+                                        <option>Moderate</option>
+                                        <option>Major</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="button" class="inline-action" data-add-row="interiorConditionRows">Add Another Row</button>
+                        </div>
+
+                        <div class="condition-block" data-condition-block="exterior">
+                            <h4>Exterior Condition</h4>
+                            <label class="checkbox-line"><input type="checkbox" name="exteriorNoDamage"> No Damage</label>
+                            <div class="condition-rows" id="exteriorConditionRows">
+                                <div class="condition-row">
+                                    <select name="exteriorDescription[]">
+                                        <option value="">Description</option>
+                                        <option>Dent</option>
+                                        <option>Scratch</option>
+                                        <option>Rust</option>
+                                    </select>
+                                    <select name="exteriorCondition[]">
+                                        <option value="">Condition</option>
+                                        <option>Paint Damage</option>
+                                        <option>Panel Damage</option>
+                                        <option>Cracked</option>
+                                    </select>
+                                    <select name="exteriorSeverity[]">
+                                        <option value="">Severity</option>
+                                        <option>Minor</option>
+                                        <option>Moderate</option>
+                                        <option>Major</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="button" class="inline-action" data-add-row="exteriorConditionRows">Add Another Row</button>
+                        </div>
+
+                        <h4>Tire Condition</h4>
+                        <div class="form-grid two-column">
+                            <div class="form-group">
+                                <label for="tireLeftFront">Left Front</label>
+                                <select id="tireLeftFront" name="tireLeftFront">
+                                    <option value="">Not Specified</option>
+                                    <option>Good</option>
+                                    <option>Fair</option>
+                                    <option>Poor</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="tireRightFront">Right Front</label>
+                                <select id="tireRightFront" name="tireRightFront">
+                                    <option value="">Not Specified</option>
+                                    <option>Good</option>
+                                    <option>Fair</option>
+                                    <option>Poor</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="tireLeftRear">Left Rear</label>
+                                <select id="tireLeftRear" name="tireLeftRear">
+                                    <option value="">Not Specified</option>
+                                    <option>Good</option>
+                                    <option>Fair</option>
+                                    <option>Poor</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="tireRightRear">Right Rear</label>
+                                <select id="tireRightRear" name="tireRightRear">
+                                    <option value="">Not Specified</option>
+                                    <option>Good</option>
+                                    <option>Fair</option>
+                                    <option>Poor</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="tireSpare">Spare</label>
+                                <select id="tireSpare" name="tireSpare">
+                                    <option value="">Not Specified</option>
+                                    <option>Present</option>
+                                    <option>Missing</option>
+                                    <option>Repair Kit</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="radio-group-row">
+                            <span>All Tires Match (Brand/Size)</span>
+                            <label><input type="radio" name="tiresMatch" value="yes"> Yes</label>
+                            <label><input type="radio" name="tiresMatch" value="no"> No</label>
+                        </div>
+
+                        <h4>Keys</h4>
+                        <div id="keyRows" class="condition-rows">
+                            <div class="condition-row keys-row">
+                                <select name="keyType[]">
+                                    <option value="">Type</option>
+                                    <option>Master</option>
+                                    <option>Valet</option>
+                                    <option>FOB</option>
+                                </select>
+                                <select name="keyQuantity[]">
+                                    <option value="">Quantity</option>
+                                    <option>0</option>
+                                    <option>1</option>
+                                    <option>2</option>
+                                    <option>3+</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="button" class="inline-action" data-add-key-row="keyRows">Add Another Row</button>
+
+                        <div class="form-grid two-column">
+                            <div class="form-group">
+                                <label for="vehicleManuals">Manuals</label>
+                                <select id="vehicleManuals" name="manuals">
+                                    <option value="">Not Specified</option>
+                                    <option>Included</option>
+                                    <option>Not Included</option>
+                                </select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-section" id="additionalAnnouncementsSection">
+                        <legend>Additional Announcements</legend>
                         <div class="form-group full-width">
-                            <label for="vehicleDescription">Description:</label>
-                            <textarea id="vehicleDescription" name="description" rows="6" placeholder="Enter details about your vehicle..."></textarea>
+                            <label for="additionalAnnouncements">Add additional announcements to disclose arbitrable items.</label>
+                            <textarea id="additionalAnnouncements" name="additionalAnnouncements" maxlength="2000" rows="5"></textarea>
+                            <small><span id="announcementCharsRemaining">2000</span> characters remaining.</small>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-section" id="sellerCommentsSection">
+                        <legend>Seller Comments</legend>
+                        <div class="form-group full-width">
+                            <label for="vehicleDescription">Advertise any additional options to enhance the vehicle value.</label>
+                            <textarea id="vehicleDescription" name="description" rows="5"></textarea>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-section" id="sellerInformationSection">
+                        <legend>Seller Information</legend>
+                        <div class="form-grid two-column">
+                            <div class="form-group">
+                                <label for="sellerContactName">Contact Name</label>
+                                <input type="text" id="sellerContactName" name="sellerContactName" placeholder="Contact Name">
+                            </div>
+                            <div class="form-group">
+                                <label for="sellerCompanyName">Company Name</label>
+                                <input type="text" id="sellerCompanyName" name="sellerCompanyName" placeholder="Company Name">
+                            </div>
+                            <div class="form-group">
+                                <label for="sellerPhone">Phone</label>
+                                <input type="tel" id="sellerPhone" name="sellerPhone" placeholder="+1 555 555 5555">
+                            </div>
+                            <div class="form-group">
+                                <label for="sellerContactEmail">Contact Email</label>
+                                <input type="email" id="sellerContactEmail" name="sellerContactEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="sellerCcEmail">CC Email</label>
+                                <input type="email" id="sellerCcEmail" name="sellerCcEmail">
+                            </div>
                         </div>
 
+                        <label class="checkbox-line disclosure-accept">
+                            <input type="checkbox" id="disclosureAccepted" name="disclosureAccepted" required>
+                            I have disclosed all vehicle condition information as true and best to my knowledge.
+                        </label>
+                    </fieldset>
+
+                    <fieldset class="form-section" id="photosSection">
+                        <legend>Photos</legend>
                         <div class="form-group full-width">
-                            <label for="vehiclePhotos">Upload Photos:</label>
+                            <label for="vehiclePhotos">Upload Photos</label>
                             <input type="file" id="vehiclePhotos" name="photos" multiple accept="image/*">
-                            <small>You can upload multiple photos</small>
+                            <small>You can upload multiple photos.</small>
+                        </div>
+                        <div class="photo-grid" id="photoGrid" aria-live="polite"></div>
+                    </fieldset>
+
+                    <fieldset class="form-section" id="pricingSection">
+                        <legend>Pricing</legend>
+                        <div class="form-grid two-column">
+                            <div class="form-group full-width">
+                                <label id="saleTypeLabel">Sell my vehicle using</label>
+                                <div class="checkbox-inline-wrap" role="group" aria-labelledby="saleTypeLabel">
+                                    <label for="saleTypeBid"><input type="checkbox" id="saleTypeBid" name="saleType[]" value="Bid" checked> Bid</label>
+                                    <label for="saleTypeBuyNow"><input type="checkbox" id="saleTypeBuyNow" name="saleType[]" value="Buy Now"> Buy Now</label>
+                                    <label for="saleTypeMakeOffer"><input type="checkbox" id="saleTypeMakeOffer" name="saleType[]" value="Make an Offer"> Make an Offer</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="pricingCurrency">Currency</label>
+                                <select id="pricingCurrency" name="currency">
+                                    <option value="USD">USD</option>
+                                    <option value="CAD">CAD</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleReservePrice">Floor Price</label>
+                                <input type="number" id="vehicleReservePrice" name="reservePrice" min="0" step="0.01">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleStartingBid">Starting Bid</label>
+                                <input type="number" id="vehicleStartingBid" name="startingBid" min="0" step="0.01">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleBidIncrement">Bid Increment</label>
+                                <select id="vehicleBidIncrement" name="bidIncrement">
+                                    <option value="25">$25</option>
+                                    <option value="50">$50</option>
+                                    <option value="100" selected>$100</option>
+                                    <option value="250">$250</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="vehicleEstimateValue">Buy Now Price</label>
+                                <input type="number" id="vehicleEstimateValue" name="estimateValue" min="0" step="0.01">
+                            </div>
                         </div>
                     </fieldset>
 
-                    <!-- Reserve & Pricing -->
-                    <fieldset class="form-section">
-                        <legend>Reserve & Pricing</legend>
-                        
-                        <div class="form-group">
-                            <label for="vehicleReservePrice">Reserve Price ($):</label>
-                            <input type="number" id="vehicleReservePrice" name="reservePrice" min="0" step="0.01">
+                    <fieldset class="form-section" id="listingDurationSection">
+                        <legend>Listing Duration</legend>
+                        <div class="alert-note info">This listing is part of the daily sale cycle. Select a start date and duration.</div>
+
+                        <div class="form-grid two-column">
+                            <div class="form-group">
+                                <label class="checkbox-line"><input type="checkbox" id="startNow" name="startNow"> Start Now</label>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="listingStartDate">Start Date</label>
+                                <div class="inline-group inline-date-time">
+                                    <input type="date" id="listingStartDate" name="listingStartDate">
+                                    <input type="time" id="listingStartTime" name="listingStartTime">
+                                    <select id="listingTimezone" name="listingTimezone">
+                                        <option value="ET">ET</option>
+                                        <option value="CT">CT</option>
+                                        <option value="MT">MT</option>
+                                        <option value="PT">PT</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="listingDuration">End Date</label>
+                                <div class="inline-group">
+                                    <select id="listingDuration" name="listingDuration">
+                                        <option value="1">1 day</option>
+                                        <option value="2">2 days</option>
+                                        <option value="3">3 days</option>
+                                        <option value="5">5 days</option>
+                                        <option value="7">7 days</option>
+                                    </select>
+                                    <input type="text" id="listingEndPreview" value="End date preview" readonly>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="vehicleEstimateValue">Estimated Value ($):</label>
-                            <input type="number" id="vehicleEstimateValue" name="estimateValue" min="0" step="0.01">
+                        <div class="check-stack">
+                            <label><input type="checkbox" name="searchableBeforeStart"> Make my vehicle searchable before start time</label>
+                            <label><input type="checkbox" name="displayBuyNowDuringPreview"> Display Buy Now price during preview</label>
+                            <label><input type="checkbox" name="displayStartingBidDuringPreview"> Display Starting Bid price during preview</label>
+                            <label><input type="checkbox" name="acceptProxyBidsDuringPreview"> Accept Proxy Bids during preview</label>
+                            <label><input type="checkbox" name="automaticallyRelist"> Automatically Relist</label>
                         </div>
                     </fieldset>
 
-                    <!-- Form Actions -->
                     <div class="form-actions">
                         <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
                         <button type="submit" class="btn-submit">Add Vehicle</button>
