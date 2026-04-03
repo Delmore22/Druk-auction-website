@@ -167,6 +167,50 @@ body.car-details-page {
     padding: 0.9rem 1rem;
 }
 
+.cdv-bid-stat-transport {
+    grid-column: span 2;
+}
+
+.cdv-transport-search-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.cdv-transport-search-input {
+    flex: 1;
+    min-height: 38px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--placeholder-bg);
+    color: var(--text-color);
+    padding: 0.55rem 0.75rem;
+    font: inherit;
+}
+
+.cdv-transport-search-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--accent-rgba);
+}
+
+.cdv-transport-search-btn {
+    min-height: 38px;
+    border: 1px solid var(--accent-color);
+    border-radius: 10px;
+    background: var(--accent-color);
+    color: var(--accent-text);
+    padding: 0.55rem 0.9rem;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.18s ease;
+}
+
+.cdv-transport-search-btn:hover {
+    filter: brightness(0.95);
+}
+
 .cdv-bid-label {
     display: block;
     font-size: 0.75rem;
@@ -180,6 +224,11 @@ body.car-details-page {
     font-size: 1.6rem;
     font-weight: 700;
     color: var(--text-color);
+}
+
+.cdv-bid-value-input {
+    font-size: 1rem;
+    font-weight: 600;
 }
 
 .cdv-bid-value.is-accent {
@@ -208,6 +257,10 @@ body.car-details-page {
 
 .cdv-status-appending {
     background: #2563eb;
+}
+
+.cdv-status-reserve-off {
+    background: #0f766e;
 }
 
 .cdv-bid-actions {
@@ -775,6 +828,7 @@ body.lightbox-open {
 .ap-status-sale   { background: #c62828; }
 .ap-status-sold   { background: #2e7d32; }
 .ap-status-reserve { background: #1565c0; }
+.ap-status-reserveoff { background: #0f766e; }
 
 .ap-time-value {
     color: var(--accent-color);
@@ -1004,6 +1058,15 @@ body.lightbox-open {
     .cdv-condition-grid,
     .cdv-summary-meta {
         grid-template-columns: 1fr;
+    }
+
+    .cdv-bid-stat-transport {
+        grid-column: auto;
+    }
+
+    .cdv-transport-search-row {
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .cdv-bid-actions {

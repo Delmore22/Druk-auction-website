@@ -435,15 +435,34 @@ function appendInfoRow(grid, label, valueContent, valueClassName) {
     grid.appendChild(value);
 }
 
-function normalizeCarStatus(rawStatus) {
+function normalizeCarStatus(rawStatus, car) {
     var normalized = String(rawStatus || 'Sale').trim().toLowerCase();
+    var reserveValue = Number.isFinite(car && car.reservePrice) ? car.reservePrice : null;
+    var currentBid = Number.isFinite(car && car.currentBid) ? car.currentBid : NaN;
+
     if (normalized === 'sold') return 'sold';
-    if (normalized === 'appending' || normalized === 'reserve') return 'appending';
+
+    if (
+        normalized === 'reserve is off' ||
+        normalized === 'reserve-off' ||
+        normalized === 'reserve_off' ||
+        normalized === 'reserveoff'
+    ) {
+        return 'reserve-off';
+    }
+
+    if (normalized === 'appending' || normalized === 'reserve') {
+        if (reserveValue !== null && Number.isFinite(currentBid) && currentBid >= reserveValue) {
+            return 'reserve-off';
+        }
+        return 'appending';
+    }
+
     return 'sale';
 }
 
 function buildAuctionPanelElement(car) {
-    var status = normalizeCarStatus(car.status);
+    var status = normalizeCarStatus(car.status, car);
     var safeBid = Number.isFinite(car.currentBid) ? car.currentBid : 0;
     var safePickup = car.pickup || '\u2014';
     var safeLocation = car.location || '\u2014';
@@ -454,8 +473,11 @@ function buildAuctionPanelElement(car) {
     if (status === 'sold') {
         statusLabel = 'Sold';
         statusClass = 'ap-status-sold';
+    } else if (status === 'reserve-off') {
+        statusLabel = 'Reserve Is Off';
+        statusClass = 'ap-status-reserveoff';
     } else if (status === 'appending') {
-        statusLabel = 'Reserve Not Met';
+        statusLabel = 'Reserve';
         statusClass = 'ap-status-reserve';
     } else {
         statusLabel = 'On Sale';
@@ -476,7 +498,9 @@ function buildAuctionPanelElement(car) {
     var statusBadge = createElement('span', 'ap-status-badge ' + statusClass, statusLabel);
     appendInfoRow(infoGrid, 'Status', statusBadge);
     appendInfoRow(infoGrid, 'Time Left', status === 'sold' ? '\u2014' : 'Ends in ' + safeTimeRemaining, 'ap-time-value');
-    appendInfoRow(infoGrid, 'Current Bid', '$' + safeBid.toLocaleString(), 'ap-current-bid');
+    if (status !== 'sold') {
+        appendInfoRow(infoGrid, 'Current Bid', '$' + safeBid.toLocaleString(), 'ap-current-bid');
+    }
     appendInfoRow(infoGrid, 'Pickup', safePickup);
     appendInfoRow(infoGrid, 'Location', safeLocation);
     appendInfoRow(infoGrid, 'Seller', safeSeller, 'ap-seller-name');
@@ -490,7 +514,7 @@ function buildAuctionPanelElement(car) {
         soldNotice.appendChild(document.createTextNode(' Sold for $' + safeBid.toLocaleString()));
         actions.appendChild(soldNotice);
     } else {
-        if (status === 'sale') {
+        if (status === 'sale' || status === 'reserve-off') {
             var buyNow = car.buyNowPrice ? car.buyNowPrice : Math.round(safeBid * 1.1);
             actions.appendChild(createElement('button', 'ap-btn ap-btn-buynow', 'BUY NOW $' + buyNow.toLocaleString()));
             actions.lastChild.type = 'button';
@@ -698,12 +722,12 @@ function createDetailMetaItem(label, value) {
 function buildMediaMetaStrip(car, photoSources) {
     var auctionId = getAuctionIdentifier(car);
     var metaStrip = createElement('div', 'cdv-meta-strip');
-    var bids = normalizeCarStatus(car.status) === 'sold' ? 'Closed' : 'Open';
+    var bids = normalizeCarStatus(car.status, car) === 'sold' ? 'Closed' : 'Open';
 
     [
         ['Auction ID', '#' + auctionId],
         ['Seller', car.seller || 'Seller pending'],
-        ['Listing Type', normalizeCarStatus(car.status) === 'sold' ? 'Sold' : 'Ready to Sell'],
+        ['Listing Type', normalizeCarStatus(car.status, car) === 'sold' ? 'Sold' : 'Ready to Sell'],
         ['Inspected By', 'Druk Verified'],
         ['Bids', bids],
         ['Views', String(getDerivedViews(car))],
@@ -771,30 +795,63 @@ function buildMediaSection(car, titleText) {
 
 function buildBidStrip(car) {
     var section = createElement('section', 'cdv-bid-strip');
-    var status = normalizeCarStatus(car.status);
+    var status = normalizeCarStatus(car.status, car);
     var safeBid = Number.isFinite(car.currentBid) ? car.currentBid : 0;
     var remaining = car.timeRemaining || '-';
     var reserveValue = Number.isFinite(car.buyNowPrice) ? car.buyNowPrice : Math.round(safeBid * 1.12);
     var stats = createElement('div', 'cdv-bid-stats');
     var actions = createElement('div', 'cdv-bid-actions');
-    var statusLabel = status === 'sold' ? 'Sold' : (status === 'appending' ? 'Reserve' : 'Sale');
+    var statusLabel = status === 'sold' ? 'Sold' : (status === 'reserve-off' ? 'Reserve Is Off' : (status === 'appending' ? 'Reserve' : 'Sale'));
     var statusBadge = createElement('span', 'cdv-status-badge cdv-status-' + status, statusLabel);
+    var createBidStat = function (label, valueContent, valueClassName, statClassName) {
+        var stat = createElement('div', statClassName ? 'cdv-bid-stat ' + statClassName : 'cdv-bid-stat');
+        var value = createElement('strong', valueClassName || 'cdv-bid-value');
+        stat.appendChild(createElement('span', 'cdv-bid-label', label));
 
-    [
-        ['Current Bid', '$' + safeBid.toLocaleString()],
-        ['Remaining', status === 'sold' ? 'Auction Closed' : remaining],
-        ['Reserve', '$' + reserveValue.toLocaleString()]
-    ].forEach(function (entry, index) {
-        var stat = createElement('div', 'cdv-bid-stat');
-        stat.appendChild(createElement('span', 'cdv-bid-label', entry[0]));
-        stat.appendChild(createElement('strong', index === 1 ? 'cdv-bid-value is-accent' : 'cdv-bid-value', entry[1]));
-        stats.appendChild(stat);
-    });
+        if (valueContent instanceof Node) {
+            value.appendChild(valueContent);
+        } else {
+            value.textContent = String(valueContent == null ? '' : valueContent);
+        }
 
-    var statusStat = createElement('div', 'cdv-bid-stat');
-    statusStat.appendChild(createElement('span', 'cdv-bid-label', 'Status'));
-    statusStat.appendChild(statusBadge);
-    stats.appendChild(statusStat);
+        stat.appendChild(value);
+        return stat;
+    };
+
+    var bidEntries = [
+        ['Remaining', status === 'sold' ? 'Auction Closed' : remaining]
+    ];
+
+    if (status !== 'sold') {
+        bidEntries.unshift(['Current Bid', '$' + safeBid.toLocaleString()]);
+        if (status === 'sale') {
+            bidEntries.push(['Reserve', '$' + reserveValue.toLocaleString()]);
+        }
+    }
+
+    if (status === 'sold') {
+        var transportSearchRow = createElement('div', 'cdv-transport-search-row');
+        var transportInput = createElement('input', 'cdv-transport-search-input');
+        transportInput.type = 'text';
+        transportInput.placeholder = 'Enter ZIP code';
+        transportInput.maxLength = 10;
+        transportInput.setAttribute('aria-label', 'Transportation ZIP code');
+
+        var transportButton = createElement('button', 'cdv-transport-search-btn', 'Search');
+        transportButton.type = 'button';
+
+        transportSearchRow.appendChild(transportInput);
+        transportSearchRow.appendChild(transportButton);
+
+        stats.appendChild(createBidStat('Remaining', 'Auction Closed', 'cdv-bid-value is-accent'));
+        stats.appendChild(createBidStat('Status', statusBadge));
+        stats.appendChild(createBidStat('Transportation', transportSearchRow, 'cdv-bid-value cdv-bid-value-input', 'cdv-bid-stat-transport'));
+    } else {
+        bidEntries.forEach(function (entry) {
+            stats.appendChild(createBidStat(entry[0], entry[1], entry[0] === 'Remaining' ? 'cdv-bid-value is-accent' : 'cdv-bid-value'));
+        });
+        stats.appendChild(createBidStat('Status', statusBadge));
+    }
 
     var primary = createElement('button', 'cdv-bid-button is-primary', status === 'sold' ? 'Auction Closed' : 'Bid +' + Math.max(100, Math.round(safeBid * 0.01)).toLocaleString());
     primary.type = 'button';
@@ -833,7 +890,7 @@ function buildOverviewSection(car, titleText) {
         summaryMeta.appendChild(row);
     });
 
-    [car.condition || 'Condition pending', normalizeCarStatus(car.status) === 'sold' ? 'Sold' : 'Live Auction', getFuelType(car.engine)].forEach(function (text, index) {
+    [car.condition || 'Condition pending', normalizeCarStatus(car.status, car) === 'sold' ? 'Sold' : 'Live Auction', getFuelType(car.engine)].forEach(function (text, index) {
         badges.appendChild(createElement('span', index === 1 ? 'cdv-badge is-accent' : 'cdv-badge', text));
     });
 

@@ -259,6 +259,10 @@
     background: #2563eb;
 }
 
+.sale-label.status-reserve-off {
+    background: #0f766e;
+}
+
 .sale-price {
     font-size: 0.9rem;
     font-weight: 700;

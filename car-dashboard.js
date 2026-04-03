@@ -198,10 +198,29 @@ function restoreDashboardUiState() {
     }
 }
 
-function normalizeStatus(rawStatus) {
+function normalizeStatus(rawStatus, car) {
     const normalized = String(rawStatus || 'Sale').trim().toLowerCase();
+    const reserveValue = Number.isFinite(car && car.reservePrice) ? car.reservePrice : null;
+    const currentBid = Number.isFinite(car && car.currentBid) ? car.currentBid : NaN;
+
     if (normalized === 'sold') return { label: 'Sold', className: 'status-sold' };
-    if (normalized === 'appending' || normalized === 'reserve') return { label: 'Reserve', className: 'status-appending' };
+
+    if (
+        normalized === 'reserve is off' ||
+        normalized === 'reserve-off' ||
+        normalized === 'reserve_off' ||
+        normalized === 'reserveoff'
+    ) {
+        return { label: 'Reserve is Off', className: 'status-reserve-off' };
+    }
+
+    if (normalized === 'appending' || normalized === 'reserve') {
+        if (reserveValue !== null && Number.isFinite(currentBid) && currentBid >= reserveValue) {
+            return { label: 'Reserve is Off', className: 'status-reserve-off' };
+        }
+        return { label: 'Reserve', className: 'status-appending' };
+    }
+
     return { label: 'Sale', className: 'status-sale' };
 }
 
@@ -220,7 +239,7 @@ function renderMarketplaceCards(cars) {
 
     cars.forEach(car => {
         const title = `${car.year} ${car.make} ${car.model}`;
-        const status = normalizeStatus(car.status);
+        const status = normalizeStatus(car.status, car);
         const summary = getAuctionCardSummary(car);
         const bid = Number.isFinite(car.currentBid) ? car.currentBid.toLocaleString('en-US') : '0';
 
