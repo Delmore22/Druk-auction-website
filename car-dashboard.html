@@ -35,7 +35,7 @@
                 <div class="live-auctions">
                     <div class="section-title">
                         <h3>
-                            Marketplace
+                            Active Auctions
                         </h3>
                         <div class="view-toggle">
                             <button class="view-btn tile-btn active" title="Tile View" type="button">⊞</button>
@@ -56,6 +56,26 @@
                         <button class="pagination-btn" id="prevBtn" type="button">← Previous</button>
                         <span id="pageInfo" class="page-info">Page 1</span>
                         <button class="pagination-btn" id="nextBtn" type="button">Next →</button>
+                    </div>
+                </div>
+
+                <div class="live-auctions" id="marketplaceSection">
+                    <div class="section-title">
+                        <h3>
+                            Marketplace
+                        </h3>
+                        <div class="view-toggle">
+                            <button class="view-btn tile-btn active" title="Tile View" type="button">⊞</button>
+                            <button class="view-btn list-btn" title="List View" type="button">≡</button>
+                        </div>
+                    </div>
+
+                    <div id="marketplaceContainer" class="auctions-container tile-view">
+                        <!-- Data-driven marketplace cards are rendered by car-dashboard.js -->
+                    </div>
+
+                    <div id="marketplaceEmptyState" class="search-empty-state" hidden>
+                        No marketplace vehicles match your search.
                     </div>
                 </div>
             </div>

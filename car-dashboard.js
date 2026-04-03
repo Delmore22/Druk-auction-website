@@ -139,6 +139,10 @@ const DASHBOARD_UI_STATE_KEY = 'dashboardUiState';
 let allCars = [];
 let allAuctionItems = [];
 let filteredAuctionItems = [];
+let allActiveAuctionItems = [];
+let filteredActiveAuctionItems = [];
+let allMarketplaceItems = [];
+let filteredMarketplaceItems = [];
 let searchFilterState = {
     make: new Set(),
     engine: new Set(),
@@ -184,7 +188,7 @@ function persistDashboardUiState() {
 
 function restoreDashboardUiState() {
     const savedState = getDashboardUiState();
-    const totalPages = Math.max(1, Math.ceil(filteredAuctionItems.length / itemsPerPage));
+    const totalPages = Math.max(1, Math.ceil(filteredActiveAuctionItems.length / itemsPerPage));
 
     switchView(savedState.view);
     currentPage = Math.min(savedState.page, totalPages);
@@ -229,82 +233,171 @@ function getAuctionCardSummary(car) {
     return parts.join(' • ');
 }
 
-function renderMarketplaceCards(cars) {
-    const container = document.getElementById('auctionsContainer');
-    if (!container) return;
+function parseTimeRemainingSeconds(timeRemaining) {
+    const raw = String(timeRemaining || '').trim();
+    const match = raw.match(/^(\d+):(\d{2}):(\d{2})$/);
+    if (!match) return null;
 
-    container.textContent = '';
-    const fragment = document.createDocumentFragment();
-    const auctionItems = [];
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    const seconds = Number(match[3]);
+    if ([hours, minutes, seconds].some(Number.isNaN)) return null;
+    return (hours * 3600) + (minutes * 60) + seconds;
+}
+
+function parseAuctionStartTime(car) {
+    if (car && car.auctionStartAt) {
+        var parsedStart = new Date(car.auctionStartAt);
+        if (!Number.isNaN(parsedStart.getTime())) {
+            return parsedStart;
+        }
+    }
+
+    // Compatibility fallback if listing fields are provided directly in data.
+    if (car && car.listingStartDate) {
+        var dateParts = String(car.listingStartDate).split('-');
+        if (dateParts.length === 3) {
+            var year = parseInt(dateParts[0], 10);
+            var month = parseInt(dateParts[1], 10);
+            var day = parseInt(dateParts[2], 10);
+
+            var rawTime = car.listingStartTime ? String(car.listingStartTime) : '00:00';
+            var timeParts = rawTime.split(':');
+            var hour = parseInt(timeParts[0] || '0', 10);
+            var minute = parseInt(timeParts[1] || '0', 10);
+
+            if (![year, month, day, hour, minute].some(Number.isNaN)) {
+                var tzOffsets = { ET: -5, CT: -6, MT: -7, PT: -8 };
+                var tzKey = car.listingTimezone || 'ET';
+                var offset = Object.prototype.hasOwnProperty.call(tzOffsets, tzKey) ? tzOffsets[tzKey] : -5;
+                var startUtcMs = Date.UTC(year, month - 1, day, hour - offset, minute, 0, 0);
+                var fallbackStart = new Date(startUtcMs);
+                if (!Number.isNaN(fallbackStart.getTime())) {
+                    return fallbackStart;
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
+function isActiveAuctionCar(car) {
+    const status = normalizeStatus(car.status, car);
+    if (status.className === 'status-sold') return false;
+
+    const startTime = parseAuctionStartTime(car);
+    if (startTime) {
+        const now = Date.now();
+        const startMs = startTime.getTime();
+        const endMs = startMs + (24 * 60 * 60 * 1000);
+        return now >= startMs && now < endMs;
+    }
+
+    const secondsRemaining = parseTimeRemainingSeconds(car.timeRemaining);
+    if (secondsRemaining === null) return false;
+    if (secondsRemaining <= 0) return false;
+
+    return secondsRemaining <= (24 * 3600);
+}
+
+function createAuctionCardElement(car) {
+    const title = `${car.year} ${car.make} ${car.model}`;
+    const status = normalizeStatus(car.status, car);
+    const summary = getAuctionCardSummary(car);
+    const bid = Number.isFinite(car.currentBid) ? car.currentBid.toLocaleString('en-US') : '0';
+
+    const item = document.createElement('a');
+    item.className = 'auction-item';
+    item.setAttribute('data-car-name', car.id);
+    item.dataset.searchText = `${title} ${summary} ${car.id}`.toLowerCase();
+    item.href = `car-details.html?car=${encodeURIComponent(car.id)}`;
+    item.target = '_blank';
+    item.rel = 'opener';
+
+    const photo = document.createElement('div');
+    photo.className = 'auction-photo';
+    photo.setAttribute('aria-hidden', 'true');
+
+    const photoImage = document.createElement('img');
+    photoImage.className = 'auction-photo-image';
+    photoImage.alt = '';
+    photoImage.loading = 'lazy';
+    photoImage.decoding = 'async';
+    if ('fetchPriority' in photoImage) {
+        photoImage.fetchPriority = 'low';
+    }
+    photoImage.src = car.photo || `cars-photos/${car.id}.png`;
+    photo.appendChild(photoImage);
+
+    const details = document.createElement('div');
+    details.className = 'auction-details';
+
+    const heading = document.createElement('h4');
+    heading.textContent = title;
+
+    const description = document.createElement('p');
+    description.textContent = summary;
+
+    details.appendChild(heading);
+    details.appendChild(description);
+
+    const saleTag = document.createElement('div');
+    saleTag.className = 'sale-tag';
+
+    const saleLabel = document.createElement('span');
+    saleLabel.className = `sale-label ${status.className}`;
+    saleLabel.textContent = status.label;
+
+    const salePrice = document.createElement('span');
+    salePrice.className = 'sale-price';
+    salePrice.textContent = `$${bid}`;
+
+    saleTag.appendChild(saleLabel);
+    saleTag.appendChild(salePrice);
+
+    item.appendChild(photo);
+    item.appendChild(details);
+    item.appendChild(saleTag);
+
+    return item;
+}
+
+function renderAuctionGroups(cars) {
+    const activeContainer = document.getElementById('auctionsContainer');
+    const marketplaceContainer = document.getElementById('marketplaceContainer');
+    if (!activeContainer || !marketplaceContainer) return;
+
+    activeContainer.textContent = '';
+    marketplaceContainer.textContent = '';
+
+    const activeFragment = document.createDocumentFragment();
+    const marketplaceFragment = document.createDocumentFragment();
+    const activeItems = [];
+    const marketplaceItems = [];
 
     cars.forEach(car => {
-        const title = `${car.year} ${car.make} ${car.model}`;
-        const status = normalizeStatus(car.status, car);
-        const summary = getAuctionCardSummary(car);
-        const bid = Number.isFinite(car.currentBid) ? car.currentBid.toLocaleString('en-US') : '0';
+        const item = createAuctionCardElement(car);
 
-        const item = document.createElement('a');
-        item.className = 'auction-item';
-        item.setAttribute('data-car-name', car.id);
-        item.dataset.searchText = `${title} ${summary} ${car.id}`.toLowerCase();
-        item.href = `car-details.html?car=${encodeURIComponent(car.id)}`;
-        item.target = '_blank';
-        // Internal same-origin navigation intentionally keeps opener so the
-        // detail tab can focus and close back to the dashboard tab.
-        item.rel = 'opener';
-
-        const photo = document.createElement('div');
-        photo.className = 'auction-photo';
-        photo.setAttribute('aria-hidden', 'true');
-
-        const photoImage = document.createElement('img');
-        photoImage.className = 'auction-photo-image';
-        photoImage.alt = '';
-        photoImage.loading = 'lazy';
-        photoImage.decoding = 'async';
-        if ('fetchPriority' in photoImage) {
-            photoImage.fetchPriority = 'low';
+        if (isActiveAuctionCar(car)) {
+            activeFragment.appendChild(item);
+            activeItems.push(item);
+        } else {
+            marketplaceFragment.appendChild(item);
+            marketplaceItems.push(item);
         }
-        photoImage.src = car.photo || `cars-photos/${car.id}.png`;
-        photo.appendChild(photoImage);
-
-        const details = document.createElement('div');
-        details.className = 'auction-details';
-
-        const heading = document.createElement('h4');
-        heading.textContent = title;
-
-        const description = document.createElement('p');
-        description.textContent = summary;
-
-        details.appendChild(heading);
-        details.appendChild(description);
-
-        const saleTag = document.createElement('div');
-        saleTag.className = 'sale-tag';
-
-        const saleLabel = document.createElement('span');
-        saleLabel.className = `sale-label ${status.className}`;
-        saleLabel.textContent = status.label;
-
-        const salePrice = document.createElement('span');
-        salePrice.className = 'sale-price';
-        salePrice.textContent = `$${bid}`;
-
-        saleTag.appendChild(saleLabel);
-        saleTag.appendChild(salePrice);
-
-        item.appendChild(photo);
-        item.appendChild(details);
-        item.appendChild(saleTag);
-
-        fragment.appendChild(item);
-        auctionItems.push(item);
     });
 
-    container.appendChild(fragment);
-    allAuctionItems = auctionItems;
-    filteredAuctionItems = [...allAuctionItems];
+    activeContainer.appendChild(activeFragment);
+    marketplaceContainer.appendChild(marketplaceFragment);
+
+    allActiveAuctionItems = activeItems;
+    filteredActiveAuctionItems = [...allActiveAuctionItems];
+    allMarketplaceItems = marketplaceItems;
+    filteredMarketplaceItems = [...allMarketplaceItems];
+
+    allAuctionItems = allActiveAuctionItems.concat(allMarketplaceItems);
+    filteredAuctionItems = filteredActiveAuctionItems.concat(filteredMarketplaceItems);
 }
 
 function loadMarketplaceData() {
@@ -316,40 +409,46 @@ function loadMarketplaceData() {
         .then(data => {
             if (!data || !Array.isArray(data.cars)) {
                 allCars = [];
-                renderMarketplaceCards([]);
+                renderAuctionGroups([]);
                 return [];
             }
 
             allCars = data.cars;
-            renderMarketplaceCards(allCars);
+            renderAuctionGroups(allCars);
             return allCars;
         })
         .catch(() => {
             allCars = [];
-            renderMarketplaceCards([]);
+            renderAuctionGroups([]);
             return [];
         });
 }
 
 function bindDashboardControls() {
-    const tileBtn = document.querySelector('.tile-btn');
-    const listBtn = document.querySelector('.list-btn');
+    const tileBtns = document.querySelectorAll('.tile-btn');
+    const listBtns = document.querySelectorAll('.list-btn');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
 
-    if (tileBtn && !tileBtn.dataset.bound) {
-        tileBtn.dataset.bound = '1';
-        tileBtn.addEventListener('click', function () {
-            switchView('tile');
-        });
-    }
+    // Bind all tile buttons
+    tileBtns.forEach(btn => {
+        if (!btn.dataset.bound) {
+            btn.dataset.bound = '1';
+            btn.addEventListener('click', function () {
+                switchView('tile');
+            });
+        }
+    });
 
-    if (listBtn && !listBtn.dataset.bound) {
-        listBtn.dataset.bound = '1';
-        listBtn.addEventListener('click', function () {
-            switchView('list');
-        });
-    }
+    // Bind all list buttons
+    listBtns.forEach(btn => {
+        if (!btn.dataset.bound) {
+            btn.dataset.bound = '1';
+            btn.addEventListener('click', function () {
+                switchView('list');
+            });
+        }
+    });
 
     if (prevBtn && !prevBtn.dataset.bound) {
         prevBtn.dataset.bound = '1';
@@ -363,8 +462,9 @@ function bindDashboardControls() {
 }
 
 function initializeAuctionView() {
-    const container = document.getElementById('auctionsContainer');
-    if (!container) return;
+    const activeContainer = document.getElementById('auctionsContainer');
+    const marketplaceContainer = document.getElementById('marketplaceContainer');
+    if (!activeContainer || !marketplaceContainer) return;
 
     bindDashboardControls();
 
@@ -566,7 +666,7 @@ function applyAuctionSearch(query, filters = searchFilterState) {
         });
     };
 
-    filteredAuctionItems = allAuctionItems.filter(item => {
+    const itemMatchesFilters = item => {
         const combinedText = item.dataset.searchText || '';
 
         const matchesText =
@@ -578,30 +678,41 @@ function applyAuctionSearch(query, filters = searchFilterState) {
         const matchesBody = matchesMappedGroup(combinedText, filters.body, bodyMap);
 
         return matchesText && matchesMake && matchesEngine && matchesBody;
-    });
+    };
+
+    filteredActiveAuctionItems = allActiveAuctionItems.filter(itemMatchesFilters);
+    filteredMarketplaceItems = allMarketplaceItems.filter(itemMatchesFilters);
+    filteredAuctionItems = filteredActiveAuctionItems.concat(filteredMarketplaceItems);
 
     currentPage = 1;
     updatePagination();
 }
 function switchView(viewType) {
-    const container = document.getElementById('auctionsContainer');
-    const tileBtn = document.querySelector('.tile-btn');
-    const listBtn = document.querySelector('.list-btn');
+    const activeContainer = document.getElementById('auctionsContainer');
+    const marketplaceContainer = document.getElementById('marketplaceContainer');
+    const tileBtns = document.querySelectorAll('.tile-btn');
+    const listBtns = document.querySelectorAll('.list-btn');
+
+    if (!activeContainer || !marketplaceContainer || tileBtns.length === 0 || listBtns.length === 0) return;
 
     currentView = viewType;
     currentPage = 1;
 
-    // Update button states
+    // Update button states for all buttons
     if (viewType === 'tile') {
-        container.classList.remove('list-view');
-        container.classList.add('tile-view');
-        tileBtn.classList.add('active');
-        listBtn.classList.remove('active');
+        activeContainer.classList.remove('list-view');
+        activeContainer.classList.add('tile-view');
+        marketplaceContainer.classList.remove('list-view');
+        marketplaceContainer.classList.add('tile-view');
+        tileBtns.forEach(btn => btn.classList.add('active'));
+        listBtns.forEach(btn => btn.classList.remove('active'));
     } else {
-        container.classList.remove('tile-view');
-        container.classList.add('list-view');
-        listBtn.classList.add('active');
-        tileBtn.classList.remove('active');
+        activeContainer.classList.remove('tile-view');
+        activeContainer.classList.add('list-view');
+        marketplaceContainer.classList.remove('tile-view');
+        marketplaceContainer.classList.add('list-view');
+        listBtns.forEach(btn => btn.classList.add('active'));
+        tileBtns.forEach(btn => btn.classList.remove('active'));
     }
 
     // Update pagination and display
@@ -611,17 +722,19 @@ function switchView(viewType) {
 function updatePagination() {
     const startIdx = (currentPage - 1) * itemsPerPage;
     const endIdx = startIdx + itemsPerPage;
-    const visibleItems = filteredAuctionItems;
+    const visibleItems = filteredActiveAuctionItems;
     const visibleIndexes = new Map();
     const totalPages = Math.max(1, Math.ceil(visibleItems.length / itemsPerPage));
     const emptyState = document.getElementById('searchEmptyState');
+    const marketplaceEmptyState = document.getElementById('marketplaceEmptyState');
+    const marketplaceVisibleSet = new Set(filteredMarketplaceItems);
 
     visibleItems.forEach((item, index) => {
         visibleIndexes.set(item, index);
     });
 
-    // Show/hide items based on active search and page
-    allAuctionItems.forEach((item) => {
+    // Show/hide active auction items based on page
+    allActiveAuctionItems.forEach((item) => {
         const filteredIndex = visibleIndexes.get(item);
 
         if (filteredIndex === undefined) {
@@ -636,12 +749,21 @@ function updatePagination() {
         }
     });
 
+    // Marketplace section does not paginate, but still respects search filters.
+    allMarketplaceItems.forEach((item) => {
+        item.hidden = !marketplaceVisibleSet.has(item);
+    });
+
     if (visibleItems.length === 0) {
-        document.getElementById('pageInfo').textContent = 'No results';
+        document.getElementById('pageInfo').textContent = 'No active auctions';
         if (emptyState) emptyState.hidden = false;
     } else {
         document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
         if (emptyState) emptyState.hidden = true;
+    }
+
+    if (marketplaceEmptyState) {
+        marketplaceEmptyState.hidden = filteredMarketplaceItems.length > 0;
     }
 
     // Enable/disable pagination buttons
@@ -652,7 +774,7 @@ function updatePagination() {
 }
 
 function nextPage() {
-    const totalPages = Math.max(1, Math.ceil(filteredAuctionItems.length / itemsPerPage));
+    const totalPages = Math.max(1, Math.ceil(filteredActiveAuctionItems.length / itemsPerPage));
     if (currentPage < totalPages) {
         currentPage++;
         updatePagination();

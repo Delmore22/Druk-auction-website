@@ -136,6 +136,12 @@ function initAddVehicleForm() {
 
         var formData = new FormData(form);
         var vehicleData = serializeFormData(formData);
+        var auctionWindow = deriveAuctionWindowFromFormData(formData);
+
+        if (auctionWindow) {
+            vehicleData.auctionStartAt = auctionWindow.startAt;
+            vehicleData.auctionEndAt = auctionWindow.endAt;
+        }
 
         submitVehicle(vehicleData);
     });
@@ -384,37 +390,125 @@ function initPhotoPreview() {
 function initListingDurationPreview() {
     var startNow = document.getElementById('startNow');
     var startDate = document.getElementById('listingStartDate');
+    var startTime = document.getElementById('listingStartTime');
+    var timezone = document.getElementById('listingTimezone');
     var duration = document.getElementById('listingDuration');
     var preview = document.getElementById('listingEndPreview');
     if (!startDate || !duration || !preview) return;
 
+    duration.value = '1';
+    duration.disabled = true;
+    duration.title = 'Active auctions run for 24 hours from the selected start time.';
+
+    var toggleStartInputs = function () {
+        var shouldDisable = !!(startNow && startNow.checked);
+        startDate.disabled = shouldDisable;
+        if (startTime) startTime.disabled = shouldDisable;
+        if (timezone) timezone.disabled = shouldDisable;
+    };
+
     var updatePreview = function () {
-        var baseDate;
-        if (startNow && startNow.checked) {
-            baseDate = new Date();
-        } else if (startDate.value) {
-            baseDate = new Date(startDate.value + 'T00:00:00');
-        } else {
+        var auctionWindow = deriveAuctionWindowFromInputs(startNow, startDate, startTime, timezone);
+        if (!auctionWindow) {
             preview.value = 'End date preview';
             return;
         }
 
-        var days = parseInt(duration.value || '1', 10);
-        if (Number.isNaN(days)) {
-            preview.value = 'End date preview';
-            return;
-        }
-
-        baseDate.setDate(baseDate.getDate() + days);
-        preview.value = baseDate.toLocaleDateString();
+        preview.value = auctionWindow.end.toLocaleString();
     };
 
     if (startNow) {
-        startNow.addEventListener('change', updatePreview);
+        startNow.addEventListener('change', function () {
+            toggleStartInputs();
+            updatePreview();
+        });
     }
     startDate.addEventListener('change', updatePreview);
-    duration.addEventListener('change', updatePreview);
+    if (startTime) {
+        startTime.addEventListener('change', updatePreview);
+    }
+    if (timezone) {
+        timezone.addEventListener('change', updatePreview);
+    }
+
+    toggleStartInputs();
     updatePreview();
+}
+
+function deriveAuctionWindowFromInputs(startNow, startDate, startTime, timezone) {
+    var start;
+
+    if (startNow && startNow.checked) {
+        start = new Date();
+    } else {
+        if (!startDate || !startDate.value) {
+            return null;
+        }
+
+        var dateParts = startDate.value.split('-');
+        if (dateParts.length !== 3) {
+            return null;
+        }
+
+        var year = parseInt(dateParts[0], 10);
+        var month = parseInt(dateParts[1], 10);
+        var day = parseInt(dateParts[2], 10);
+
+        var rawTime = startTime && startTime.value ? startTime.value : '00:00';
+        var timeParts = rawTime.split(':');
+        if (timeParts.length < 2) {
+            return null;
+        }
+
+        var hour = parseInt(timeParts[0], 10);
+        var minute = parseInt(timeParts[1], 10);
+
+        if ([year, month, day, hour, minute].some(Number.isNaN)) {
+            return null;
+        }
+
+        var tzKey = timezone && timezone.value ? timezone.value : 'ET';
+        var timezoneOffsets = {
+            ET: -5,
+            CT: -6,
+            MT: -7,
+            PT: -8
+        };
+        var offset = Object.prototype.hasOwnProperty.call(timezoneOffsets, tzKey) ? timezoneOffsets[tzKey] : -5;
+
+        var startUtcMs = Date.UTC(year, month - 1, day, hour - offset, minute, 0, 0);
+        start = new Date(startUtcMs);
+    }
+
+    if (Number.isNaN(start.getTime())) {
+        return null;
+    }
+
+    var end = new Date(start.getTime() + (24 * 60 * 60 * 1000));
+    return {
+        start: start,
+        end: end
+    };
+}
+
+function deriveAuctionWindowFromFormData(formData) {
+    var startNow = formData.get('startNow');
+    var startDateValue = formData.get('listingStartDate');
+    var startTimeValue = formData.get('listingStartTime');
+    var timezoneValue = formData.get('listingTimezone');
+
+    var startDate = { value: startDateValue || '' };
+    var startTime = { value: startTimeValue || '' };
+    var timezone = { value: timezoneValue || '' };
+    var windowRange = deriveAuctionWindowFromInputs({ checked: !!startNow }, startDate, startTime, timezone);
+    if (!windowRange) {
+        return null;
+    }
+
+    return {
+        startAt: windowRange.start.toISOString(),
+        endAt: windowRange.end.toISOString()
+    };
 }
 
 function serializeFormData(formData) {
