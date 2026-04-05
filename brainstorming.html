@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassicBid - Brainstorming Utility</title>
+    <link rel="stylesheet" href="css.css">
+    <link rel="stylesheet" href="brainstorming.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="dark-theme brainstorming-page">
+    <div id="header-placeholder"></div>
+
+    <div id="below-header-placeholder"></div>
+
+    <div class="main-container">
+        <div id="left-sidebar-placeholder"></div>
+
+        <main class="main-content">
+            <div class="brainstorm-shell">
+                <section class="brainstorm-hero">
+                    <div class="hero-copy">
+                        <div class="hero-kicker"><i class="fa-regular fa-lightbulb" aria-hidden="true"></i> Owner Utility Space</div>
+                        <h1>Brainstorming Board</h1>
+                        <p>Capture raw ideas, UI edits, feature requests, and visual notes in one shared place. Entries are timestamped automatically and stored in Supabase instead of the current browser.</p>
+                    </div>
+                    <div class="hero-meta">
+                        <div class="hero-stat">
+                            <span class="hero-stat-label">Storage</span>
+                            <strong>Supabase database</strong>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-label">Attachments</span>
+                            <strong>Supabase storage bucket</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="brainstorm-grid">
+                    <section class="composer-card" id="idea-composer">
+                        <div class="card-heading">
+                            <div>
+                                <h2>Add New Idea</h2>
+                                <p>Write anything the owners want to remember, revisit, or hand off later.</p>
+                            </div>
+                        </div>
+
+                        <p id="connectionStatus" class="connection-status" aria-live="polite">Checking Supabase connection...</p>
+
+                        <form id="brainstormForm" class="brainstorm-form">
+                            <div class="field-group">
+                                <label class="field-label" for="createdBy">Created By</label>
+                                <input id="createdBy" class="text-input" name="createdBy" type="text" placeholder="Example: Danny or John Dealer" maxlength="80">
+                            </div>
+
+                            <label class="field-label" for="ideaText">Idea, issue, or website edit</label>
+                            <textarea id="ideaText" name="ideaText" rows="8" placeholder="Example: Update the dashboard hero copy, simplify vehicle cards, and add a better path to sold inventory."></textarea>
+
+                            <div class="upload-shell">
+                                <div class="upload-copy">
+                                    <span class="field-label">Screenshots</span>
+                                    <p>Add screenshots when a visual reference will explain the idea faster than text. They will upload to your Supabase storage bucket.</p>
+                                </div>
+                                <label class="upload-dropzone" for="ideaImages">
+                                    <input id="ideaImages" name="ideaImages" type="file" accept="image/*" multiple>
+                                    <span class="upload-icon"><i class="fa-regular fa-images" aria-hidden="true"></i></span>
+                                    <strong>Select image files</strong>
+                                    <span>Up to 4 screenshots. Keep each file under 5 MB for smoother uploads.</span>
+                                </label>
+                            </div>
+
+                            <div id="imagePreview" class="image-preview-grid" aria-live="polite"></div>
+
+                            <div class="form-actions">
+                                <button class="hero-btn primary" type="submit">Save Idea</button>
+                                <button class="hero-btn subtle" id="clearDraftBtn" type="button">Clear Draft</button>
+                            </div>
+                            <p id="formMessage" class="form-message" aria-live="polite"></p>
+                        </form>
+                    </section>
+
+                    <aside class="insight-card">
+                        <div class="card-heading">
+                            <div>
+                                <h2>How To Use It</h2>
+                                <p>Keep entries practical so they can become tasks later.</p>
+                            </div>
+                        </div>
+
+                        <ul class="guidance-list">
+                            <li>Add your name in Created By so the team knows who logged the note.</li>
+                            <li>Write one idea per entry when possible so the feed stays scan-friendly.</li>
+                            <li>Use screenshots for layout bugs, design changes, or content examples.</li>
+                            <li>Each entry gets a saved timestamp automatically when you submit it.</li>
+                            <li>This page now expects a Supabase table and a public storage bucket for shared persistence.</li>
+                        </ul>
+                    </aside>
+                </section>
+
+                <section class="feed-card" id="idea-feed-section">
+                    <div class="card-heading">
+                        <div>
+                            <h2>Saved Ideas</h2>
+                            <p>Your most recent thoughts appear first.</p>
+                        </div>
+                        <div class="feed-tools">
+                            <span id="entryCount" class="entry-count">0 entries</span>
+                            <button class="hero-btn subtle compact" id="exportIdeasBtn" type="button">Export JSON</button>
+                            <button class="hero-btn subtle compact" id="clearAllBtn" type="button">Clear All</button>
+                        </div>
+                    </div>
+
+                    <div id="emptyState" class="empty-state">
+                        <i class="fa-regular fa-note-sticky" aria-hidden="true"></i>
+                        <h3>No ideas saved yet</h3>
+                        <p>The first note you add will appear here with its timestamp and any screenshots you included.</p>
+                    </div>
+
+                    <div id="entriesList" class="entries-list"></div>
+                </section>
+            </div>
+        </main>
+
+        <aside class="right-sidebar" id="rightSidebar">
+            <div class="sidebar-header">
+                <button class="collapse-btn" data-action="toggle-right-sidebar" type="button">
+                    <span id="rightArrow">▶</span>
+                </button>
+                <span class="sidebar-title">Idea Actions</span>
+            </div>
+
+            <div class="collapsed-icons">
+                <a class="collapsed-icon" href="#idea-composer" data-tooltip="New Idea" title="New Idea" aria-label="New Idea"><i class="fa-solid fa-pen" aria-hidden="true"></i></a>
+                <a class="collapsed-icon" href="#idea-feed-section" data-tooltip="Saved Ideas" title="Saved Ideas" aria-label="Saved Ideas"><i class="fa-solid fa-book-open" aria-hidden="true"></i></a>
+                <button class="collapsed-icon collapsed-action-button" id="collapsedExportIdeasBtn" data-tooltip="Export JSON" title="Export JSON" aria-label="Export JSON" type="button"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i></button>
+                <button class="collapsed-icon collapsed-action-button" id="collapsedClearAllBtn" data-tooltip="Clear All" title="Clear All" aria-label="Clear All" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+            </div>
+
+            <div class="right-sidebar-content">
+                <a class="quick-action" href="#idea-composer">
+                    <div class="action-icon" aria-hidden="true"><i class="fa-solid fa-pen"></i></div>
+                    <div class="action-details">
+                        <h4>New Idea</h4>
+                        <p>Jump to the composer</p>
+                    </div>
+                </a>
+
+                <a class="quick-action" href="#idea-feed-section">
+                    <div class="action-icon" aria-hidden="true"><i class="fa-solid fa-book-open"></i></div>
+                    <div class="action-details">
+                        <h4>Saved Ideas</h4>
+                        <p>Review the full activity feed</p>
+                    </div>
+                </a>
+
+                <button class="quick-action quick-action-button" id="sidebarExportIdeasBtn" type="button">
+                    <div class="action-icon" aria-hidden="true"><i class="fa-solid fa-file-arrow-down"></i></div>
+                    <div class="action-details">
+                        <h4>Export Ideas</h4>
+                        <p>Download a JSON archive of the current feed</p>
+                    </div>
+                </button>
+
+                <button class="quick-action quick-action-button" id="sidebarClearAllBtn" type="button">
+                    <div class="action-icon" aria-hidden="true"><i class="fa-solid fa-trash"></i></div>
+                    <div class="action-details">
+                        <h4>Clear All Entries</h4>
+                        <p>Remove the shared ideas stored in Supabase</p>
+                    </div>
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="components.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="brainstorming.supabase-config.js"></script>
+    <script src="brainstorming.js"></script>
+</body>
+</html>
