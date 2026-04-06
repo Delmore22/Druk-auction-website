@@ -120,6 +120,18 @@
                     title: 'Remove or gate dashboard performance console logging',
                     text: 'The dashboard script logs [dashboard-perf] output when debugPerfLog is enabled, so make sure that behavior is explicitly intended.',
                     file: 'car-dashboard.js'
+                },
+                {
+                    id: 'dashboard-remove-demo-active-auction-fallback',
+                    title: 'Revisit the dashboard demo seeding that keeps both auction columns populated',
+                    text: 'During the build phase the dashboard now seeds Active Auctions from countdown-based demo candidates only when real active auctions are missing, so this behavior should be reviewed once live auction timing comes from real data.',
+                    file: 'car-dashboard.js'
+                },
+                {
+                    id: 'dashboard-sold-view-limit-to-user-inventory',
+                    title: 'Replace the temporary sold view with user-owned sold inventory after launch',
+                    text: 'The Sold toggle currently opens a temporary sold-vehicle section for the demo state, but after launch it should only show vehicles sold from the logged-in user inventory.',
+                    file: 'car-dashboard.html / car-dashboard.js / partials/below-header.html'
                 }
             ]
         },

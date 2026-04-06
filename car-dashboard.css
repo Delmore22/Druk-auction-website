@@ -126,6 +126,14 @@
     box-shadow: 0 2px 8px var(--shadow);
 }
 
+.dashboard-sold-section {
+    margin-bottom: 2rem;
+}
+
+.dashboard-section-hidden {
+    display: none !important;
+}
+
 .section-title {
     display: flex;
     justify-content: space-between;
@@ -135,12 +143,25 @@
     flex-wrap: wrap;
 }
 
+.section-title-copy {
+    display: grid;
+    gap: 0.3rem;
+}
+
 .section-title h3 {
     font-size: 1.1rem;
     color: var(--text-color);
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.section-title-copy p {
+    margin: 0;
+    color: var(--secondary-text);
+    font-size: 0.86rem;
+    line-height: 1.45;
+    max-width: 56ch;
 }
 
 .live-badge {

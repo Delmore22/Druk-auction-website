@@ -532,6 +532,16 @@ body {
     transform: translateY(-2px);
 }
 
+.thin-btn.is-active {
+    background: var(--accent-color);
+    color: var(--accent-text);
+    border-color: var(--accent-color);
+}
+
+.thin-btn.is-active:hover {
+    background: var(--accent-color);
+}
+
 .btn-icon {
     width: 1.1rem;
     height: 1.1rem;

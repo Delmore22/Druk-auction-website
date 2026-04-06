@@ -31,12 +31,15 @@
             </div>
 
             <!-- Current Auctions - Full Width -->
-            <div class="two-column-layout">
+            <div class="two-column-layout" id="dashboardMarketSections">
                 <div class="live-auctions">
                     <div class="section-title">
-                        <h3>
-                            Active Auctions
-                        </h3>
+                        <div class="section-title-copy">
+                            <h3>
+                                Active Auctions
+                            </h3>
+                            <p>Live 24-hour auction window. Reserve is Off only appears here while bidding is still active.</p>
+                        </div>
                         <div class="view-toggle">
                             <button class="view-btn tile-btn active" title="Tile View" type="button">⊞</button>
                             <button class="view-btn list-btn" title="List View" type="button">≡</button>
@@ -61,9 +64,12 @@
 
                 <div class="live-auctions" id="marketplaceSection">
                     <div class="section-title">
-                        <h3>
-                            Marketplace
-                        </h3>
+                        <div class="section-title-copy">
+                            <h3>
+                                Marketplace
+                            </h3>
+                            <p>Post-auction inventory. Reserve listings remain available here, and reserve-met listings roll over as sold.</p>
+                        </div>
                         <div class="view-toggle">
                             <button class="view-btn tile-btn active" title="Tile View" type="button">⊞</button>
                             <button class="view-btn list-btn" title="List View" type="button">≡</button>
@@ -80,8 +86,31 @@
                 </div>
             </div>
 
+            <section class="live-auctions dashboard-sold-section" id="soldSection" hidden>
+                <div class="section-title">
+                    <div class="section-title-copy">
+                        <h3>
+                            Sold Vehicles
+                        </h3>
+                        <p>Temporary sold view for the demo phase. After launch, this section should be limited to vehicles sold from the logged-in user's inventory.</p>
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-btn tile-btn active" title="Tile View" type="button">⊞</button>
+                        <button class="view-btn list-btn" title="List View" type="button">≡</button>
+                    </div>
+                </div>
+
+                <div id="soldContainer" class="auctions-container tile-view">
+                    <!-- Temporary sold vehicles are rendered by car-dashboard.js -->
+                </div>
+
+                <div id="soldEmptyState" class="search-empty-state" hidden>
+                    No sold vehicles match your search.
+                </div>
+            </section>
+
             <!-- Bottom Row Placeholders -->
-            <div class="bottom-row">
+            <div class="bottom-row" id="dashboardBottomRow">
                 <div class="placeholder-card">
                     <h3>High Match Vehicles</h3>
                     <div class="placeholder-content">
