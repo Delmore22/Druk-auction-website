@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassicBid - Launch Checklist</title>
+    <link rel="stylesheet" href="css.css">
+    <link rel="stylesheet" href="secondary-pages.css">
+    <link rel="stylesheet" href="launch-checklist.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="dark-theme launch-checklist-page">
+    <div id="header-placeholder"></div>
+
+    <div id="below-header-placeholder"></div>
+
+    <div class="main-container">
+        <div id="left-sidebar-placeholder"></div>
+
+        <main class="main-content">
+            <div class="section-shell">
+                <section class="page-hero">
+                    <div class="page-eyebrow"><i class="fa-solid fa-list-check"></i> Internal Launch Prep</div>
+                    <h1>Launch Checklist</h1>
+                    <p>Track every temporary page, partial, placeholder, and owner-only utility before this site goes public. The checklist is grouped by file area so you can review the launch surface methodically instead of relying on memory.</p>
+                    <div class="hero-actions">
+                        <a class="hero-btn primary" href="#launch-sections">Review Checklist</a>
+                        <a class="hero-btn" href="#launch-notes">Open Notes</a>
+                    </div>
+                </section>
+
+                <section class="summary-grid" aria-label="Launch checklist summary">
+                    <article class="summary-card">
+                        <div class="summary-label">Total Tasks</div>
+                        <div class="summary-value" id="summaryTotal">0</div>
+                        <div class="summary-note">Seeded plus any custom items you add</div>
+                    </article>
+                    <article class="summary-card">
+                        <div class="summary-label">Completed</div>
+                        <div class="summary-value" id="summaryCompleted">0</div>
+                        <div class="summary-note">Saved in this browser</div>
+                    </article>
+                    <article class="summary-card">
+                        <div class="summary-label">Remaining</div>
+                        <div class="summary-value" id="summaryRemaining">0</div>
+                        <div class="summary-note">Still needs launch review</div>
+                    </article>
+                    <article class="summary-card">
+                        <div class="summary-label">Sections</div>
+                        <div class="summary-value" id="summarySections">0</div>
+                        <div class="summary-note">Pages and partials covered</div>
+                    </article>
+                </section>
+
+                <section class="section-grid">
+                    <div class="panel-card" id="launch-sections">
+                        <div class="card-heading">
+                            <div>
+                                <h2>Pages And Partials</h2>
+                                <p>Each section contains seeded launch items plus room for custom notes and extra tasks.</p>
+                            </div>
+                            <button class="page-link checklist-reset-button" id="resetChecklistBtn" type="button">Reset Progress</button>
+                        </div>
+
+                        <div class="launch-section-stack" id="launchSections"></div>
+                    </div>
+
+                    <aside class="aside-card" id="launch-notes">
+                        <div class="card-heading">
+                            <div>
+                                <h3>Launch Notes</h3>
+                                <p>Keep overall reminders that do not belong to one file.</p>
+                            </div>
+                        </div>
+
+                        <div class="metric-list launch-metric-list">
+                            <div>
+                                <strong>Suggested workflow</strong>
+                                Review one section at a time, add missing tasks, then use the footer and owner utility links as a final sweep.
+                            </div>
+                            <div>
+                                <strong>Persistence</strong>
+                                Checkmarks and notes are stored locally in this browser using local storage.
+                            </div>
+                            <div>
+                                <strong>Important</strong>
+                                This page itself is an internal tool, so remember to decide whether it stays private or gets removed before launch.
+                            </div>
+                        </div>
+
+                        <label class="launch-notes-label" for="masterLaunchNotes">Project-wide notes</label>
+                        <textarea id="masterLaunchNotes" class="launch-notes-input" rows="12" placeholder="Example: remove internal tools from footer, verify live contact details, replace demo user identity, and retest the add vehicle flow."></textarea>
+                    </aside>
+                </section>
+            </div>
+        </main>
+
+        <aside class="right-sidebar" id="rightSidebar">
+            <div class="sidebar-header">
+                <button class="collapse-btn" data-action="toggle-right-sidebar" type="button">
+                    <span id="rightArrow">▶</span>
+                </button>
+                <span class="sidebar-title">Checklist Tools</span>
+            </div>
+
+            <div class="collapsed-icons">
+                <a class="collapsed-icon" href="#launch-sections" data-tooltip="Checklist" title="Checklist" aria-label="Checklist"><i class="fa-solid fa-list-check" aria-hidden="true"></i></a>
+                <a class="collapsed-icon" href="#shared-partials" data-tooltip="Shared Partials" title="Shared Partials" aria-label="Shared Partials"><i class="fa-solid fa-puzzle-piece" aria-hidden="true"></i></a>
+                <a class="collapsed-icon" href="#launch-notes" data-tooltip="Launch Notes" title="Launch Notes" aria-label="Launch Notes"><i class="fa-solid fa-note-sticky" aria-hidden="true"></i></a>
+            </div>
+
+            <div class="right-sidebar-content">
+                <a class="quick-action" href="#shared-partials">
+                    <div class="action-icon" aria-hidden="true"><i class="fa-solid fa-puzzle-piece"></i></div>
+                    <div class="action-details">
+                        <h4>Check Shared Partials</h4>
+                        <p>Review footer, header, search bar, and shared nav</p>
+                    </div>
+                </a>
+
+                <a class="quick-action" href="#internal-pages">
+                    <div class="action-icon" aria-hidden="true"><i class="fa-solid fa-toolbox"></i></div>
+                    <div class="action-details">
+                        <h4>Check Internal Pages</h4>
+                        <p>Decide what remains private or gets removed</p>
+                    </div>
+                </a>
+
+                <a class="quick-action" href="#launch-notes">
+                    <div class="action-icon" aria-hidden="true"><i class="fa-solid fa-note-sticky"></i></div>
+                    <div class="action-details">
+                        <h4>Project Notes</h4>
+                        <p>Capture anything that still needs a launch sweep</p>
+                    </div>
+                </a>
+            </div>
+        </aside>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="components.js"></script>
+    <script src="launch-checklist.js"></script>
+</body>
+</html>
