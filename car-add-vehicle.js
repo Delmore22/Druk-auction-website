@@ -398,7 +398,7 @@ function initListingDurationPreview() {
 
     duration.value = '1';
     duration.disabled = true;
-    duration.title = 'Active auctions run for 24 hours from the selected start time.';
+    duration.title = 'Active bidding runs for 24 hours from the selected start time.';
 
     var toggleStartInputs = function () {
         var shouldDisable = !!(startNow && startNow.checked);

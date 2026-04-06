@@ -512,7 +512,7 @@ function createAuctionCardElement(car, sectionMode) {
     item.className = 'auction-item';
     item.setAttribute('data-car-name', car.id);
     item.dataset.searchText = `${title} ${summary} ${car.id}`.toLowerCase();
-    item.href = `car-details.html?car=${encodeURIComponent(car.id)}`;
+    item.href = `car-details.html?car=${encodeURIComponent(car.id)}&source=${encodeURIComponent(sectionMode)}`;
     item.target = '_blank';
     item.rel = 'opener';
 
@@ -1060,7 +1060,7 @@ function updatePagination() {
     });
 
     if (visibleItems.length === 0) {
-        document.getElementById('pageInfo').textContent = 'No active auctions';
+        document.getElementById('pageInfo').textContent = 'No active bidding';
         if (emptyState) emptyState.hidden = false;
     } else {
         document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;

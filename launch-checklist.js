@@ -32,7 +32,7 @@
                 {
                     id: 'footer-fix-placeholder-links',
                     title: 'Replace placeholder footer links with real destinations',
-                    text: 'Dashboard, Auction Houses, My Vehicles, Watchlist, and Contact Us still point to # and should either link correctly or be removed.',
+                    text: 'Dashboard, Bidding Houses, My Vehicles, Watchlist, and Contact Us still point to # and should either link correctly or be removed.',
                     file: 'partials/footer.html'
                 },
                 {
@@ -123,8 +123,8 @@
                 },
                 {
                     id: 'dashboard-remove-demo-active-auction-fallback',
-                    title: 'Revisit the dashboard demo seeding that keeps both auction columns populated',
-                    text: 'During the build phase the dashboard now seeds Active Auctions from countdown-based demo candidates only when real active auctions are missing, so this behavior should be reviewed once live auction timing comes from real data.',
+                    title: 'Revisit the dashboard demo seeding that keeps both bidding columns populated',
+                    text: 'During the build phase the dashboard now seeds Active Bidding from countdown-based demo candidates only when real active bidding items are missing, so this behavior should be reviewed once live timing comes from real data.',
                     file: 'car-dashboard.js'
                 },
                 {
@@ -176,7 +176,7 @@
                 {
                     id: 'car-details-fix-view-fees-link',
                     title: 'Replace the generated View Fees placeholder link',
-                    text: 'The auction panel builder still creates a View Fees link with a # href instead of a real destination or modal trigger.',
+                    text: 'The bidding panel builder still creates a View Fees link with a # href instead of a real destination or modal trigger.',
                     file: 'car-details.js'
                 },
                 {
@@ -386,7 +386,7 @@
                 {
                     id: 'data-review-cars-json-demo-content',
                     title: 'Replace or reconcile the demo inventory in cars.json',
-                    text: 'cars.json contains sample vehicles, seller names, auction timing, and status values that should match the real production data strategy.',
+                    text: 'cars.json contains sample vehicles, seller names, bidding timing, and status values that should match the real production data strategy.',
                     file: 'data/cars.json'
                 },
                 {

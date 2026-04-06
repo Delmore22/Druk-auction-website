@@ -1,5 +1,6 @@
 var currentLightboxIndex = 0;
 var lightboxSrcs = [];
+var bidCountdownIntervalId = null;
 var lightboxElements = {
     overlay: null,
     image: null
@@ -285,6 +286,15 @@ function closeCarPhotoLightbox() {
     }
 }
 
+function clearBidCountdown() {
+    if (bidCountdownIntervalId !== null) {
+        window.clearInterval(bidCountdownIntervalId);
+        bidCountdownIntervalId = null;
+    }
+}
+
+window.addEventListener('pagehide', clearBidCountdown);
+
 function initBackToAuctions() {
     var backButton = document.querySelector('.back-button');
     if (!backButton) return;
@@ -352,8 +362,9 @@ function initBackToAuctions() {
 function loadCarDetails() {
     var params = new URLSearchParams(window.location.search);
     var carId = params.get('car');
+    var sourceSection = params.get('source');
     if (!carId) {
-        showCarError('No vehicle selected.', 'car-dashboard.html', 'Browse auctions ->');
+        showCarError('No vehicle selected.', 'car-dashboard.html', 'Browse listings ->');
         return;
     }
     fetch('data/cars.json')
@@ -364,11 +375,11 @@ function loadCarDetails() {
         .then(function (data) {
             var car = data.cars.find(function (c) { return c.id === carId; });
             if (!car) {
-                showCarError('Vehicle not found.', 'car-dashboard.html', 'Browse auctions ->');
+                showCarError('Vehicle not found.', 'car-dashboard.html', 'Browse listings ->');
                 return;
             }
-            renderCarDetail(car);
-            document.title = car.year + ' ' + car.make + ' ' + car.model + ' — Druk Classic Bid';
+            renderCarDetail(car, sourceSection);
+            document.title = car.year + ' ' + car.make + ' ' + car.model + ' — Collectors Alliance Exchange';
         })
         .catch(function () {
             showCarError('Could not load vehicle data. Please try again.');
@@ -461,6 +472,172 @@ function normalizeCarStatus(rawStatus, car) {
     return 'sale';
 }
 
+function parseTimeRemainingToSeconds(timeRemaining) {
+    var raw = String(timeRemaining || '').trim();
+    var match = raw.match(/^(\d+):(\d{2}):(\d{2})$/);
+    if (!match) return null;
+
+    var hours = Number(match[1]);
+    var minutes = Number(match[2]);
+    var seconds = Number(match[3]);
+    if ([hours, minutes, seconds].some(Number.isNaN)) return null;
+    return (hours * 3600) + (minutes * 60) + seconds;
+}
+
+function parseAuctionStartTime(car) {
+    if (car && car.auctionStartAt) {
+        var parsedStart = new Date(car.auctionStartAt);
+        if (!Number.isNaN(parsedStart.getTime())) {
+            return parsedStart;
+        }
+    }
+
+    return null;
+}
+
+function parseAuctionEndTime(car) {
+    if (car && car.auctionEndAt) {
+        var parsedEnd = new Date(car.auctionEndAt);
+        if (!Number.isNaN(parsedEnd.getTime())) {
+            return parsedEnd;
+        }
+    }
+
+    var startTime = parseAuctionStartTime(car);
+    if (!startTime) {
+        return null;
+    }
+
+    return new Date(startTime.getTime() + (24 * 60 * 60 * 1000));
+}
+
+function getBidCountdownEndTime(car, status) {
+    if (status === 'sold') {
+        return null;
+    }
+
+    var endTime = parseAuctionEndTime(car);
+    if (endTime && endTime.getTime() > Date.now()) {
+        return endTime.getTime();
+    }
+
+    var secondsRemaining = parseTimeRemainingToSeconds(car.timeRemaining);
+    if (secondsRemaining !== null && secondsRemaining > 0) {
+        return Date.now() + (secondsRemaining * 1000);
+    }
+
+    return null;
+}
+
+function isActiveAuctionCar(car, status) {
+    if (status === 'sold') {
+        return false;
+    }
+
+    var startTime = parseAuctionStartTime(car);
+    if (startTime) {
+        var now = Date.now();
+        var endTime = parseAuctionEndTime(car);
+        var endMs = endTime ? endTime.getTime() : (startTime.getTime() + (24 * 60 * 60 * 1000));
+        return now >= startTime.getTime() && now < endMs;
+    }
+
+    var secondsRemaining = parseTimeRemainingToSeconds(car.timeRemaining);
+    if (secondsRemaining === null || secondsRemaining <= 0) {
+        return false;
+    }
+
+    return secondsRemaining <= (24 * 3600);
+}
+
+function getCarDetailSectionMode(car, status, sourceSection) {
+    if (sourceSection === 'active' || sourceSection === 'marketplace' || sourceSection === 'sold') {
+        return sourceSection;
+    }
+
+    if (status === 'sold') {
+        return 'sold';
+    }
+
+    if (isActiveAuctionCar(car, status)) {
+        return 'active';
+    }
+
+    if (status === 'reserve-off') {
+        return 'sold';
+    }
+
+    return 'marketplace';
+}
+
+function getCarDetailDisplayStatus(status, sectionMode) {
+    if (sectionMode === 'sold') {
+        return 'sold';
+    }
+
+    return status;
+}
+
+function formatCountdownMs(remainingMs) {
+    var totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+    var hours = Math.floor(totalSeconds / 3600);
+    var minutes = Math.floor((totalSeconds % 3600) / 60);
+    var seconds = totalSeconds % 60;
+
+    return [hours, minutes, seconds].map(function (value) {
+        return String(value).padStart(2, '0');
+    }).join(':');
+}
+
+function startBidCountdown(target, car, status) {
+    clearBidCountdown();
+
+    if (!target || status === 'sold') {
+        return;
+    }
+
+    var endTimeMs = getBidCountdownEndTime(car, status);
+    if (!endTimeMs) {
+        return;
+    }
+
+    function updateCountdown() {
+        var remainingMs = endTimeMs - Date.now();
+        if (remainingMs <= 0) {
+            target.textContent = 'Bidding Closed';
+            clearBidCountdown();
+            return;
+        }
+
+        target.textContent = formatCountdownMs(remainingMs);
+    }
+
+    updateCountdown();
+    bidCountdownIntervalId = window.setInterval(updateCountdown, 1000);
+}
+
+function getBidIncrementAmount(currentBid) {
+    var safeBid = Number.isFinite(currentBid) ? currentBid : 0;
+
+    if (safeBid <= 10000) {
+        return 100;
+    }
+
+    if (safeBid <= 30000) {
+        return 200;
+    }
+
+    if (safeBid <= 50000) {
+        return 250;
+    }
+
+    if (safeBid <= 100000) {
+        return 500;
+    }
+
+    return 1000;
+}
+
 function buildAuctionPanelElement(car) {
     var status = normalizeCarStatus(car.status, car);
     var safeBid = Number.isFinite(car.currentBid) ? car.currentBid : 0;
@@ -488,7 +665,7 @@ function buildAuctionPanelElement(car) {
     var header = createElement('div', 'ap-header');
     var saleType = createElement('span', 'ap-sale-type');
     var infoIcon = createIcon('fas fa-info-circle ap-info-icon');
-    infoIcon.setAttribute('title', 'Timed auction - highest valid bid wins when the timer expires');
+    infoIcon.setAttribute('title', 'Timed bidding - highest valid bid wins when the timer expires');
     saleType.appendChild(document.createTextNode('Timed Sale '));
     saleType.appendChild(infoIcon);
     header.appendChild(saleType);
@@ -684,7 +861,7 @@ function getAnnouncementItems(car) {
     if (car.seller) {
         items.push({
             title: 'Seller Notes',
-            detail: 'Offered by ' + car.seller + ' with live auction support through Druk Classic Bid.'
+            detail: 'Offered by ' + car.seller + ' with live bidding support through Collectors Alliance Exchange.'
         });
     }
 
@@ -693,7 +870,7 @@ function getAnnouncementItems(car) {
 
 function getDisclosureItems(car) {
     return [
-        'Auction data is provided for preview and may be updated before the lot closes.',
+        'Listing data is provided for preview and may be updated before the lot closes.',
         'Transport timing and reserve guidance are estimates based on current listing information.',
         'Review the photo gallery and vehicle details before placing a bid or submitting an offer.',
         'Seller contact and pickup information should be reconfirmed before final settlement.'
@@ -719,16 +896,19 @@ function createDetailMetaItem(label, value) {
     return item;
 }
 
-function buildMediaMetaStrip(car, photoSources) {
+function buildMediaMetaStrip(car, photoSources, sourceSection) {
     var auctionId = getAuctionIdentifier(car);
     var metaStrip = createElement('div', 'cdv-meta-strip');
-    var bids = normalizeCarStatus(car.status, car) === 'sold' ? 'Closed' : 'Open';
+    var status = normalizeCarStatus(car.status, car);
+    var sectionMode = getCarDetailSectionMode(car, status, sourceSection);
+    var displayStatus = getCarDetailDisplayStatus(status, sectionMode);
+    var bids = displayStatus === 'sold' ? 'Closed' : 'Open';
 
     [
-        ['Auction ID', '#' + auctionId],
+        ['Listing ID', '#' + auctionId],
         ['Seller', car.seller || 'Seller pending'],
-        ['Listing Type', normalizeCarStatus(car.status, car) === 'sold' ? 'Sold' : 'Ready to Sell'],
-        ['Inspected By', 'Druk Verified'],
+        ['Listing Type', displayStatus === 'sold' ? 'Sold' : 'Ready to Sell'],
+        ['Inspected By', 'Collectors Alliance Verified'],
         ['Bids', bids],
         ['Views', String(getDerivedViews(car))],
         ['Photos', String(getDerivedPhotoCount(photoSources))]
@@ -793,16 +973,19 @@ function buildMediaSection(car, titleText) {
     return mediaSection;
 }
 
-function buildBidStrip(car) {
+function buildBidStrip(car, sourceSection) {
     var section = createElement('section', 'cdv-bid-strip');
     var status = normalizeCarStatus(car.status, car);
+    var sectionMode = getCarDetailSectionMode(car, status, sourceSection);
+    var displayStatus = getCarDetailDisplayStatus(status, sectionMode);
     var safeBid = Number.isFinite(car.currentBid) ? car.currentBid : 0;
     var remaining = car.timeRemaining || '-';
     var reserveValue = Number.isFinite(car.buyNowPrice) ? car.buyNowPrice : Math.round(safeBid * 1.12);
     var stats = createElement('div', 'cdv-bid-stats');
     var actions = createElement('div', 'cdv-bid-actions');
-    var statusLabel = status === 'sold' ? 'Sold' : (status === 'reserve-off' ? 'Reserve Is Off' : (status === 'appending' ? 'Reserve' : 'Sale'));
-    var statusBadge = createElement('span', 'cdv-status-badge cdv-status-' + status, statusLabel);
+    var statusLabel = displayStatus === 'sold' ? 'Sold' : (displayStatus === 'reserve-off' ? 'Reserve Is Off' : (displayStatus === 'appending' ? 'Reserve' : 'Sale'));
+    var statusBadge = createElement('span', 'cdv-status-badge cdv-status-' + displayStatus, statusLabel);
+    var countdownValue = null;
     var createBidStat = function (label, valueContent, valueClassName, statClassName) {
         var stat = createElement('div', statClassName ? 'cdv-bid-stat ' + statClassName : 'cdv-bid-stat');
         var value = createElement('strong', valueClassName || 'cdv-bid-value');
@@ -818,18 +1001,17 @@ function buildBidStrip(car) {
         return stat;
     };
 
-    var bidEntries = [
-        ['Remaining', status === 'sold' ? 'Auction Closed' : remaining]
-    ];
+    var bidEntries = [];
 
-    if (status !== 'sold') {
-        bidEntries.unshift(['Current Bid', '$' + safeBid.toLocaleString()]);
-        if (status === 'sale') {
-            bidEntries.push(['Reserve', '$' + reserveValue.toLocaleString()]);
-        }
+    if (sectionMode === 'active') {
+        bidEntries.push(['Bidding time remaining', remaining]);
     }
 
-    if (status === 'sold') {
+    if (displayStatus !== 'sold') {
+        bidEntries.unshift(['Current Bid', '$' + safeBid.toLocaleString()]);
+    }
+
+    if (displayStatus === 'sold') {
         var transportSearchRow = createElement('div', 'cdv-transport-search-row');
         var transportInput = createElement('input', 'cdv-transport-search-input');
         transportInput.type = 'text';
@@ -843,21 +1025,25 @@ function buildBidStrip(car) {
         transportSearchRow.appendChild(transportInput);
         transportSearchRow.appendChild(transportButton);
 
-        stats.appendChild(createBidStat('Remaining', 'Auction Closed', 'cdv-bid-value is-accent'));
         stats.appendChild(createBidStat('Status', statusBadge));
         stats.appendChild(createBidStat('Transportation', transportSearchRow, 'cdv-bid-value cdv-bid-value-input', 'cdv-bid-stat-transport'));
     } else {
         bidEntries.forEach(function (entry) {
-            stats.appendChild(createBidStat(entry[0], entry[1], entry[0] === 'Remaining' ? 'cdv-bid-value is-accent' : 'cdv-bid-value'));
+            var stat = createBidStat(entry[0], entry[1], entry[0] === 'Bidding time remaining' ? 'cdv-bid-value is-accent' : 'cdv-bid-value');
+            if (entry[0] === 'Bidding time remaining') {
+                countdownValue = stat.querySelector('.cdv-bid-value');
+            }
+            stats.appendChild(stat);
         });
         stats.appendChild(createBidStat('Status', statusBadge));
     }
 
-    var primary = createElement('button', 'cdv-bid-button is-primary', status === 'sold' ? 'Auction Closed' : 'Bid +' + Math.max(100, Math.round(safeBid * 0.01)).toLocaleString());
+    var nextBidAmount = safeBid + getBidIncrementAmount(safeBid);
+    var primary = createElement('button', 'cdv-bid-button is-primary', displayStatus === 'sold' ? 'Bidding Closed' : 'Bid $' + nextBidAmount.toLocaleString());
     primary.type = 'button';
-    primary.disabled = status === 'sold';
+    primary.disabled = displayStatus === 'sold';
 
-    var secondary = createElement('button', 'cdv-bid-button', status === 'sold' ? 'View History' : 'Set Proxy');
+    var secondary = createElement('button', 'cdv-bid-button', displayStatus === 'sold' ? 'View History' : 'Set Proxy');
     secondary.type = 'button';
 
     actions.appendChild(primary);
@@ -865,15 +1051,23 @@ function buildBidStrip(car) {
 
     section.appendChild(stats);
     section.appendChild(actions);
+
+    if (countdownValue && sectionMode === 'active' && displayStatus !== 'sold') {
+        startBidCountdown(countdownValue, car, status);
+    }
+
     return section;
 }
 
-function buildOverviewSection(car, titleText) {
+function buildOverviewSection(car, titleText, sourceSection) {
     var wrapper = createElement('section', 'cdv-overview-grid');
     var summary = createElement('article', 'cdv-card cdv-summary-card');
     var location = getVehicleLocationParts(car);
     var summaryMeta = createElement('div', 'cdv-summary-meta');
     var badges = createElement('div', 'cdv-summary-badges');
+    var status = normalizeCarStatus(car.status, car);
+    var sectionMode = getCarDetailSectionMode(car, status, sourceSection);
+    var displayStatus = getCarDetailDisplayStatus(status, sectionMode);
 
     summary.appendChild(createElement('h1', 'cdv-title', titleText));
     summary.appendChild(createElement('p', 'cdv-subtitle', [car.bodyStyle, car.transmission, car.engine].filter(Boolean).join(' - ')));
@@ -890,7 +1084,7 @@ function buildOverviewSection(car, titleText) {
         summaryMeta.appendChild(row);
     });
 
-    [car.condition || 'Condition pending', normalizeCarStatus(car.status, car) === 'sold' ? 'Sold' : 'Live Auction', getFuelType(car.engine)].forEach(function (text, index) {
+    [car.condition || 'Condition pending', displayStatus === 'sold' ? 'Sold' : 'Live Bidding', getFuelType(car.engine)].forEach(function (text, index) {
         badges.appendChild(createElement('span', index === 1 ? 'cdv-badge is-accent' : 'cdv-badge', text));
     });
 
@@ -942,7 +1136,7 @@ function buildValueCard(car) {
     var range = getMarketRange(car);
     var card = createElement('article', 'cdv-card');
     card.appendChild(createElement('h3', 'cdv-card-title', 'Market Range'));
-    card.appendChild(createElement('div', 'cdv-report-brand', 'Druk Value Insight'));
+    card.appendChild(createElement('div', 'cdv-report-brand', 'Collectors Alliance Insight'));
     card.appendChild(createElement('p', 'cdv-muted-text', 'Estimated wholesale range based on current bid position, vehicle segment, and listing condition.'));
     card.appendChild(createElement('div', 'cdv-range-value', '$' + range.lower.toLocaleString() + ' - $' + range.upper.toLocaleString()));
     return card;
@@ -983,7 +1177,7 @@ function buildVehicleDetailsCard(car) {
         ['Make', car.make || '-'],
         ['Model', car.model || '-'],
         ['Pickup', car.pickup || '-'],
-        ['Auction Date', 'Live Now']
+        ['Listing Status', 'Live Now']
     ].forEach(function (entry) {
         var row = createElement('div', 'cdv-detail-row');
         row.appendChild(createElement('span', 'cdv-detail-label', entry[0]));
@@ -1102,7 +1296,7 @@ function initializeVehicleNotes(carId) {
     updateCount();
 }
 
-function renderCarDetail(car) {
+function renderCarDetail(car, sourceSection) {
     var section = document.getElementById('carDetailSection');
     if (!section) return;
 
@@ -1112,10 +1306,10 @@ function renderCarDetail(car) {
     var photoSources = getVehiclePhotoSources(car, titleText);
     var photoCount = getDerivedPhotoCount(photoSources);
 
-    section.appendChild(buildMediaMetaStrip(car, photoSources));
-    section.appendChild(buildBidStrip(car));
+    section.appendChild(buildMediaMetaStrip(car, photoSources, sourceSection));
+    section.appendChild(buildBidStrip(car, sourceSection));
     section.appendChild(buildMediaSection(car, titleText));
-    section.appendChild(buildOverviewSection(car, titleText));
+    section.appendChild(buildOverviewSection(car, titleText, sourceSection));
     section.appendChild(buildContentSection(car, photoCount));
 
     initializeVehicleNotes(car.id);
