@@ -404,7 +404,7 @@
     <nav class="sg-nav">
         <div class="sg-nav-logo">
             <h1>Style Guide</h1>
-            <p>Collectors Alliance Exchange — v1.1</p>
+            <p>Collectors Alliance Exchange — v1.3</p>
         </div>
 
         <div class="sg-nav-group">Foundations</div>
@@ -864,6 +864,59 @@ padding: 10px 20px;</div>
             </div>
 
             <div class="sg-subsection">
+                <div class="sg-subsection-title">Dashboard List Actions</div>
+                <div class="sg-preview">
+                    <div style="display:flex;justify-content:flex-end">
+                        <div style="display:grid;grid-template-columns:repeat(2,auto);gap:0.45rem">
+                            <button style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;min-width:116px;padding:0.55rem 0.8rem;border-radius:4px;border:1px solid #b8aa86;background:#d8d0bf;color:#2f2a20;font-size:0.82rem;font-weight:600;letter-spacing:0.02em;cursor:pointer">Buy Now</button>
+                            <button style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;min-width:116px;padding:0.55rem 0.8rem;border-radius:4px;border:1px solid #DAA520;background:#DAA520;color:#111827;font-size:0.82rem;font-weight:600;letter-spacing:0.02em;cursor:pointer">Bid Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="sg-preview dark">
+                    <div style="display:flex;justify-content:flex-end">
+                        <div style="display:grid;grid-template-columns:repeat(2,auto);gap:0.45rem">
+                            <button style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;min-width:116px;padding:0.55rem 0.8rem;border-radius:4px;border:1px solid #6f6758;background:#4b463d;color:#f3efe4;font-size:0.82rem;font-weight:600;letter-spacing:0.02em;cursor:pointer">Buy Now</button>
+                            <button style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;min-width:116px;padding:0.55rem 0.8rem;border-radius:4px;border:1px solid #DAA520;background:#DAA520;color:#111827;font-size:0.82rem;font-weight:600;letter-spacing:0.02em;cursor:pointer">Bid Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="sg-code">/* Use formal buttons here, not pills/chips */
+.auction-row-actions {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 0.45rem;
+}
+
+.auction-action-chip {
+    min-height: 38px;
+    min-width: 116px;
+    padding: 0.55rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.auction-action-chip.is-primary {
+    border-color: var(--accent-color);
+    background: var(--accent-color);
+    color: #111827;
+}
+
+.auction-action-chip.is-buy-action:not(.is-primary) {
+    border-color: #b8aa86;
+    background: #d8d0bf;
+    color: #2f2a20;
+}
+
+.dark-theme .auction-action-chip.is-buy-action:not(.is-primary) {
+    border-color: #6f6758;
+    background: #4b463d;
+    color: #f3efe4;
+}</div>
+            </div>
+
+            <div class="sg-subsection">
                 <div class="sg-subsection-title">Back / Text Button</div>
                 <div class="sg-preview">
                     <button style="background:none;border:none;color:#DAA520;font-size:0.95rem;cursor:pointer;display:flex;align-items:center;gap:5px"><i class="fas fa-chevron-left"></i> Back</button>
@@ -1191,6 +1244,51 @@ box-shadow: 0 2px 8px var(--shadow);
     transform: translateY(-2px);
     box-shadow: 0 10px 22px rgba(0,0,0,0.12);
 }</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Dense List Rows</div>
+                <div class="sg-preview">
+                    <div style="display:grid;gap:0.65rem;max-width:720px">
+                        <div style="display:grid;grid-template-columns:120px 1fr 140px;gap:1rem;align-items:center;padding:1rem;border:1px solid #ddd;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                            <div style="height:76px;border-radius:10px;background:linear-gradient(135deg,#dbeafe,#bfdbfe)"></div>
+                            <div>
+                                <div style="font-weight:700;color:#1a1a1a;margin-bottom:0.35rem">1969 Jaguar E-Type Series 2</div>
+                                <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0.75rem;font-size:0.8rem;color:#555">
+                                    <div><strong style="display:block;font-size:0.68rem;letter-spacing:0.05em;text-transform:uppercase;color:#888">VIN</strong>1R25684BW</div>
+                                    <div><strong style="display:block;font-size:0.68rem;letter-spacing:0.05em;text-transform:uppercase;color:#888">Seller</strong>British Motor Works</div>
+                                    <div><strong style="display:block;font-size:0.68rem;letter-spacing:0.05em;text-transform:uppercase;color:#888">Location</strong>Atlanta, GA</div>
+                                    <div><strong style="display:block;font-size:0.68rem;letter-spacing:0.05em;text-transform:uppercase;color:#888">Mileage</strong>61,000</div>
+                                </div>
+                            </div>
+                            <div style="padding:0.8rem 0.9rem;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;text-align:left">
+                                <div style="display:inline-flex;padding:0.22rem 0.6rem;border-radius:999px;background:#dc2626;color:#fff;font-size:0.72rem;font-weight:700;margin-bottom:0.45rem">Sale</div>
+                                <div style="font-size:0.68rem;letter-spacing:0.05em;text-transform:uppercase;color:#888">Current Bid</div>
+                                <div style="font-size:1rem;font-weight:700;color:#1a1a1a">$84,000</div>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:120px 1fr 140px;gap:1rem;align-items:center;padding:1rem;border:1px solid #ddd;border-radius:10px;background:rgba(148,163,184,0.08);box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                            <div style="height:76px;border-radius:10px;background:linear-gradient(135deg,#fde68a,#fbbf24)"></div>
+                            <div style="font-weight:700;color:#1a1a1a">Alternating row shading improves scanability in dense list/detail layouts.</div>
+                            <div style="font-size:0.8rem;color:#555">Use subtle contrast only, not heavy striping.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sg-code">/* Default for dense buyer/seller list-detail views */
+.list-row {
+    background: var(--header-bg);
+}
+
+.list-row:nth-child(even) {
+    background: rgba(148, 163, 184, 0.08);
+}
+
+.list-row-detail-grid {
+    display: grid;
+    gap: 0.7rem 1rem;
+}
+</div>
+                <div class="sg-rule">Use subtle alternating row backgrounds on dense list/detail views to improve scanability unless an existing stronger pattern already governs that surface.</div>
             </div>
         </section>
 

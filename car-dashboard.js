@@ -239,6 +239,40 @@ function getAuctionCardSummary(car) {
     return parts.join(' • ');
 }
 
+function getAuctionDisplayVin(car) {
+    return String((car && car.vin) || (car && car.id) || '-').toUpperCase();
+}
+
+function getAuctionSecondaryPrice(car) {
+    if (Number.isFinite(car && car.buyNowPrice)) {
+        return { label: 'Buy Now', value: '$' + car.buyNowPrice.toLocaleString('en-US') };
+    }
+
+    if (Number.isFinite(car && car.reservePrice)) {
+        return { label: 'Reserve', value: '$' + car.reservePrice.toLocaleString('en-US') };
+    }
+
+    return { label: 'Buy Now', value: '--' };
+}
+
+function getAuctionListMeta(car, sectionMode) {
+    const meta = [
+        { label: 'VIN', value: getAuctionDisplayVin(car) },
+        { label: 'Seller', value: car.seller || 'Seller pending' },
+        { label: 'Location', value: car.location || car.pickup || 'Location pending' },
+        { label: 'Mileage', value: car.mileage || '--' }
+    ];
+
+    if (sectionMode === 'active') {
+        meta.push({ label: 'Time Left', value: car.timeRemaining || '--' });
+    } else {
+        const secondaryPrice = getAuctionSecondaryPrice(car);
+        meta.push(secondaryPrice);
+    }
+
+    return meta;
+}
+
 function parseTimeRemainingSeconds(timeRemaining) {
     const raw = String(timeRemaining || '').trim();
     const match = raw.match(/^(\d+):(\d{2}):(\d{2})$/);
@@ -507,6 +541,7 @@ function createAuctionCardElement(car, sectionMode) {
     const status = getDashboardDisplayStatus(car, sectionMode);
     const summary = getAuctionCardSummary(car);
     const bid = Number.isFinite(car.currentBid) ? car.currentBid.toLocaleString('en-US') : '0';
+    const listMeta = getAuctionListMeta(car, sectionMode);
 
     const item = document.createElement('a');
     item.className = 'auction-item';
@@ -534,14 +569,41 @@ function createAuctionCardElement(car, sectionMode) {
     const details = document.createElement('div');
     details.className = 'auction-details';
 
+    const detailsHeader = document.createElement('div');
+    detailsHeader.className = 'auction-details-header';
+
+    const detailsSummary = document.createElement('div');
+    detailsSummary.className = 'auction-details-summary';
+
     const heading = document.createElement('h4');
     heading.textContent = title;
 
     const description = document.createElement('p');
     description.textContent = summary;
 
-    details.appendChild(heading);
-    details.appendChild(description);
+    detailsSummary.appendChild(heading);
+    detailsSummary.appendChild(description);
+    detailsHeader.appendChild(detailsSummary);
+
+    const detailGrid = document.createElement('div');
+    detailGrid.className = 'auction-detail-grid';
+
+    listMeta.forEach(function (entry) {
+        const metaItem = document.createElement('div');
+        metaItem.className = 'auction-detail-item';
+
+        const metaLabel = document.createElement('span');
+        metaLabel.className = 'auction-detail-label';
+        metaLabel.textContent = entry.label;
+
+        const metaValue = document.createElement('strong');
+        metaValue.className = 'auction-detail-value';
+        metaValue.textContent = entry.value;
+
+        metaItem.appendChild(metaLabel);
+        metaItem.appendChild(metaValue);
+        detailGrid.appendChild(metaItem);
+    });
 
     const saleTag = document.createElement('div');
     saleTag.className = 'sale-tag';
@@ -554,8 +616,39 @@ function createAuctionCardElement(car, sectionMode) {
     salePrice.className = 'sale-price';
     salePrice.textContent = `$${bid}`;
 
+    const salePriceLabel = document.createElement('span');
+    salePriceLabel.className = 'sale-price-label';
+    salePriceLabel.textContent = sectionMode === 'active' ? 'Current Bid' : 'Lead Bid';
+
     saleTag.appendChild(saleLabel);
+    saleTag.appendChild(salePriceLabel);
     saleTag.appendChild(salePrice);
+
+    let actionRow = null;
+
+    if (sectionMode === 'active' || sectionMode === 'marketplace') {
+        actionRow = document.createElement('div');
+        actionRow.className = 'auction-row-actions ' + (sectionMode === 'marketplace' ? 'is-marketplace' : 'is-active');
+
+        const bidNow = document.createElement('span');
+        bidNow.className = sectionMode === 'active'
+            ? 'auction-action-chip is-primary is-bid-action'
+            : 'auction-action-chip is-bid-action';
+        bidNow.textContent = 'Bid Now';
+
+        const buyNow = document.createElement('span');
+        buyNow.className = sectionMode === 'marketplace'
+            ? 'auction-action-chip is-primary is-buy-action'
+            : 'auction-action-chip is-buy-action';
+        buyNow.textContent = 'Buy Now';
+
+        actionRow.appendChild(bidNow);
+        actionRow.appendChild(buyNow);
+        detailsHeader.appendChild(actionRow);
+    }
+
+    details.appendChild(detailsHeader);
+    details.appendChild(detailGrid);
 
     item.appendChild(photo);
     item.appendChild(details);
