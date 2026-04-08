@@ -404,7 +404,7 @@
     <nav class="sg-nav">
         <div class="sg-nav-logo">
             <h1>Style Guide</h1>
-            <p>Collectors Alliance Exchange — v1.0</p>
+            <p>Collectors Alliance Exchange — v1.1</p>
         </div>
 
         <div class="sg-nav-group">Foundations</div>
@@ -422,6 +422,7 @@
         <a href="#pills">Pills &amp; Chips</a>
         <a href="#tabs">Tabs</a>
         <a href="#forms">Form Controls</a>
+        <a href="#modals">Modal Dialogs</a>
         <a href="#sidebar-actions">Sidebar Actions</a>
 
         <div class="sg-nav-group">Patterns</div>
@@ -1077,7 +1078,73 @@ box-shadow: 0 2px 8px var(--shadow);
         </section>
 
         <!-- ─────────────────────────────────────────────── -->
-        <!-- 11. SIDEBAR ACTIONS -->
+        <!-- 11. MODAL DIALOGS -->
+        <!-- ─────────────────────────────────────────────── -->
+        <section class="sg-section" id="modals">
+            <h2 class="sg-section-title">Modal Dialogs</h2>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Branded Notice / Confirm Modal</div>
+                <div class="sg-preview" style="background:linear-gradient(180deg,#f8fafc,#eef2f7);padding:2rem;position:relative;overflow:hidden">
+                    <div style="max-width:620px;margin:0 auto;border:1px solid #ddd;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,247,250,0.98));box-shadow:0 24px 60px rgba(15,23,42,0.24);padding:24px;display:flex;flex-direction:column;gap:16px">
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+                            <div>
+                                <p style="margin:0 0 6px;color:#DAA520;font-size:0.78rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase">Collectors Alliance Exchange</p>
+                                <h3 style="margin:0;font-size:1.3rem;color:#111827">Required Fields</h3>
+                            </div>
+                            <button type="button" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #ddd;border-radius:999px;background:#fff;color:#0f172a;cursor:pointer">
+                                <i class="fas fa-times" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div style="white-space:pre-wrap;color:#334155;line-height:1.65;padding:16px 18px;border-radius:14px;border:1px solid rgba(148,163,184,0.35);background:rgba(248,250,252,0.95)">Please complete the required fields before adding the vehicle:
+
+- VIN
+- Vehicle Type
+- Body Style
+- Year</div>
+                        <div style="display:flex;justify-content:flex-end;gap:10px">
+                            <button type="button" style="background:#f9f9f9;color:#333;border:1px solid rgba(0,0,0,0.1);padding:10px 24px;border-radius:4px;font-weight:600;font-size:0.95rem;cursor:pointer">Keep Editing</button>
+                            <button type="button" style="background:#DAA520;color:#111827;border:none;padding:10px 24px;border-radius:4px;font-weight:600;font-size:0.95rem;cursor:pointer">OK</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="sg-code">.site-notice-modal,
+.site-confirm-modal {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.site-notice-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.62);
+    backdrop-filter: blur(6px);
+}
+
+.site-notice-dialog {
+    width: min(640px, 100%);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,247,250,0.98));
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+    padding: 24px;
+}</div>
+            </div>
+
+            <div class="sg-subsection">
+                <div class="sg-subsection-title">Usage Notes</div>
+                <div class="sg-rule">Use branded modals for validation messages, upload notices, success feedback, and discard confirmations instead of native browser <code>alert()</code> and <code>confirm()</code> dialogs.</div>
+                <div class="sg-rule">Keep the eyebrow label set to <code>Collectors Alliance Exchange</code> so overlays feel like part of the product, not browser chrome.</div>
+                <div class="sg-rule">Use the dark glass backdrop plus the light elevated dialog surface for all blocking overlays on owner-facing pages.</div>
+                <div class="sg-rule">Primary modal actions should use the accent button treatment. Secondary actions should use the neutral cancel button style.</div>
+            </div>
+        </section>
+
+        <!-- ─────────────────────────────────────────────── -->
+        <!-- 12. SIDEBAR ACTIONS -->
         <!-- ─────────────────────────────────────────────── -->
         <section class="sg-section" id="sidebar-actions">
             <h2 class="sg-section-title">Sidebar Actions</h2>
@@ -1128,7 +1195,7 @@ box-shadow: 0 2px 8px var(--shadow);
         </section>
 
         <!-- ─────────────────────────────────────────────── -->
-        <!-- 12. PAGE HERO PATTERN -->
+        <!-- 13. PAGE HERO PATTERN -->
         <!-- ─────────────────────────────────────────────── -->
         <section class="sg-section" id="hero">
             <h2 class="sg-section-title">Page Hero Pattern</h2>
@@ -1158,7 +1225,7 @@ box-shadow: 0 2px 8px var(--shadow);
         </section>
 
         <!-- ─────────────────────────────────────────────── -->
-        <!-- 13. LAYOUT GRID -->
+        <!-- 14. LAYOUT GRID -->
         <!-- ─────────────────────────────────────────────── -->
         <section class="sg-section" id="layout">
             <h2 class="sg-section-title">Layout Grid</h2>
@@ -1181,7 +1248,7 @@ box-shadow: 0 2px 8px var(--shadow);
         </section>
 
         <!-- ─────────────────────────────────────────────── -->
-        <!-- 14. STAT CARDS (Dashboard) -->
+        <!-- 15. STAT CARDS (Dashboard) -->
         <!-- ─────────────────────────────────────────────── -->
         <section class="sg-section" id="stat-cards">
             <h2 class="sg-section-title">Stat Card Icon Colors (Dashboard)</h2>
@@ -1198,7 +1265,7 @@ box-shadow: 0 2px 8px var(--shadow);
         </section>
 
         <!-- ─────────────────────────────────────────────── -->
-        <!-- 15. USAGE RULES -->
+        <!-- 16. USAGE RULES -->
         <!-- ─────────────────────────────────────────────── -->
         <section class="sg-section" id="rules">
             <h2 class="sg-section-title">Usage Rules</h2>

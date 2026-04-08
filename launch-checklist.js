@@ -304,6 +304,30 @@
                     title: 'Replace the Add Vehicle Form Help placeholder link',
                     text: 'The collapsed Form Help sidebar icon still uses a # href, so it should become a real action or a button instead of a dead link.',
                     file: 'car-add-vehicle.html'
+                },
+                {
+                    id: 'add-vehicle-test-required-validation',
+                    title: 'Test required-field validation and scroll-to-first-missing behavior',
+                    text: 'Verify that blur warnings, branded required-field notices, and submit-time scroll targeting all work for the updated manual intake requirements.',
+                    file: 'car-add-vehicle.html / car-add-vehicle.js'
+                },
+                {
+                    id: 'add-vehicle-test-photo-limits',
+                    title: 'Test photo minimum and maximum upload rules',
+                    text: 'Validate fewer than 10 photos, exactly 10 photos, exactly 40 photos, and more than 40 photos so the notice and cap behavior are confirmed before launch.',
+                    file: 'car-add-vehicle.html / car-add-vehicle.js'
+                },
+                {
+                    id: 'add-vehicle-test-preview-download-payload',
+                    title: 'Test Preview Submission and Download Sample JSON output',
+                    text: 'Confirm the preview modal opens only on request, the payload shape matches expectations, and the downloaded JSON reflects the same submission data.',
+                    file: 'car-add-vehicle.html / car-add-vehicle.js'
+                },
+                {
+                    id: 'add-vehicle-test-branded-dialogs',
+                    title: 'Test branded notice and discard confirmation dialogs',
+                    text: 'Confirm that launch-ready site dialogs appear instead of browser alert or confirm popups for validation, upload limits, success states, and discard actions.',
+                    file: 'car-add-vehicle.html / car-add-vehicle.css / car-add-vehicle.js'
                 }
             ]
         },

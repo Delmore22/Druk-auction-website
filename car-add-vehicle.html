@@ -116,12 +116,6 @@
                                 <span class="jump-text">Seller Disclosure</span>
                                 <span class="jump-status" aria-hidden="true"></span>
                             </a>
-                            <a class="jump-link" data-section="additionalAnnouncementsSection" href="#additionalAnnouncementsSection">
-                                <span class="jump-step" aria-hidden="true"></span>
-                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-bullhorn"></i></span>
-                                <span class="jump-text">Announcements</span>
-                                <span class="jump-status" aria-hidden="true"></span>
-                            </a>
                             <a class="jump-link" data-section="sellerCommentsSection" href="#sellerCommentsSection">
                                 <span class="jump-step" aria-hidden="true"></span>
                                 <span class="jump-icon" aria-hidden="true"><i class="fas fa-comment-dots"></i></span>
@@ -152,6 +146,12 @@
                                 <span class="jump-text">Listing Duration</span>
                                 <span class="jump-status" aria-hidden="true"></span>
                             </a>
+                            <a class="jump-link" data-section="additionalAnnouncementsSection" href="#additionalAnnouncementsSection">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-bullhorn"></i></span>
+                                <span class="jump-text">Announcements</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
                         </div>
                     </nav>
 
@@ -160,32 +160,17 @@
                         <div class="form-grid two-column">
                             <div class="form-group">
                                 <label for="vehicleVin">VIN</label>
-                                <input type="text" id="vehicleVin" name="vin" placeholder="Enter VIN">
-                            </div>
-                            <div class="form-group">
-                                <label for="vehicleAccountGroup">Account Group</label>
-                                <select id="vehicleAccountGroup" name="accountGroup">
-                                    <option value="OVE Open">OVE Open</option>
-                                    <option value="Private Dealer">Private Dealer</option>
-                                    <option value="Public Listing">Public Listing</option>
-                                </select>
+                                <input type="text" id="vehicleVin" name="vin" placeholder="Enter VIN" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="vehicleType">Vehicle Type</label>
-                                <select id="vehicleType" name="vehicleType">
+                                <select id="vehicleType" name="vehicleType" required>
+                                    <option value="">Select Vehicle Type</option>
                                     <option value="Car">Car</option>
                                     <option value="Truck">Truck</option>
                                     <option value="SUV">SUV</option>
                                     <option value="Van">Van</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="vehicleEventSale">Add to Event Sale</label>
-                                <select id="vehicleEventSale" name="eventSale">
-                                    <option value="">Select Event</option>
-                                    <option value="Daily Sale">Daily Sale</option>
-                                    <option value="Weekly Special">Weekly Special</option>
                                 </select>
                             </div>
 
@@ -212,7 +197,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="vehicleLocation">Vehicle Location</label>
-                                <select id="vehicleLocation" name="vehicleLocation">
+                                <select id="vehicleLocation" name="vehicleLocation" required>
+                                    <option value="">Select Vehicle Location</option>
                                     <option value="At Dealership">At Dealership</option>
                                     <option value="Off Site">Off Site</option>
                                     <option value="Storage Yard">Storage Yard</option>
@@ -223,10 +209,6 @@
                                 <label for="vehicleMake">Make</label>
                                 <input type="text" id="vehicleMake" name="make" required>
                             </div>
-                            <div class="form-group">
-                                <label for="vehicleFacilityLocation">Facilitation Location</label>
-                                <input type="text" id="vehicleFacilityLocation" name="facilityLocation" placeholder="MN - Manheim Minneapolis">
-                            </div>
 
                             <div class="form-group">
                                 <label for="vehicleModel">Model</label>
@@ -234,8 +216,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="vehicleTitleStatus">Title Status</label>
-                                <select id="vehicleTitleStatus" name="titleStatus">
-                                    <option value="Not Specified">Not Specified</option>
+                                <select id="vehicleTitleStatus" name="titleStatus" required>
+                                    <option value="">Select Title Status</option>
                                     <option value="Clean">Clean</option>
                                     <option value="Lien">Lien</option>
                                     <option value="Rebuilt">Rebuilt</option>
@@ -244,17 +226,17 @@
 
                             <div class="form-group">
                                 <label for="vehicleTrim">Trim</label>
-                                <input type="text" id="vehicleTrim" name="trim" placeholder="Not Specified">
+                                <input type="text" id="vehicleTrim" name="trim" placeholder="Not Specified" required>
                             </div>
                             <div class="form-group">
                                 <label for="vehicleTitledIn">Titled In</label>
-                                <input type="text" id="vehicleTitledIn" name="titledIn" placeholder="Select state">
+                                <input type="text" id="vehicleTitledIn" name="titledIn" placeholder="Select state" required>
                             </div>
 
                             <div class="form-group">
                                 <label for="vehicleMileage">Odometer</label>
                                 <div class="inline-group">
-                                    <input type="number" id="vehicleMileage" name="mileage" min="0" placeholder="0">
+                                    <input type="number" id="vehicleMileage" name="mileage" min="0" placeholder="0" required>
                                     <select id="vehicleMileageUnit" name="mileageUnit">
                                         <option value="miles">miles</option>
                                         <option value="km">km</option>
@@ -263,7 +245,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="vehiclePickupLocation">Pickup Location</label>
-                                <input type="text" id="vehiclePickupLocation" name="pickupLocation" placeholder="Not Specified">
+                                <input type="text" id="vehiclePickupLocation" name="pickupLocation" placeholder="Not Specified" required>
                             </div>
 
                             <div class="form-group">
@@ -272,7 +254,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="vehicleInteriorColor">Interior Color</label>
-                                <input type="text" id="vehicleInteriorColor" name="interiorColor" placeholder="Not Specified">
+                                <input type="text" id="vehicleInteriorColor" name="interiorColor" placeholder="Not Specified" required>
                             </div>
                         </div>
                     </fieldset>
@@ -292,7 +274,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="vehicleTopStyle">Top Style</label>
-                                <select id="vehicleTopStyle" name="topStyle">
+                                <select id="vehicleTopStyle" name="topStyle" required>
                                     <option value="">Not Specified</option>
                                     <option value="Hard Top">Hard Top</option>
                                     <option value="Soft Top">Soft Top</option>
@@ -302,7 +284,7 @@
 
                             <div class="form-group">
                                 <label for="vehicleTransmission">Transmission</label>
-                                <select id="vehicleTransmission" name="transmission">
+                                <select id="vehicleTransmission" name="transmission" required>
                                     <option value="">Not Specified</option>
                                     <option value="Automatic">Automatic</option>
                                     <option value="Manual">Manual</option>
@@ -549,25 +531,6 @@
                         </div>
                         <button type="button" class="inline-action" data-add-key-row="keyRows">Add Another Row</button>
 
-                        <div class="form-grid two-column">
-                            <div class="form-group">
-                                <label for="vehicleManuals">Manuals</label>
-                                <select id="vehicleManuals" name="manuals">
-                                    <option value="">Not Specified</option>
-                                    <option>Included</option>
-                                    <option>Not Included</option>
-                                </select>
-                            </div>
-                        </div>
-                    </fieldset>
-
-                    <fieldset class="form-section" id="additionalAnnouncementsSection">
-                        <legend>Additional Announcements</legend>
-                        <div class="form-group full-width">
-                            <label for="additionalAnnouncements">Add additional announcements to disclose arbitrable items.</label>
-                            <textarea id="additionalAnnouncements" name="additionalAnnouncements" maxlength="2000" rows="5"></textarea>
-                            <small><span id="announcementCharsRemaining">2000</span> characters remaining.</small>
-                        </div>
                     </fieldset>
 
                     <fieldset class="form-section" id="sellerCommentsSection">
@@ -582,30 +545,30 @@
                         <legend>Seller Information</legend>
                         <div class="form-grid two-column">
                             <div class="form-group">
-                                <label for="sellerContactName">Contact Name</label>
-                                <input type="text" id="sellerContactName" name="sellerContactName" placeholder="Contact Name">
+                                <label for="sellerContactName">Contact Name <span class="required-marker" aria-hidden="true">*</span></label>
+                                <input type="text" id="sellerContactName" name="sellerContactName" placeholder="Contact Name" required>
                             </div>
                             <div class="form-group">
-                                <label for="sellerCompanyName">Company Name</label>
-                                <input type="text" id="sellerCompanyName" name="sellerCompanyName" placeholder="Company Name">
+                                <label for="sellerCompanyName">Company Name <span class="required-marker" aria-hidden="true">*</span></label>
+                                <input type="text" id="sellerCompanyName" name="sellerCompanyName" placeholder="Company Name" required>
                             </div>
                             <div class="form-group">
-                                <label for="sellerPhone">Phone</label>
-                                <input type="tel" id="sellerPhone" name="sellerPhone" placeholder="+1 555 555 5555">
+                                <label for="sellerPhone">Phone <span class="required-marker" aria-hidden="true">*</span></label>
+                                <input type="tel" id="sellerPhone" name="sellerPhone" placeholder="+1 555 555 5555" required>
                             </div>
                             <div class="form-group">
-                                <label for="sellerContactEmail">Contact Email</label>
+                                <label for="sellerContactEmail">Contact Email <span class="required-marker" aria-hidden="true">*</span></label>
                                 <input type="email" id="sellerContactEmail" name="sellerContactEmail" required>
                             </div>
                             <div class="form-group">
-                                <label for="sellerCcEmail">CC Email</label>
-                                <input type="email" id="sellerCcEmail" name="sellerCcEmail">
+                                <label for="sellerCcEmail">CC Email <span class="required-marker" aria-hidden="true">*</span></label>
+                                <input type="email" id="sellerCcEmail" name="sellerCcEmail" required>
                             </div>
                         </div>
 
                         <label class="checkbox-line disclosure-accept">
                             <input type="checkbox" id="disclosureAccepted" name="disclosureAccepted" required>
-                            I have disclosed all vehicle condition information as true and best to my knowledge.
+                            I have disclosed all vehicle condition information as true and best to my knowledge. <span class="required-marker" aria-hidden="true">*</span>
                         </label>
                     </fieldset>
 
@@ -613,8 +576,8 @@
                         <legend>Photos</legend>
                         <div class="form-group full-width">
                             <label for="vehiclePhotos">Upload Photos</label>
-                            <input type="file" id="vehiclePhotos" name="photos" multiple accept="image/*">
-                            <small>You can upload multiple photos.</small>
+                            <input type="file" id="vehiclePhotos" name="photos" multiple accept="image/*" required>
+                            <small id="photoRequirementNote">A minimum of 10 photos and a maximum of 40 photos are required.</small>
                         </div>
                         <div class="photo-grid" id="photoGrid" aria-live="polite"></div>
                     </fieldset>
@@ -713,11 +676,84 @@
                         </div>
                     </fieldset>
 
+                    <fieldset class="form-section" id="additionalAnnouncementsSection">
+                        <legend>Additional Announcements</legend>
+                        <div class="form-group full-width">
+                            <label for="additionalAnnouncements">Add additional announcements to disclose arbitrable items.</label>
+                            <textarea id="additionalAnnouncements" name="additionalAnnouncements" maxlength="2000" rows="5"></textarea>
+                            <small><span id="announcementCharsRemaining">2000</span> characters remaining.</small>
+                        </div>
+                    </fieldset>
+
                     <div class="form-actions">
                         <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+                        <button type="button" class="btn-secondary-action" id="downloadSampleBtn">Download Sample JSON</button>
+                        <button type="button" class="btn-secondary-action" id="downloadSampleCsvBtn">Download Sample CSV</button>
+                        <button type="button" class="btn-secondary-action" id="previewSubmissionBtn">Preview Submission</button>
                         <button type="submit" class="btn-submit">Add Vehicle</button>
                     </div>
                 </form>
+
+                <div class="submission-preview-modal" id="submissionPreviewModal" hidden>
+                    <div class="submission-preview-backdrop" data-close-preview></div>
+                    <div class="submission-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="submissionPreviewTitle">
+                        <div class="submission-preview-header">
+                            <div>
+                                <p class="submission-preview-eyebrow">Sample Payload</p>
+                                <h2 id="submissionPreviewTitle">Vehicle Submission Preview</h2>
+                            </div>
+                            <button type="button" class="submission-preview-close" data-close-preview aria-label="Close preview">
+                                <i class="fas fa-times" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <p class="submission-preview-copy">This is the JSON payload generated from the current form values. It can be reviewed now and reused later when the backend endpoint is ready.</p>
+                        <pre class="submission-preview-code" id="submissionPreviewContent"></pre>
+                        <div class="submission-preview-actions">
+                            <button type="button" class="btn-cancel" data-close-preview>Close</button>
+                            <button type="button" class="btn-secondary-action" id="downloadPreviewCsvBtn">Download CSV</button>
+                            <button type="button" class="btn-submit" id="downloadPreviewJsonBtn">Download JSON</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="site-notice-modal" id="siteNoticeModal" hidden>
+                    <div class="site-notice-backdrop" data-close-site-notice></div>
+                    <div class="site-notice-dialog" role="alertdialog" aria-modal="true" aria-labelledby="siteNoticeTitle" aria-describedby="siteNoticeMessage">
+                        <div class="site-notice-header">
+                            <div>
+                                <p class="site-notice-eyebrow">Collectors Alliance Exchange</p>
+                                <h2 id="siteNoticeTitle">Notice</h2>
+                            </div>
+                            <button type="button" class="site-notice-close" data-close-site-notice aria-label="Close notice">
+                                <i class="fas fa-times" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="site-notice-message" id="siteNoticeMessage"></div>
+                        <div class="site-notice-actions">
+                            <button type="button" class="btn-submit" id="siteNoticeOkBtn">OK</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="site-confirm-modal" id="siteConfirmModal" hidden>
+                    <div class="site-notice-backdrop" data-close-site-confirm></div>
+                    <div class="site-notice-dialog" role="dialog" aria-modal="true" aria-labelledby="siteConfirmTitle" aria-describedby="siteConfirmMessage">
+                        <div class="site-notice-header">
+                            <div>
+                                <p class="site-notice-eyebrow">Collectors Alliance Exchange</p>
+                                <h2 id="siteConfirmTitle">Confirm Action</h2>
+                            </div>
+                            <button type="button" class="site-notice-close" data-close-site-confirm aria-label="Close confirmation">
+                                <i class="fas fa-times" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="site-notice-message" id="siteConfirmMessage"></div>
+                        <div class="site-notice-actions">
+                            <button type="button" class="btn-cancel" id="siteConfirmCancelBtn">Keep Editing</button>
+                            <button type="button" class="btn-submit" id="siteConfirmOkBtn">Discard Changes</button>
+                        </div>
+                    </div>
+                </div>
                 </section>
             </div>
         </div>

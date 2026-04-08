@@ -2,6 +2,7 @@
   "cars": [
     {
       "id": "1967-ford-mustang-fastback",
+      "vin": "7R02C135472",
       "year": 1967,
       "make": "Ford",
       "model": "Mustang Fastback",
@@ -25,6 +26,7 @@
     },
     {
       "id": "1957-chevrolet-Bel-Air",
+      "vin": "VC57L103842",
       "year": 1957,
       "make": "Chevrolet",
       "model": "Bel Air",
@@ -47,6 +49,7 @@
     },
     {
       "id": "1955-chevrolet-nomad",
+      "vin": "VC55N067314",
       "year": 1955,
       "make": "Chevrolet",
       "model": "Nomad",
@@ -70,6 +73,7 @@
     },
     {
       "id": "1958-chevrolet--impala",
+      "vin": "F58S214907",
       "year": 1958,
       "make": "Chevrolet",
       "model": "Impala",
@@ -94,6 +98,7 @@
     },
     {
       "id": "1959-cadillac-series-62",
+      "vin": "59F089214",
       "year": 1959,
       "make": "Cadillac",
       "model": "Series 62",
@@ -116,6 +121,7 @@
     },
     {
       "id": "1960-prosche-356b-cabriolet",
+      "vin": "856B1600457",
       "year": 1960,
       "make": "Porsche",
       "model": "356B Cabriolet",
@@ -138,6 +144,7 @@
     },
     {
       "id": "1969-jaguar-e-type",
+      "vin": "1R25684BW",
       "year": 1969,
       "make": "Jaguar",
       "model": "E-Type Series 2",
@@ -161,6 +168,7 @@
     },
     {
       "id": "1969-mercury-cougar",
+      "vin": "9F91M512348",
       "year": 1969,
       "make": "Mercury",
       "model": "Cougar XR-7",
@@ -183,6 +191,7 @@
     },
     {
       "id": "1934-ford-model-40-coupe",
+      "vin": "40318C1276",
       "year": 1934,
       "make": "Ford",
       "model": "Model 40 Coupe",
@@ -206,6 +215,7 @@
     },
     {
       "id": "car-image-01",
+      "vin": "21847S176205",
       "year": 1962,
       "make": "Chevrolet",
       "model": "Impala Sport Coupe",
@@ -229,6 +239,7 @@
     },
     {
       "id": "car-image-02",
+      "vin": "3H27U512887",
       "year": 1963,
       "make": "Mercury",
       "model": "Comet Caliente",
@@ -251,6 +262,7 @@
     },
     {
       "id": "car-image-03",
+      "vin": "C55J184209",
       "year": 1955,
       "make": "Chevrolet",
       "model": "Bel Air",
@@ -275,6 +287,7 @@
     },
     {
       "id": "car-image-04",
+      "vin": "01819A127654",
       "year": 1960,
       "make": "Chevrolet",
       "model": "Impala",
@@ -297,6 +310,7 @@
     },
     {
       "id": "car-image-05",
+      "vin": "B55S098431",
       "year": 1955,
       "make": "Chevrolet",
       "model": "210",
@@ -320,6 +334,7 @@
     },
     {
       "id": "car-image-06",
+      "vin": "660DPA11852",
       "year": 1966,
       "make": "Opel",
       "model": "Diplomat A",
@@ -342,6 +357,7 @@
     },
     {
       "id": "car-image-07",
+      "vin": "VC57F142663",
       "year": 1957,
       "make": "Chevrolet",
       "model": "Bel Air Convertible",
@@ -365,6 +381,7 @@
     },
     {
       "id": "car-image-08",
+      "vin": "ZHWUF6ZD0LLA08942",
       "year": 2020,
       "make": "Lamborghini",
       "model": "Aventador S Roadster",
@@ -388,6 +405,7 @@
     },
     {
       "id": "car-image-09",
+      "vin": "ZHWUR1ZF6RLA21473",
       "year": 2024,
       "make": "Lamborghini",
       "model": "Huracan Spyder",
@@ -411,6 +429,7 @@
     },
     {
       "id": "car-image-10",
+      "vin": "ZHWUD4ZF3JLA17865",
       "year": 2018,
       "make": "Lamborghini",
       "model": "Huracan Performante",
@@ -434,6 +453,7 @@
     },
     {
       "id": "car-image-11",
+      "vin": "ZAM24BXA7P0412568",
       "year": 2023,
       "make": "Maserati",
       "model": "MC20",
