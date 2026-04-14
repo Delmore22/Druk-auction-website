@@ -98,18 +98,6 @@
                                 <span class="jump-text">Vehicle Specs</span>
                                 <span class="jump-status" aria-hidden="true"></span>
                             </a>
-                            <a class="jump-link" data-section="optionalVehicleEquipment" href="#optionalVehicleEquipment">
-                                <span class="jump-step" aria-hidden="true"></span>
-                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-toolbox"></i></span>
-                                <span class="jump-text">Optional Equipment</span>
-                                <span class="jump-status" aria-hidden="true"></span>
-                            </a>
-                            <a class="jump-link" data-section="vehicleConditionSection" href="#vehicleConditionSection">
-                                <span class="jump-step" aria-hidden="true"></span>
-                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-shield-alt"></i></span>
-                                <span class="jump-text">Vehicle Condition</span>
-                                <span class="jump-status" aria-hidden="true"></span>
-                            </a>
                             <a class="jump-link" data-section="sellerDisclosureSection" href="#sellerDisclosureSection">
                                 <span class="jump-step" aria-hidden="true"></span>
                                 <span class="jump-icon" aria-hidden="true"><i class="fas fa-file-signature"></i></span>
@@ -146,12 +134,6 @@
                                 <span class="jump-text">Listing Duration</span>
                                 <span class="jump-status" aria-hidden="true"></span>
                             </a>
-                            <a class="jump-link" data-section="additionalAnnouncementsSection" href="#additionalAnnouncementsSection">
-                                <span class="jump-step" aria-hidden="true"></span>
-                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-bullhorn"></i></span>
-                                <span class="jump-text">Announcements</span>
-                                <span class="jump-status" aria-hidden="true"></span>
-                            </a>
                         </div>
                     </nav>
 
@@ -161,17 +143,10 @@
                             <div class="form-group">
                                 <label for="vehicleVin">VIN</label>
                                 <input type="text" id="vehicleVin" name="vin" placeholder="Enter VIN" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="vehicleType">Vehicle Type</label>
-                                <select id="vehicleType" name="vehicleType" required>
-                                    <option value="">Select Vehicle Type</option>
-                                    <option value="Car">Car</option>
-                                    <option value="Truck">Truck</option>
-                                    <option value="SUV">SUV</option>
-                                    <option value="Van">Van</option>
-                                </select>
+                                <div class="vin-decode-actions">
+                                    <button type="button" class="vin-decode-btn" id="decodeVinBtn">Decode VIN</button>
+                                    <small id="vinDecodeStatus" class="vin-decode-status" aria-live="polite"></small>
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -226,7 +201,7 @@
 
                             <div class="form-group">
                                 <label for="vehicleTrim">Trim</label>
-                                <input type="text" id="vehicleTrim" name="trim" placeholder="Not Specified" required>
+                                <input type="text" id="vehicleTrim" name="trim" placeholder="Not Specified">
                             </div>
                             <div class="form-group">
                                 <label for="vehicleTitledIn">Titled In</label>
@@ -245,7 +220,24 @@
                             </div>
                             <div class="form-group">
                                 <label for="vehiclePickupLocation">Pickup Location</label>
-                                <input type="text" id="vehiclePickupLocation" name="pickupLocation" placeholder="Not Specified" required>
+                                <select id="pickupLocationProvider" name="pickupLocationProvider">
+                                    <option value="manual">Manual Entry</option>
+                                    <option value="mapbox">Mapbox Autocomplete</option>
+                                    <option value="google">Google Places</option>
+                                </select>
+                                <div class="pickup-location-wrap" id="pickupLocationWrap">
+                                    <input type="text" id="vehiclePickupLocation" name="pickupLocation" placeholder="Start typing an address" autocomplete="off" required>
+                                    <div class="pickup-location-suggestions" id="pickupLocationSuggestions" role="listbox" hidden></div>
+                                </div>
+                                <small id="pickupLocationHint">Type an address and choose a suggestion to auto-fill city, state, ZIP, and coordinates.</small>
+                                <input type="hidden" id="pickupStreet" name="pickupStreet">
+                                <input type="hidden" id="pickupCity" name="pickupCity">
+                                <input type="hidden" id="pickupState" name="pickupState">
+                                <input type="hidden" id="pickupPostalCode" name="pickupPostalCode">
+                                <input type="hidden" id="pickupCountry" name="pickupCountry">
+                                <input type="hidden" id="pickupLat" name="pickupLat">
+                                <input type="hidden" id="pickupLng" name="pickupLng">
+                                <input type="hidden" id="pickupPlaceId" name="pickupPlaceId">
                             </div>
 
                             <div class="form-group">
@@ -254,7 +246,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="vehicleInteriorColor">Interior Color</label>
-                                <input type="text" id="vehicleInteriorColor" name="interiorColor" placeholder="Not Specified" required>
+                                <input type="text" id="vehicleInteriorColor" name="interiorColor" placeholder="Not Specified">
                             </div>
                         </div>
                     </fieldset>
@@ -274,7 +266,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="vehicleTopStyle">Top Style</label>
-                                <select id="vehicleTopStyle" name="topStyle" required>
+                                <select id="vehicleTopStyle" name="topStyle">
                                     <option value="">Not Specified</option>
                                     <option value="Hard Top">Hard Top</option>
                                     <option value="Soft Top">Soft Top</option>
@@ -303,7 +295,7 @@
 
                             <div class="form-group">
                                 <label for="vehicleDriveTrain">Drive Train</label>
-                                <select id="vehicleDriveTrain" name="driveTrain">
+                                <select id="vehicleDriveTrain" name="driveTrain" required>
                                     <option value="">Not Specified</option>
                                     <option value="FWD">FWD</option>
                                     <option value="RWD">RWD</option>
@@ -343,42 +335,17 @@
                         </div>
                     </fieldset>
 
-                    <fieldset class="form-section" id="optionalVehicleEquipment">
-                        <legend>Optional Vehicle Equipment</legend>
-                        <label class="checkbox-line"><input type="checkbox" id="equipmentCheckAll"> Check All</label>
-                        <div class="checkbox-grid">
-                            <label><input type="checkbox" name="equipment[]" value="Air Conditioning"> Air Conditioning</label>
-                            <label><input type="checkbox" name="equipment[]" value="Power Windows"> Power Windows</label>
-                            <label><input type="checkbox" name="equipment[]" value="Alloy Wheels"> Alloy Wheels</label>
-                            <label><input type="checkbox" name="equipment[]" value="GPS"> GPS</label>
-                            <label><input type="checkbox" name="equipment[]" value="Cruise Control"> Cruise Control</label>
-                            <label><input type="checkbox" name="equipment[]" value="Rear Window Defroster"> Rear Window Defroster</label>
-                            <label><input type="checkbox" name="equipment[]" value="Power Brakes"> Power Brakes</label>
-                            <label><input type="checkbox" name="equipment[]" value="Dual Climate Control"> Dual Climate Control</label>
-                            <label><input type="checkbox" name="equipment[]" value="Child Seat"> Child Seat</label>
-                            <label><input type="checkbox" name="equipment[]" value="Air Bag - Side Curtain"> Air Bag - Side Curtain</label>
-                            <label><input type="checkbox" name="equipment[]" value="Antilock Brakes"> Antilock Brakes</label>
-                            <label><input type="checkbox" name="equipment[]" value="Heated Seats"> Heated Seats</label>
-                            <label><input type="checkbox" name="equipment[]" value="Child Seat Anchors"> Child Seat Anchors</label>
-                            <label><input type="checkbox" name="equipment[]" value="Airbags"> Airbags</label>
-                            <label><input type="checkbox" name="equipment[]" value="Power Seats"> Power Seats</label>
-                            <label><input type="checkbox" name="equipment[]" value="Navigational System"> Navigational System</label>
-                            <label><input type="checkbox" name="equipment[]" value="Power Door Locks"> Power Door Locks</label>
-                            <label><input type="checkbox" name="equipment[]" value="Tilt/Telescope Wheel"> Tilt/Telescope Wheel</label>
-                            <label><input type="checkbox" name="equipment[]" value="Power Steering"> Power Steering</label>
-                            <label><input type="checkbox" name="equipment[]" value="DVD"> DVD</label>
-                            <label><input type="checkbox" name="equipment[]" value="Power Mirrors"> Power Mirrors</label>
-                            <label><input type="checkbox" name="equipment[]" value="Tinted Glass"> Tinted Glass</label>
-                        </div>
-                    </fieldset>
+                    <fieldset class="form-section" id="sellerDisclosureSection">
+                        <legend>Seller Disclosure</legend>
+                        <p class="seller-disclosure-meta">All condition disclosures are provided by the seller. Platform does not inspect or verify vehicle condition.</p>
 
-                    <fieldset class="form-section" id="vehicleConditionSection">
-                        <legend>Vehicle Condition</legend>
                         <div class="form-grid one-column">
+                            <div class="seller-disclosure-question">To the best of seller's knowledge, has this vehicle had structural/frame damage? <span class="required-marker" aria-hidden="true">*</span></div>
                             <div class="radio-group-row">
                                 <span>Structural Damage</span>
                                 <label><input type="radio" name="structuralDamage" value="yes"> Yes</label>
                                 <label><input type="radio" name="structuralDamage" value="no" checked> No</label>
+                                <label><input type="radio" name="structuralDamage" value="unknown"> Unknown</label>
                             </div>
                             <div class="alert-note">Structural Damage is damage to the main load-bearing platform of a vehicle. Selecting yes may invalidate condition comments for this listing.</div>
 
@@ -394,11 +361,6 @@
                                 <label><input type="radio" name="salvage" value="no" checked> No</label>
                             </div>
                         </div>
-                    </fieldset>
-
-                    <fieldset class="form-section" id="sellerDisclosureSection">
-                        <legend>Seller Disclosure</legend>
-                        <div class="warning-banner">Undisclosed damage may result in arbitration and additional costs being assessed.</div>
 
                         <div class="condition-block" data-condition-block="interior">
                             <h4>Interior Condition</h4>
@@ -539,6 +501,16 @@
                             <label for="vehicleDescription">Advertise any additional options to enhance the vehicle value.</label>
                             <textarea id="vehicleDescription" name="description" rows="5"></textarea>
                         </div>
+                        <div class="form-group full-width">
+                            <label for="additionalAnnouncements">Additional Announcements</label>
+                            <textarea id="additionalAnnouncements" name="additionalAnnouncements" maxlength="2000" rows="5"></textarea>
+                            <small><span id="announcementCharsRemaining">2000</span> characters remaining.</small>
+                        </div>
+
+                        <label class="checkbox-line disclosure-accept">
+                            <input type="checkbox" id="sellerCommentsCertified" name="sellerCommentsCertified" required>
+                            Seller certifies all information is accurate to the best of their knowledge and accepts liability for misrepresentation. <span class="required-marker" aria-hidden="true">*</span>
+                        </label>
                     </fieldset>
 
                     <fieldset class="form-section" id="sellerInformationSection">
@@ -631,7 +603,7 @@
 
                     <fieldset class="form-section" id="listingDurationSection">
                         <legend>Listing Duration</legend>
-                        <div class="alert-note info">This listing is part of the daily sale cycle. Select a start date and duration.</div>
+                        <div class="alert-note info">This will be a 24 hour timed sale.</div>
 
                         <div class="form-grid two-column">
                             <div class="form-group">
@@ -667,22 +639,6 @@
                             </div>
                         </div>
 
-                        <div class="check-stack">
-                            <label><input type="checkbox" name="searchableBeforeStart"> Make my vehicle searchable before start time</label>
-                            <label><input type="checkbox" name="displayBuyNowDuringPreview"> Display Buy Now price during preview</label>
-                            <label><input type="checkbox" name="displayStartingBidDuringPreview"> Display Starting Bid price during preview</label>
-                            <label><input type="checkbox" name="acceptProxyBidsDuringPreview"> Accept Proxy Bids during preview</label>
-                            <label><input type="checkbox" name="automaticallyRelist"> Automatically Relist</label>
-                        </div>
-                    </fieldset>
-
-                    <fieldset class="form-section" id="additionalAnnouncementsSection">
-                        <legend>Additional Announcements</legend>
-                        <div class="form-group full-width">
-                            <label for="additionalAnnouncements">Add additional announcements to disclose arbitrable items.</label>
-                            <textarea id="additionalAnnouncements" name="additionalAnnouncements" maxlength="2000" rows="5"></textarea>
-                            <small><span id="announcementCharsRemaining">2000</span> characters remaining.</small>
-                        </div>
                     </fieldset>
 
                     <div class="form-actions">

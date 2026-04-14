@@ -553,10 +553,503 @@ function initManualEntryEnhancements() {
     initConditionRowButtons();
     initKeyRowButtons();
     initEquipmentCheckAll();
+    initVinDecoder();
+    initPickupLocationAutocomplete();
     initAnnouncementCounter();
     initPhotoPreview();
     initListingDurationPreview();
     initManualJumpNavigation();
+}
+
+function initVinDecoder() {
+    var vinInput = document.getElementById('vehicleVin');
+    var decodeButton = document.getElementById('decodeVinBtn');
+    var statusEl = document.getElementById('vinDecodeStatus');
+
+    if (!vinInput || !decodeButton || !statusEl) return;
+
+    function sanitizeVin(raw) {
+        return String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    }
+
+    function setStatus(message, type) {
+        statusEl.textContent = message || '';
+        statusEl.classList.remove('is-success', 'is-warning', 'is-error');
+
+        if (type === 'success') {
+            statusEl.classList.add('is-success');
+        } else if (type === 'warning') {
+            statusEl.classList.add('is-warning');
+        } else if (type === 'error') {
+            statusEl.classList.add('is-error');
+        }
+    }
+
+    function mapBodyStyle(bodyClass) {
+        var normalized = String(bodyClass || '').toLowerCase();
+        if (!normalized) return '';
+        if (normalized.indexOf('sport utility') >= 0 || normalized.indexOf('utility') >= 0 || normalized.indexOf('crossover') >= 0) return 'SUV';
+        if (normalized.indexOf('pickup') >= 0 || normalized.indexOf('truck') >= 0) return 'Truck';
+        if (normalized.indexOf('convertible') >= 0 || normalized.indexOf('cabriolet') >= 0 || normalized.indexOf('roadster') >= 0) return 'Convertible';
+        if (normalized.indexOf('wagon') >= 0 || normalized.indexOf('estate') >= 0) return 'Wagon';
+        if (normalized.indexOf('coupe') >= 0) return 'Coupe';
+        if (normalized.indexOf('sedan') >= 0 || normalized.indexOf('saloon') >= 0) return 'Sedan';
+        return '';
+    }
+
+    function mapTransmission(transmissionStyle) {
+        var normalized = String(transmissionStyle || '').toLowerCase();
+        if (!normalized) return '';
+        if (normalized.indexOf('continuously variable') >= 0 || normalized.indexOf('cvt') >= 0) return 'CVT';
+        if (normalized.indexOf('manual') >= 0) return 'Manual';
+        if (normalized.indexOf('automatic') >= 0) return 'Automatic';
+        return '';
+    }
+
+    function mapDriveTrain(driveType) {
+        var normalized = String(driveType || '').toLowerCase();
+        if (!normalized) return '';
+        if (normalized.indexOf('all-wheel') >= 0 || normalized.indexOf('awd') >= 0) return 'AWD';
+        if (normalized.indexOf('4x4') >= 0 || normalized.indexOf('four-wheel') >= 0 || normalized.indexOf('4wd') >= 0) return '4WD';
+        if (normalized.indexOf('front-wheel') >= 0 || normalized.indexOf('fwd') >= 0) return 'FWD';
+        if (normalized.indexOf('rear-wheel') >= 0 || normalized.indexOf('rwd') >= 0) return 'RWD';
+        return '';
+    }
+
+    function mapFuelType(fuelType) {
+        var normalized = String(fuelType || '').toLowerCase();
+        if (!normalized) return '';
+        if (normalized.indexOf('electric') >= 0) return 'Electric';
+        if (normalized.indexOf('hybrid') >= 0) return 'Hybrid';
+        if (normalized.indexOf('diesel') >= 0) return 'Diesel';
+        if (normalized.indexOf('gas') >= 0 || normalized.indexOf('gasoline') >= 0 || normalized.indexOf('petrol') >= 0) return 'Gasoline';
+        return '';
+    }
+
+    function mapEngineCylinders(cylinders) {
+        var numeric = parseInt(String(cylinders || '').replace(/[^0-9]/g, ''), 10);
+        if (Number.isNaN(numeric)) return '';
+        if (numeric === 4) return 'I4';
+        if (numeric === 6) return 'V6';
+        if (numeric === 8) return 'V8';
+        return '';
+    }
+
+    function setFieldIfEmpty(fieldId, value) {
+        var field = document.getElementById(fieldId);
+        var normalizedValue = String(value || '').trim();
+        if (!field || !normalizedValue) return false;
+        if (String(field.value || '').trim()) return false;
+
+        if (field.tagName === 'SELECT') {
+            var hasOption = Array.prototype.some.call(field.options, function (option) {
+                return option.value === normalizedValue;
+            });
+
+            if (!hasOption) {
+                return false;
+            }
+        }
+
+        field.value = normalizedValue;
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+    }
+
+    function buildDecodeEndpoint(vin, modelYear) {
+        var endpoint = 'https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/' + encodeURIComponent(vin) + '?format=json';
+        if (modelYear) {
+            endpoint += '&modelyear=' + encodeURIComponent(modelYear);
+        }
+        return endpoint;
+    }
+
+    function decodeVin() {
+        var vin = sanitizeVin(vinInput.value);
+        var modelYearField = document.getElementById('vehicleYear');
+        var modelYear = modelYearField && modelYearField.value ? modelYearField.value : '';
+
+        if (vin.length < 5) {
+            setStatus('Enter at least 5 VIN characters before decoding.', 'warning');
+            return;
+        }
+
+        vinInput.value = vin;
+        decodeButton.disabled = true;
+        setStatus('Decoding VIN...', 'warning');
+
+        fetch(buildDecodeEndpoint(vin, modelYear))
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function (payload) {
+                var result = payload && Array.isArray(payload.Results) ? payload.Results[0] : null;
+                var fillCount = 0;
+
+                if (!result) {
+                    setStatus('No VIN data returned from decoder.', 'error');
+                    return;
+                }
+
+                fillCount += setFieldIfEmpty('vehicleYear', result.ModelYear) ? 1 : 0;
+                fillCount += setFieldIfEmpty('vehicleMake', result.Make) ? 1 : 0;
+                fillCount += setFieldIfEmpty('vehicleModel', result.Model) ? 1 : 0;
+                fillCount += setFieldIfEmpty('vehicleBodyType', mapBodyStyle(result.BodyClass)) ? 1 : 0;
+                fillCount += setFieldIfEmpty('vehicleTrim', result.Trim || result.Series || result.Trim2) ? 1 : 0;
+                fillCount += setFieldIfEmpty('vehicleEngine', mapEngineCylinders(result.EngineCylinders)) ? 1 : 0;
+                fillCount += setFieldIfEmpty('vehicleTransmission', mapTransmission(result.TransmissionStyle)) ? 1 : 0;
+                fillCount += setFieldIfEmpty('vehicleDriveTrain', mapDriveTrain(result.DriveType)) ? 1 : 0;
+                fillCount += setFieldIfEmpty('vehicleFuelType', mapFuelType(result.FuelTypePrimary)) ? 1 : 0;
+
+                if (fillCount > 0) {
+                    setStatus('VIN decoded. Auto-filled ' + fillCount + ' field' + (fillCount === 1 ? '' : 's') + '.', 'success');
+                } else {
+                    setStatus('VIN decoded, but no empty fields matched mappable values.', 'warning');
+                }
+            })
+            .catch(function () {
+                setStatus('VIN decode failed. Check network or try manual entry.', 'error');
+            })
+            .finally(function () {
+                decodeButton.disabled = false;
+            });
+    }
+
+    decodeButton.addEventListener('click', decodeVin);
+}
+
+function initPickupLocationAutocomplete() {
+    var input = document.getElementById('vehiclePickupLocation');
+    var providerSelect = document.getElementById('pickupLocationProvider');
+    var suggestions = document.getElementById('pickupLocationSuggestions');
+    var hint = document.getElementById('pickupLocationHint');
+    var structuredFields;
+    var state;
+
+    if (!input || !providerSelect || !suggestions) return;
+
+    structuredFields = {
+        street: document.getElementById('pickupStreet'),
+        city: document.getElementById('pickupCity'),
+        state: document.getElementById('pickupState'),
+        postalCode: document.getElementById('pickupPostalCode'),
+        country: document.getElementById('pickupCountry'),
+        lat: document.getElementById('pickupLat'),
+        lng: document.getElementById('pickupLng'),
+        placeId: document.getElementById('pickupPlaceId')
+    };
+
+    state = {
+        activeProvider: providerSelect.value || 'manual',
+        suggestionItems: [],
+        highlightedIndex: -1,
+        debounceTimer: null,
+        googleAutocomplete: null,
+        googleScriptPromise: null,
+        googleListenerAttached: false,
+        selectedFromAutocomplete: false
+    };
+
+    var publicConfig = window.ADD_VEHICLE_AUTOCOMPLETE_CONFIG || {};
+    var googleKey = publicConfig.googleApiKey || '';
+    var mapboxToken = publicConfig.mapboxAccessToken || '';
+
+    function clearStructuredFields() {
+        Object.keys(structuredFields).forEach(function (key) {
+            if (structuredFields[key]) {
+                structuredFields[key].value = '';
+            }
+        });
+    }
+
+    function hideSuggestions() {
+        suggestions.hidden = true;
+        suggestions.innerHTML = '';
+        state.suggestionItems = [];
+        state.highlightedIndex = -1;
+    }
+
+    function setHint(message) {
+        if (hint) {
+            hint.textContent = message;
+        }
+    }
+
+    function updateSelectionIndex(nextIndex) {
+        var buttons = suggestions.querySelectorAll('.pickup-location-option');
+        state.highlightedIndex = nextIndex;
+        buttons.forEach(function (button, index) {
+            button.classList.toggle('is-active', index === state.highlightedIndex);
+        });
+    }
+
+    function parseMapboxContext(feature) {
+        var placeName = feature && feature.place_name ? feature.place_name : '';
+        var firstSegment = placeName.split(',')[0] || '';
+        var context = Array.isArray(feature && feature.context) ? feature.context : [];
+        var place = context.find(function (entry) {
+            return entry.id && entry.id.indexOf('place') === 0;
+        });
+        var region = context.find(function (entry) {
+            return entry.id && entry.id.indexOf('region') === 0;
+        });
+        var postcode = context.find(function (entry) {
+            return entry.id && entry.id.indexOf('postcode') === 0;
+        });
+        var country = context.find(function (entry) {
+            return entry.id && entry.id.indexOf('country') === 0;
+        });
+        var stateCode = region && region.short_code
+            ? String(region.short_code).split('-').pop().toUpperCase()
+            : '';
+
+        return {
+            label: placeName,
+            street: (feature && feature.address ? feature.address + ' ' : '') + firstSegment,
+            city: place ? place.text : '',
+            state: stateCode,
+            postalCode: postcode ? postcode.text : '',
+            country: country ? (country.short_code || country.text || '') : '',
+            lat: feature && feature.center ? String(feature.center[1] || '') : '',
+            lng: feature && feature.center ? String(feature.center[0] || '') : '',
+            placeId: feature && feature.id ? feature.id : ''
+        };
+    }
+
+    function applySelection(selection) {
+        input.value = selection.label || '';
+        if (structuredFields.street) structuredFields.street.value = selection.street || '';
+        if (structuredFields.city) structuredFields.city.value = selection.city || '';
+        if (structuredFields.state) structuredFields.state.value = selection.state || '';
+        if (structuredFields.postalCode) structuredFields.postalCode.value = selection.postalCode || '';
+        if (structuredFields.country) structuredFields.country.value = selection.country || '';
+        if (structuredFields.lat) structuredFields.lat.value = selection.lat || '';
+        if (structuredFields.lng) structuredFields.lng.value = selection.lng || '';
+        if (structuredFields.placeId) structuredFields.placeId.value = selection.placeId || '';
+        state.selectedFromAutocomplete = true;
+        hideSuggestions();
+    }
+
+    function renderSuggestions(items) {
+        hideSuggestions();
+        if (!items || items.length === 0) return;
+
+        state.suggestionItems = items;
+        suggestions.innerHTML = '';
+
+        items.forEach(function (item, index) {
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'pickup-location-option';
+            button.setAttribute('role', 'option');
+            button.textContent = item.label;
+
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                applySelection(item);
+            });
+
+            button.addEventListener('mouseenter', function () {
+                updateSelectionIndex(index);
+            });
+
+            suggestions.appendChild(button);
+        });
+
+        suggestions.hidden = false;
+        updateSelectionIndex(0);
+    }
+
+    function fetchMapboxSuggestions(query) {
+        if (!mapboxToken) {
+            setHint('Mapbox token not configured. Using manual entry.');
+            hideSuggestions();
+            return;
+        }
+
+        var endpoint = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json' +
+            '?autocomplete=true&limit=5&types=address,place,postcode,locality&country=us,ca&access_token=' + encodeURIComponent(mapboxToken);
+
+        fetch(endpoint)
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function (payload) {
+                var features = Array.isArray(payload && payload.features) ? payload.features : [];
+                var items = features.map(parseMapboxContext).filter(function (entry) {
+                    return entry.label;
+                });
+                renderSuggestions(items);
+            })
+            .catch(function () {
+                hideSuggestions();
+            });
+    }
+
+    function loadGooglePlacesScript() {
+        if (!googleKey) {
+            return Promise.reject(new Error('Google API key not configured.'));
+        }
+
+        if (window.google && window.google.maps && window.google.maps.places) {
+            return Promise.resolve(window.google);
+        }
+
+        if (state.googleScriptPromise) {
+            return state.googleScriptPromise;
+        }
+
+        state.googleScriptPromise = new Promise(function (resolve, reject) {
+            var script = document.createElement('script');
+            script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(googleKey) + '&libraries=places';
+            script.async = true;
+            script.defer = true;
+            script.onload = function () {
+                resolve(window.google);
+            };
+            script.onerror = function () {
+                reject(new Error('Failed to load Google Places script.'));
+            };
+            document.head.appendChild(script);
+        });
+
+        return state.googleScriptPromise;
+    }
+
+    function enableGoogleAutocomplete() {
+        loadGooglePlacesScript()
+            .then(function (googleRef) {
+                if (!googleRef || !googleRef.maps || !googleRef.maps.places) {
+                    throw new Error('Google Places unavailable.');
+                }
+
+                if (!state.googleAutocomplete) {
+                    state.googleAutocomplete = new googleRef.maps.places.Autocomplete(input, {
+                        types: ['address'],
+                        componentRestrictions: { country: ['us', 'ca'] },
+                        fields: ['address_components', 'formatted_address', 'geometry', 'place_id']
+                    });
+                }
+
+                if (!state.googleListenerAttached) {
+                    state.googleListenerAttached = true;
+                    state.googleAutocomplete.addListener('place_changed', function () {
+                        var place = state.googleAutocomplete.getPlace();
+                        var components = Array.isArray(place && place.address_components) ? place.address_components : [];
+                        var getComponent = function (type) {
+                            var entry = components.find(function (component) {
+                                return Array.isArray(component.types) && component.types.indexOf(type) >= 0;
+                            });
+                            return entry || null;
+                        };
+
+                        applySelection({
+                            label: place && place.formatted_address ? place.formatted_address : input.value,
+                            street: [
+                                getComponent('street_number') ? getComponent('street_number').long_name : '',
+                                getComponent('route') ? getComponent('route').long_name : ''
+                            ].join(' ').trim(),
+                            city: getComponent('locality') ? getComponent('locality').long_name : '',
+                            state: getComponent('administrative_area_level_1') ? getComponent('administrative_area_level_1').short_name : '',
+                            postalCode: getComponent('postal_code') ? getComponent('postal_code').long_name : '',
+                            country: getComponent('country') ? getComponent('country').short_name : '',
+                            lat: place && place.geometry && place.geometry.location ? String(place.geometry.location.lat()) : '',
+                            lng: place && place.geometry && place.geometry.location ? String(place.geometry.location.lng()) : '',
+                            placeId: place && place.place_id ? place.place_id : ''
+                        });
+                    });
+                }
+
+                setHint('Google Places enabled. Start typing and choose an address suggestion.');
+            })
+            .catch(function () {
+                providerSelect.value = 'manual';
+                state.activeProvider = 'manual';
+                setHint('Google Places is not configured. Using manual entry.');
+                hideSuggestions();
+            });
+    }
+
+    function onProviderChange() {
+        state.activeProvider = providerSelect.value || 'manual';
+        hideSuggestions();
+
+        if (state.activeProvider === 'mapbox') {
+            setHint('Mapbox autocomplete enabled. Type an address and select a suggestion.');
+            return;
+        }
+
+        if (state.activeProvider === 'google') {
+            setHint('Loading Google Places...');
+            enableGoogleAutocomplete();
+            return;
+        }
+
+        setHint('Manual entry mode. Enter pickup location directly.');
+    }
+
+    input.addEventListener('input', function () {
+        var query = input.value.trim();
+        state.selectedFromAutocomplete = false;
+        clearStructuredFields();
+
+        if (state.debounceTimer) {
+            window.clearTimeout(state.debounceTimer);
+        }
+
+        if (state.activeProvider !== 'mapbox' || query.length < 3) {
+            hideSuggestions();
+            return;
+        }
+
+        state.debounceTimer = window.setTimeout(function () {
+            fetchMapboxSuggestions(query);
+        }, 220);
+    });
+
+    input.addEventListener('keydown', function (event) {
+        if (suggestions.hidden || state.suggestionItems.length === 0) return;
+
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            updateSelectionIndex((state.highlightedIndex + 1) % state.suggestionItems.length);
+            return;
+        }
+
+        if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            updateSelectionIndex((state.highlightedIndex - 1 + state.suggestionItems.length) % state.suggestionItems.length);
+            return;
+        }
+
+        if (event.key === 'Enter' && state.highlightedIndex >= 0) {
+            event.preventDefault();
+            applySelection(state.suggestionItems[state.highlightedIndex]);
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            hideSuggestions();
+        }
+    });
+
+    providerSelect.addEventListener('change', onProviderChange);
+
+    document.addEventListener('click', function (event) {
+        var target = event.target;
+        if (!target) return;
+        if (target === input || suggestions.contains(target)) return;
+        hideSuggestions();
+    });
+
+    onProviderChange();
 }
 
 function initRequiredFieldValidation(form) {

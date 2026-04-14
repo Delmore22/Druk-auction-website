@@ -533,6 +533,95 @@
     flex: 1;
 }
 
+.vin-decode-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.vin-decode-btn {
+    border: 1px solid var(--accent-color);
+    background: var(--accent-rgba);
+    color: var(--text-color);
+    border-radius: 6px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.vin-decode-btn:hover {
+    filter: brightness(1.05);
+}
+
+.vin-decode-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.vin-decode-status {
+    color: var(--secondary-text);
+    font-size: 0.82rem;
+}
+
+.vin-decode-status.is-success {
+    color: #16a34a;
+}
+
+.vin-decode-status.is-warning {
+    color: #d97706;
+}
+
+.vin-decode-status.is-error {
+    color: #dc2626;
+}
+
+.pickup-location-wrap {
+    position: relative;
+}
+
+.pickup-location-suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--header-bg);
+    box-shadow: 0 8px 18px var(--shadow);
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.pickup-location-suggestions[hidden] {
+    display: none;
+}
+
+.pickup-location-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-color);
+    padding: 0.55rem 0.7rem;
+    cursor: pointer;
+    font-size: 0.88rem;
+}
+
+.pickup-location-option:last-child {
+    border-bottom: 0;
+}
+
+.pickup-location-option:hover,
+.pickup-location-option.is-active {
+    background: var(--accent-rgba);
+}
+
 .inline-date-time > input[type='date'] {
     flex: 1.2;
 }
@@ -593,6 +682,23 @@
 .radio-group-row > span {
     font-weight: 600;
     min-width: 200px;
+}
+
+.seller-disclosure-meta {
+    margin: -4px 0 12px;
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.seller-disclosure-question {
+    margin-bottom: 6px;
+    color: var(--text-color);
+    font-weight: 700;
+}
+
+#sellerDisclosureSection .radio-group-row > span {
+    min-width: 170px;
 }
 
 .alert-note {

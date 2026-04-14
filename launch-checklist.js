@@ -328,6 +328,24 @@
                     title: 'Test branded notice and discard confirmation dialogs',
                     text: 'Confirm that launch-ready site dialogs appear instead of browser alert or confirm popups for validation, upload limits, success states, and discard actions.',
                     file: 'car-add-vehicle.html / car-add-vehicle.css / car-add-vehicle.js'
+                },
+                {
+                    id: 'add-vehicle-configure-pickup-autocomplete-provider',
+                    title: 'Configure Pickup Location autocomplete provider credentials',
+                    text: 'Set production Mapbox access token and or Google Places API key for pickup location autocomplete, and verify that unavailable providers gracefully fall back to manual entry mode.',
+                    file: 'car-add-vehicle.js'
+                },
+                {
+                    id: 'add-vehicle-verify-pickup-location-structured-data',
+                    title: 'Verify Pickup Location structured fields are populated from selection',
+                    text: 'Confirm selecting an autocomplete suggestion fills street, city, state, postal code, country, coordinates, and place identifier hidden fields and that plain-manual entry remains possible when needed.',
+                    file: 'car-add-vehicle.html / car-add-vehicle.js'
+                },
+                {
+                    id: 'add-vehicle-test-pickup-location-interaction-behavior',
+                    title: 'Test Pickup Location suggestion list keyboard and click behavior',
+                    text: 'Validate arrow key navigation, Enter selection, Escape close, outside-click close, and no stale suggestion overlays while switching providers or editing typed location input.',
+                    file: 'car-add-vehicle.css / car-add-vehicle.js'
                 }
             ]
         },
