@@ -135,6 +135,7 @@ document.addEventListener('components:ready', function() {
 let currentView = 'tile';
 let currentPage = 1;
 let currentDashboardMode = 'market';
+let currentMarketTab = 'active';
 const itemsPerPage = 8;
 const DASHBOARD_UI_STATE_KEY = 'dashboardUiState';
 let allCars = [];
@@ -157,6 +158,7 @@ function normalizeDashboardUiState(rawState) {
     return {
         view: source.view === 'list' ? 'list' : 'tile',
         mode: source.mode === 'sold' ? 'sold' : 'market',
+        marketTab: source.marketTab === 'marketplace' ? 'marketplace' : 'active',
         page: Number.isInteger(source.page) && source.page > 0 ? source.page : 1,
         scrollTop: Number.isFinite(source.scrollTop) && source.scrollTop >= 0 ? source.scrollTop : 0
     };
@@ -182,6 +184,7 @@ function persistDashboardUiState() {
             JSON.stringify(normalizeDashboardUiState({
                 view: currentView,
                 mode: currentDashboardMode,
+                marketTab: currentMarketTab,
                 page: currentPage,
                 scrollTop: mainContent ? mainContent.scrollTop : 0
             }))
@@ -197,6 +200,7 @@ function restoreDashboardUiState() {
 
     switchView(savedState.view);
     setDashboardMode(savedState.mode);
+    setMarketTab(savedState.marketTab, { skipPagination: true });
     currentPage = Math.min(savedState.page, totalPages);
     updatePagination();
 
@@ -265,7 +269,7 @@ function getAuctionListMeta(car, sectionMode) {
 
     if (sectionMode === 'active') {
         meta.push({ label: 'Time Left', value: car.timeRemaining || '--' });
-    } else {
+    } else if (sectionMode === 'marketplace') {
         const secondaryPrice = getAuctionSecondaryPrice(car);
         meta.push(secondaryPrice);
     }
@@ -834,6 +838,58 @@ function setDashboardMode(mode) {
     syncDashboardModeUi();
 }
 
+function syncMarketTabUi() {
+    const activeSection = document.getElementById('activeBiddingSection');
+    const marketplaceSection = document.getElementById('marketplaceSection');
+    const activeTabBtn = document.getElementById('dashboardTabActive');
+    const marketplaceTabBtn = document.getElementById('dashboardTabMarketplace');
+    const showActive = currentMarketTab === 'active';
+
+    if (activeSection) {
+        activeSection.hidden = !showActive;
+        activeSection.classList.toggle('dashboard-section-hidden', !showActive);
+    }
+
+    if (marketplaceSection) {
+        marketplaceSection.hidden = showActive;
+        marketplaceSection.classList.toggle('dashboard-section-hidden', showActive);
+    }
+
+    if (activeTabBtn) {
+        activeTabBtn.classList.toggle('active', showActive);
+        activeTabBtn.setAttribute('aria-selected', showActive ? 'true' : 'false');
+    }
+
+    if (marketplaceTabBtn) {
+        marketplaceTabBtn.classList.toggle('active', !showActive);
+        marketplaceTabBtn.setAttribute('aria-selected', showActive ? 'false' : 'true');
+    }
+}
+
+function setMarketTab(tab, options) {
+    const settings = options || {};
+    currentMarketTab = tab === 'marketplace' ? 'marketplace' : 'active';
+    syncMarketTabUi();
+
+    if (!settings.skipPagination) {
+        updatePagination();
+    }
+}
+
+function initializeMarketTabs() {
+    const tabButtons = document.querySelectorAll('[data-market-tab]');
+    if (tabButtons.length === 0) return;
+
+    tabButtons.forEach(function (button) {
+        if (button.dataset.bound === '1') return;
+
+        button.dataset.bound = '1';
+        button.addEventListener('click', function () {
+            setMarketTab(button.dataset.marketTab);
+        });
+    });
+}
+
 function initializeDashboardModeToggle() {
     const soldToggleBtn = document.getElementById('dashboardSoldToggleBtn');
     if (!soldToggleBtn || soldToggleBtn.dataset.bound) return;
@@ -853,6 +909,7 @@ function initializeAuctionView() {
 
     bindDashboardControls();
     initializeDashboardModeToggle();
+    initializeMarketTabs();
 
     loadMarketplaceData().then(function () {
         initializeAuctionSearch();
@@ -1161,7 +1218,7 @@ function updatePagination() {
     }
 
     if (marketplaceEmptyState) {
-        marketplaceEmptyState.hidden = currentDashboardMode === 'sold' || filteredMarketplaceItems.length > 0;
+        marketplaceEmptyState.hidden = currentDashboardMode === 'sold' || currentMarketTab !== 'marketplace' || filteredMarketplaceItems.length > 0;
     }
 
     if (soldEmptyState) {

@@ -32,7 +32,34 @@
 
             <!-- Current Auctions - Full Width -->
             <div class="two-column-layout" id="dashboardMarketSections">
-                <div class="live-auctions">
+                <div class="market-tabs" role="tablist" aria-label="Marketplace view tabs">
+                    <button
+                        class="option-toggle market-tab-toggle active"
+                        id="dashboardTabActive"
+                        type="button"
+                        role="tab"
+                        aria-selected="true"
+                        aria-controls="activeBiddingSection"
+                        data-market-tab="active"
+                    >
+                        <i class="fas fa-gavel" aria-hidden="true"></i>
+                        Active Bidding
+                    </button>
+                    <button
+                        class="option-toggle market-tab-toggle"
+                        id="dashboardTabMarketplace"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="marketplaceSection"
+                        data-market-tab="marketplace"
+                    >
+                        <i class="fas fa-store" aria-hidden="true"></i>
+                        Marketplace
+                    </button>
+                </div>
+
+                <div class="live-auctions market-tab-panel" id="activeBiddingSection" role="tabpanel" aria-labelledby="dashboardTabActive">
                     <div class="section-title">
                         <div class="section-title-copy">
                             <h3>
@@ -62,7 +89,7 @@
                     </div>
                 </div>
 
-                <div class="live-auctions" id="marketplaceSection">
+                <div class="live-auctions market-tab-panel" id="marketplaceSection" role="tabpanel" aria-labelledby="dashboardTabMarketplace" hidden>
                     <div class="section-title">
                         <div class="section-title-copy">
                             <h3>

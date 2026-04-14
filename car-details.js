@@ -1047,7 +1047,9 @@ function buildBidStrip(car, sourceSection) {
     secondary.type = 'button';
 
     actions.appendChild(primary);
-    actions.appendChild(buyNow);
+    if (displayStatus !== 'sold') {
+        actions.appendChild(buyNow);
+    }
     actions.appendChild(secondary);
 
     section.appendChild(stats);

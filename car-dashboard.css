@@ -119,6 +119,54 @@
     margin-bottom: 2rem;
 }
 
+.market-tabs {
+    display: flex;
+    gap: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0;
+    margin-bottom: -0.5rem;
+}
+
+.market-tab-toggle {
+    background: var(--placeholder-bg);
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    color: var(--secondary-text);
+    cursor: pointer;
+    padding: 12px 18px 11px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.25s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease;
+    margin-bottom: -1px;
+    position: relative;
+    top: 1px;
+}
+
+.market-tab-toggle:hover {
+    color: var(--text-color);
+    background: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 14px rgba(15, 23, 42, 0.12);
+}
+
+.market-tab-toggle.active {
+    color: var(--text-color);
+    background: var(--accent-color);
+    border-color: var(--border-color);
+    box-shadow: 0 -4px 0 0 var(--accent-color) inset, 0 8px 16px rgba(15, 23, 42, 0.12);
+    z-index: 2;
+    transform: translateY(-1px);
+}
+
+.market-tab-toggle:focus-visible {
+    outline: 3px solid var(--accent-rgba);
+    outline-offset: 2px;
+}
+
 .live-auctions {
     background: var(--header-bg);
     padding: 1.5rem;
@@ -592,6 +640,91 @@
 .tile-view .sale-price {
     color: #ffd166;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+#auctionsContainer.tile-view .auction-item,
+#marketplaceContainer.tile-view .auction-item,
+#soldContainer.tile-view .auction-item {
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--header-bg);
+    box-shadow: 0 8px 18px var(--shadow);
+}
+
+#auctionsContainer.tile-view .auction-photo,
+#marketplaceContainer.tile-view .auction-photo,
+#soldContainer.tile-view .auction-photo {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: 190px;
+    border-radius: 10px 10px 0 0;
+    overflow: hidden;
+}
+
+#auctionsContainer.tile-view .auction-item::after,
+#marketplaceContainer.tile-view .auction-item::after,
+#soldContainer.tile-view .auction-item::after {
+    content: none;
+}
+
+#auctionsContainer.tile-view .auction-details,
+#marketplaceContainer.tile-view .auction-details,
+#soldContainer.tile-view .auction-details {
+    margin-bottom: 0;
+    padding: 0.9rem 1rem 0.55rem;
+    position: static;
+    z-index: auto;
+    background: rgba(218, 165, 32, 0.1);
+    border-top: 1px solid rgba(218, 165, 32, 0.28);
+}
+
+#auctionsContainer.tile-view .auction-details h4,
+#marketplaceContainer.tile-view .auction-details h4,
+#soldContainer.tile-view .auction-details h4 {
+    color: var(--text-color);
+    text-shadow: none;
+}
+
+#auctionsContainer.tile-view .auction-details p,
+#marketplaceContainer.tile-view .auction-details p,
+#soldContainer.tile-view .auction-details p {
+    color: var(--secondary-text);
+    text-shadow: none;
+}
+
+#auctionsContainer.tile-view .sale-tag,
+#marketplaceContainer.tile-view .sale-tag,
+#soldContainer.tile-view .sale-tag {
+    align-items: flex-start;
+    padding: 0.65rem 1rem 1rem;
+    border-top: 1px solid var(--border-color);
+    position: static;
+    z-index: auto;
+    background: var(--header-bg);
+}
+
+#auctionsContainer.tile-view .sale-price,
+#marketplaceContainer.tile-view .sale-price,
+#soldContainer.tile-view .sale-price {
+    color: var(--text-color);
+    text-shadow: none;
+}
+
+.dark-theme #auctionsContainer.tile-view .auction-details,
+.dark-theme #marketplaceContainer.tile-view .auction-details,
+.dark-theme #soldContainer.tile-view .auction-details {
+    background: rgba(218, 165, 32, 0.16);
+    border-top-color: rgba(218, 165, 32, 0.38);
+}
+
+.dark-theme #auctionsContainer.tile-view .sale-tag,
+.dark-theme #marketplaceContainer.tile-view .sale-tag,
+.dark-theme #soldContainer.tile-view .sale-tag {
+    background: #252525;
 }
 
 .list-view .auction-photo {
