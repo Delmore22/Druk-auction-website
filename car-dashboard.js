@@ -147,6 +147,7 @@ let allMarketplaceItems = [];
 let filteredMarketplaceItems = [];
 let allSoldItems = [];
 let filteredSoldItems = [];
+const cardPhotoSourceCache = new Map();
 let searchFilterState = {
     make: new Set(),
     engine: new Set(),
@@ -275,6 +276,56 @@ function getAuctionListMeta(car, sectionMode) {
     }
 
     return meta;
+}
+
+function getCardPhotoCandidateSources(car) {
+    const primary = String((car && car.photo) || `cars-photos/${(car && car.id) || ''}.png`).trim();
+    const explicitGallery = Array.isArray(car && car.photos) ? car.photos : [];
+    const candidates = [primary].concat(explicitGallery).filter(Boolean);
+
+    const extMatch = primary.match(/^(.*?)(\.[a-z0-9]+)$/i);
+    if (extMatch) {
+        const basePath = extMatch[1];
+        const extension = extMatch[2];
+
+        for (let index = 2; index <= 12; index += 1) {
+            const suffix = String(index).padStart(2, '0');
+            candidates.push(`${basePath}-${suffix}${extension}`);
+        }
+    }
+
+    return Array.from(new Set(candidates));
+}
+
+function probeImageSource(source) {
+    return new Promise(function (resolve) {
+        const image = new Image();
+        image.onload = function () {
+            resolve(source);
+        };
+        image.onerror = function () {
+            resolve(null);
+        };
+        image.src = source;
+    });
+}
+
+function resolveCardPhotoSources(car) {
+    const cacheKey = String((car && car.id) || (car && car.photo) || '');
+    if (!cacheKey) {
+        return Promise.resolve([]);
+    }
+
+    if (cardPhotoSourceCache.has(cacheKey)) {
+        return Promise.resolve(cardPhotoSourceCache.get(cacheKey));
+    }
+
+    const candidates = getCardPhotoCandidateSources(car);
+    return Promise.all(candidates.map(probeImageSource)).then(function (sources) {
+        const availableSources = sources.filter(Boolean);
+        cardPhotoSourceCache.set(cacheKey, availableSources);
+        return availableSources;
+    });
 }
 
 function parseTimeRemainingSeconds(timeRemaining) {
@@ -570,6 +621,81 @@ function createAuctionCardElement(car, sectionMode) {
     photoImage.src = car.photo || `cars-photos/${car.id}.png`;
     photo.appendChild(photoImage);
 
+    const photoNav = document.createElement('div');
+    photoNav.className = 'auction-photo-nav';
+    const photoCountBadge = document.createElement('span');
+    photoCountBadge.className = 'auction-photo-count';
+    photoCountBadge.setAttribute('aria-hidden', 'true');
+    let photoSources = [photoImage.src];
+    let currentPhotoIndex = 0;
+
+    function renderPhotoCount() {
+        if (photoSources.length < 2) {
+            photoCountBadge.textContent = '';
+            return;
+        }
+
+        photoCountBadge.textContent = `${currentPhotoIndex + 1}/${photoSources.length}`;
+    }
+
+    function updatePhotoSource(stepDelta) {
+        if (photoSources.length < 2) return;
+        currentPhotoIndex = (currentPhotoIndex + stepDelta + photoSources.length) % photoSources.length;
+        photoImage.src = photoSources[currentPhotoIndex];
+        renderPhotoCount();
+    }
+
+    const prevPhotoBtn = document.createElement('button');
+    prevPhotoBtn.type = 'button';
+    prevPhotoBtn.className = 'auction-photo-nav-btn is-prev';
+    prevPhotoBtn.setAttribute('aria-label', 'Previous photo');
+    prevPhotoBtn.innerHTML = '<i class="fas fa-chevron-left" aria-hidden="true"></i>';
+
+    const nextPhotoBtn = document.createElement('button');
+    nextPhotoBtn.type = 'button';
+    nextPhotoBtn.className = 'auction-photo-nav-btn is-next';
+    nextPhotoBtn.setAttribute('aria-label', 'Next photo');
+    nextPhotoBtn.innerHTML = '<i class="fas fa-chevron-right" aria-hidden="true"></i>';
+
+    [prevPhotoBtn, nextPhotoBtn].forEach(function (btn) {
+        btn.addEventListener('click', function (event) {
+            // Keep image controls interactive without opening the detail page link.
+            event.preventDefault();
+            event.stopPropagation();
+        });
+    });
+
+    prevPhotoBtn.addEventListener('click', function () {
+        updatePhotoSource(-1);
+    });
+
+    nextPhotoBtn.addEventListener('click', function () {
+        updatePhotoSource(1);
+    });
+
+    photoNav.appendChild(prevPhotoBtn);
+    photoNav.appendChild(nextPhotoBtn);
+    photo.appendChild(photoCountBadge);
+    photo.appendChild(photoNav);
+
+    resolveCardPhotoSources(car)
+        .then(function (availableSources) {
+            if (!Array.isArray(availableSources) || availableSources.length < 2) {
+                photo.classList.remove('has-multiple-photos');
+                return;
+            }
+
+            photoSources = availableSources;
+            currentPhotoIndex = 0;
+            photoImage.src = photoSources[currentPhotoIndex];
+            photo.classList.add('has-multiple-photos');
+            renderPhotoCount();
+        })
+        .catch(function () {
+            photo.classList.remove('has-multiple-photos');
+            photoCountBadge.textContent = '';
+        });
+
     const details = document.createElement('div');
     details.className = 'auction-details';
 
@@ -628,27 +754,35 @@ function createAuctionCardElement(car, sectionMode) {
     saleTag.appendChild(salePriceLabel);
     saleTag.appendChild(salePrice);
 
-    let actionRow = null;
+    let listActionRow = null;
+    let tileActionRow = null;
 
     if (sectionMode === 'active' || sectionMode === 'marketplace') {
-        actionRow = document.createElement('div');
-        actionRow.className = 'auction-row-actions ' + (sectionMode === 'marketplace' ? 'is-marketplace' : 'is-active');
+        const buildActionRow = function (rowTypeClass) {
+            const row = document.createElement('div');
+            row.className = 'auction-row-actions ' + rowTypeClass + ' ' + (sectionMode === 'marketplace' ? 'is-marketplace' : 'is-active');
 
-        const bidNow = document.createElement('span');
-        bidNow.className = sectionMode === 'active'
-            ? 'auction-action-chip is-primary is-bid-action'
-            : 'auction-action-chip is-bid-action';
-        bidNow.textContent = 'Bid Now';
+            const bidNow = document.createElement('span');
+            bidNow.className = sectionMode === 'active'
+                ? 'auction-action-chip is-primary is-bid-action'
+                : 'auction-action-chip is-bid-action';
+            bidNow.textContent = 'Bid Now';
 
-        const buyNow = document.createElement('span');
-        buyNow.className = sectionMode === 'marketplace'
-            ? 'auction-action-chip is-primary is-buy-action'
-            : 'auction-action-chip is-buy-action';
-        buyNow.textContent = 'Buy Now';
+            const buyNow = document.createElement('span');
+            buyNow.className = sectionMode === 'marketplace'
+                ? 'auction-action-chip is-primary is-buy-action'
+                : 'auction-action-chip is-buy-action';
+            buyNow.textContent = 'Buy Now';
 
-        actionRow.appendChild(bidNow);
-        actionRow.appendChild(buyNow);
-        detailsHeader.appendChild(actionRow);
+            row.appendChild(bidNow);
+            row.appendChild(buyNow);
+            return row;
+        };
+
+        listActionRow = buildActionRow('is-list-row');
+        tileActionRow = buildActionRow('is-tile-row');
+        detailsHeader.appendChild(listActionRow);
+        saleTag.appendChild(tileActionRow);
     }
 
     details.appendChild(detailsHeader);
