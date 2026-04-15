@@ -14,11 +14,20 @@
             🔔
             <span class="notification-badge">4</span>
         </div>
-        <div class="user-info">
-            <div class="user-avatar">JD</div>
+        <div class="user-info" id="userMenuTrigger" role="button" aria-haspopup="true" aria-expanded="false" tabindex="0">
+            <div class="user-avatar" id="headerUserAvatar">JD</div>
             <div class="user-details">
-                <h3>John Dealer</h3>
+                <h3 id="headerUserName">John Dealer</h3>
                 <p>Administrator</p>
+            </div>
+            <i class="fa-solid fa-chevron-down user-menu-caret" aria-hidden="true"></i>
+            <div class="user-dropdown" id="userDropdown" role="menu">
+                <a href="settings.html" class="user-dropdown-item" role="menuitem">
+                    <i class="fa-solid fa-gear" aria-hidden="true"></i> Settings
+                </a>
+                <a href="#" class="user-dropdown-item user-dropdown-item--danger" role="menuitem">
+                    <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Log Out
+                </a>
             </div>
         </div>
     </div>

@@ -68,6 +68,16 @@
     font-size: 0.95rem;
 }
 
+.draft-restore-note {
+    margin: 0 0 12px;
+    padding: 9px 12px;
+    border: 1px solid var(--accent-color);
+    background: var(--accent-rgba);
+    color: var(--text-color);
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
 /* Import Options Toggle */
 .import-options {
     display: flex;

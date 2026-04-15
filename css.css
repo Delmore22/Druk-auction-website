@@ -253,6 +253,72 @@ body {
     color: var(--text-color);
 }
 
+.user-info {
+    position: relative;
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 0.3rem 0.5rem;
+    transition: background 0.2s;
+}
+
+.user-info:hover,
+.user-info:focus {
+    background: var(--card-bg);
+    outline: none;
+}
+
+.user-menu-caret {
+    font-size: 0.7rem;
+    color: var(--secondary-text);
+    transition: transform 0.2s;
+    margin-left: 0.2rem;
+}
+
+.user-info[aria-expanded="true"] .user-menu-caret {
+    transform: rotate(180deg);
+}
+
+.user-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 160px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 6px 20px var(--shadow);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.user-info[aria-expanded="true"] .user-dropdown {
+    display: block;
+}
+
+.user-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.user-dropdown-item:hover {
+    background: var(--hover-bg, rgba(0,0,0,0.06));
+}
+
+.user-dropdown-item--danger {
+    color: #c0392b;
+}
+
+.user-dropdown-item--danger:hover {
+    background: rgba(192, 57, 43, 0.08);
+}
+
 
 /* ========== MAIN LAYOUT ========== */
 .main-container {

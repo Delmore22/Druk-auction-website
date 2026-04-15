@@ -2,6 +2,7 @@
 
 var siteNoticeController = null;
 var siteConfirmController = null;
+var ADD_VEHICLE_DRAFT_KEY = 'addVehicleManualDraftV1';
 
 document.addEventListener('components:ready', function () {
     initSiteNotice();
@@ -267,10 +268,12 @@ function initAddVehicleForm() {
     var form = document.getElementById('addVehicleForm');
     var cancelBtn = document.getElementById('cancelBtn');
     var submitButtons;
+    var draftController;
 
     if (!form) return;
 
     form.setAttribute('novalidate', 'novalidate');
+    draftController = initFormDraftAutoSave(form);
     initRequiredFieldValidation(form);
     initSubmissionPreview(form);
     submitButtons = form.querySelectorAll('[type="submit"]');
@@ -299,6 +302,9 @@ function initAddVehicleForm() {
 
         var vehicleData = collectVehicleData(form);
         submitVehicle(vehicleData);
+        if (draftController) {
+            draftController.clear();
+        }
     });
 
     // Handle cancel button
@@ -313,6 +319,168 @@ function initAddVehicleForm() {
             }
         });
     }
+}
+
+function initFormDraftAutoSave(form) {
+    var debounceTimer = null;
+    var controls = [];
+    var restoring = false;
+    var notice = document.getElementById('draftRestoreNotice');
+
+    if (!form || !window.localStorage) {
+        return null;
+    }
+
+    controls = Array.prototype.slice.call(form.querySelectorAll('input[name], select[name], textarea[name]')).filter(function (control) {
+        return control.type !== 'file';
+    });
+
+    function getControlKey(control) {
+        return [control.tagName.toLowerCase(), control.type || 'text', control.name].join('::');
+    }
+
+    function formatDraftTime(savedAtIso) {
+        var savedAtDate;
+
+        if (!savedAtIso) {
+            return '';
+        }
+
+        savedAtDate = new Date(savedAtIso);
+        if (Number.isNaN(savedAtDate.getTime())) {
+            return '';
+        }
+
+        return savedAtDate.toLocaleString();
+    }
+
+    function setDraftRestoreNotice(savedAtIso) {
+        var label = formatDraftTime(savedAtIso);
+
+        if (!notice) {
+            return;
+        }
+
+        if (!label) {
+            notice.hidden = true;
+            notice.textContent = '';
+            return;
+        }
+
+        notice.textContent = 'Draft restored from ' + label + '.';
+        notice.hidden = false;
+    }
+
+    function buildDraftPayload() {
+        var keyCounters = {};
+
+        return {
+            savedAt: new Date().toISOString(),
+            values: controls.map(function (control) {
+                var key = getControlKey(control);
+                var position = keyCounters[key] || 0;
+                keyCounters[key] = position + 1;
+
+                return {
+                    key: key,
+                    position: position,
+                    checked: control.type === 'checkbox' || control.type === 'radio' ? control.checked : null,
+                    value: control.value
+                };
+            })
+        };
+    }
+
+    function saveDraftNow() {
+        var payload;
+
+        if (restoring) {
+            return;
+        }
+
+        payload = buildDraftPayload();
+        window.localStorage.setItem(ADD_VEHICLE_DRAFT_KEY, JSON.stringify(payload));
+    }
+
+    function scheduleDraftSave() {
+        if (restoring) {
+            return;
+        }
+
+        if (debounceTimer) {
+            window.clearTimeout(debounceTimer);
+        }
+
+        debounceTimer = window.setTimeout(saveDraftNow, 700);
+    }
+
+    function restoreDraftIfAvailable() {
+        var raw = window.localStorage.getItem(ADD_VEHICLE_DRAFT_KEY);
+        var parsed;
+        var entries;
+        var indexByKeyPosition = {};
+
+        if (!raw) {
+            return;
+        }
+
+        try {
+            parsed = JSON.parse(raw);
+        } catch (error) {
+            return;
+        }
+
+        if (!parsed || !Array.isArray(parsed.values)) {
+            return;
+        }
+
+        entries = parsed.values;
+        entries.forEach(function (entry) {
+            if (!entry || typeof entry.key !== 'string') return;
+            indexByKeyPosition[entry.key + '::' + String(entry.position || 0)] = entry;
+        });
+
+        restoring = true;
+
+        (function applyEntries() {
+            var keyCounters = {};
+
+            controls.forEach(function (control) {
+                var key = getControlKey(control);
+                var position = keyCounters[key] || 0;
+                var entry = indexByKeyPosition[key + '::' + String(position)];
+
+                keyCounters[key] = position + 1;
+                if (!entry) return;
+
+                if (control.type === 'checkbox' || control.type === 'radio') {
+                    control.checked = Boolean(entry.checked);
+                } else {
+                    control.value = typeof entry.value === 'string' ? entry.value : '';
+                }
+
+                control.dispatchEvent(new Event('input', { bubbles: true }));
+                control.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        }());
+
+        restoring = false;
+        return parsed.savedAt || '';
+    }
+
+    controls.forEach(function (control) {
+        control.addEventListener('input', scheduleDraftSave);
+        control.addEventListener('change', scheduleDraftSave);
+    });
+
+    setDraftRestoreNotice(restoreDraftIfAvailable());
+
+    return {
+        clear: function () {
+            window.localStorage.removeItem(ADD_VEHICLE_DRAFT_KEY);
+            setDraftRestoreNotice('');
+        }
+    };
 }
 
 function initSubmissionPreview(form) {
@@ -1681,6 +1849,10 @@ function resetForm() {
     var form = document.getElementById('addVehicleForm');
     if (form) {
         form.reset();
+    }
+
+    if (window.localStorage) {
+        window.localStorage.removeItem(ADD_VEHICLE_DRAFT_KEY);
     }
 }
 

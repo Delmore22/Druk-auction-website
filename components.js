@@ -392,11 +392,76 @@
         });
     }
 
+    function initHeaderUserName() {
+        var nameEl   = document.getElementById('headerUserName');
+        var avatarEl = document.getElementById('headerUserAvatar');
+        if (!nameEl) return;
+
+        function applyName(name) {
+            if (!name || !name.trim()) return;
+            nameEl.textContent = name.trim();
+            if (avatarEl) {
+                var parts = name.trim().split(/\s+/);
+                var initials = parts.length >= 2
+                    ? parts[0][0] + parts[parts.length - 1][0]
+                    : parts[0].slice(0, 2);
+                avatarEl.textContent = initials.toUpperCase();
+            }
+        }
+
+        applyName(storageGet('accountName') || 'John Dealer');
+
+        // Update immediately if settings page saves in another tab
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'accountName') applyName(e.newValue);
+        });
+    }
+
+    function initUserMenu() {
+        var trigger = document.getElementById('userMenuTrigger');
+        var dropdown = document.getElementById('userDropdown');
+        if (!trigger || !dropdown) return;
+
+        function openMenu() {
+            trigger.setAttribute('aria-expanded', 'true');
+        }
+        function closeMenu() {
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+        function toggleMenu() {
+            trigger.getAttribute('aria-expanded') === 'true' ? closeMenu() : openMenu();
+        }
+
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            toggleMenu();
+        });
+
+        trigger.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleMenu();
+            } else if (e.key === 'Escape') {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!trigger.contains(e.target)) closeMenu();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeMenu();
+        });
+    }
+
     function initComponents() {
         requestStickyOffsetsUpdate();
         window.addEventListener('resize', requestStickyOffsetsUpdate);
         initActionButtons();
         initThemeToggle();
+        initHeaderUserName();
+        initUserMenu();
         initActiveNav();
         initSidebarState();
         initShrinkingHeader();

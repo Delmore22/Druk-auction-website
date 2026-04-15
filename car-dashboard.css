@@ -978,6 +978,11 @@
     border-color: #7a8494;
 }
 
+body:not(.dark-theme) .tile-view .auction-row-actions.is-tile-row .auction-action-chip.is-primary,
+body:not(.dark-theme) .list-view .auction-row-actions.is-list-row .auction-action-chip.is-primary {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
 .pagination-controls {
     display: flex;
     justify-content: center;
