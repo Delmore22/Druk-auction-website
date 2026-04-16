@@ -103,6 +103,8 @@ body {
     display: flex;
     align-items: center;
     gap: .5rem;
+    text-decoration: none;
+    color: inherit;
 }
 
 .logo-icon {

@@ -134,7 +134,6 @@ document.addEventListener('components:ready', function() {
 // Auction View Management
 let currentView = 'tile';
 let currentPage = 1;
-let currentDashboardMode = 'market';
 let currentMarketTab = 'active';
 const itemsPerPage = 8;
 const DASHBOARD_UI_STATE_KEY = 'dashboardUiState';
@@ -156,10 +155,11 @@ let searchFilterState = {
 
 function normalizeDashboardUiState(rawState) {
     const source = rawState || {};
+    const validTabs = ['active', 'marketplace', 'sold'];
+    const marketTab = validTabs.includes(source.marketTab) ? source.marketTab : 'active';
     return {
         view: source.view === 'list' ? 'list' : 'tile',
-        mode: source.mode === 'sold' ? 'sold' : 'market',
-        marketTab: source.marketTab === 'marketplace' ? 'marketplace' : 'active',
+        marketTab: marketTab,
         page: Number.isInteger(source.page) && source.page > 0 ? source.page : 1,
         scrollTop: Number.isFinite(source.scrollTop) && source.scrollTop >= 0 ? source.scrollTop : 0
     };
@@ -184,7 +184,6 @@ function persistDashboardUiState() {
             DASHBOARD_UI_STATE_KEY,
             JSON.stringify(normalizeDashboardUiState({
                 view: currentView,
-                mode: currentDashboardMode,
                 marketTab: currentMarketTab,
                 page: currentPage,
                 scrollTop: mainContent ? mainContent.scrollTop : 0
@@ -200,7 +199,6 @@ function restoreDashboardUiState() {
     const totalPages = Math.max(1, Math.ceil(filteredActiveAuctionItems.length / itemsPerPage));
 
     switchView(savedState.view);
-    setDashboardMode(savedState.mode);
     setMarketTab(savedState.marketTab, { skipPagination: true });
     currentPage = Math.min(savedState.page, totalPages);
     updatePagination();
@@ -939,70 +937,55 @@ function bindDashboardControls() {
 }
 
 function syncDashboardModeUi() {
-    const marketSections = document.getElementById('dashboardMarketSections');
-    const bottomRow = document.getElementById('dashboardBottomRow');
-    const soldSection = document.getElementById('soldSection');
-    const soldToggleBtn = document.getElementById('dashboardSoldToggleBtn');
-    const isSoldMode = currentDashboardMode === 'sold';
-
-    if (marketSections) {
-        marketSections.hidden = isSoldMode;
-        marketSections.classList.toggle('dashboard-section-hidden', isSoldMode);
-    }
-
-    if (bottomRow) {
-        bottomRow.hidden = isSoldMode;
-        bottomRow.classList.toggle('dashboard-section-hidden', isSoldMode);
-    }
-
-    if (soldSection) {
-        soldSection.hidden = !isSoldMode;
-        soldSection.classList.toggle('dashboard-section-hidden', !isSoldMode);
-    }
-
-    if (soldToggleBtn) {
-        soldToggleBtn.classList.toggle('is-active', isSoldMode);
-        soldToggleBtn.setAttribute('aria-pressed', isSoldMode ? 'true' : 'false');
-    }
+    // No-op: sold is now a market tab; visibility handled by syncMarketTabUi.
 }
 
 function setDashboardMode(mode) {
-    currentDashboardMode = mode === 'sold' ? 'sold' : 'market';
-    currentPage = 1;
-    syncDashboardModeUi();
+    // Legacy shim: redirect sold mode to the sold tab.
+    if (mode === 'sold') {
+        setMarketTab('sold');
+    }
 }
 
 function syncMarketTabUi() {
     const activeSection = document.getElementById('activeBiddingSection');
     const marketplaceSection = document.getElementById('marketplaceSection');
+    const soldSection = document.getElementById('soldSection');
     const activeTabBtn = document.getElementById('dashboardTabActive');
     const marketplaceTabBtn = document.getElementById('dashboardTabMarketplace');
-    const showActive = currentMarketTab === 'active';
+    const soldTabBtn = document.getElementById('dashboardTabSold');
+    const bottomRow = document.getElementById('dashboardBottomRow');
 
-    if (activeSection) {
-        activeSection.hidden = !showActive;
-        activeSection.classList.toggle('dashboard-section-hidden', !showActive);
-    }
+    const tabs = [
+        { section: activeSection, btn: activeTabBtn, key: 'active' },
+        { section: marketplaceSection, btn: marketplaceTabBtn, key: 'marketplace' },
+        { section: soldSection, btn: soldTabBtn, key: 'sold' }
+    ];
 
-    if (marketplaceSection) {
-        marketplaceSection.hidden = showActive;
-        marketplaceSection.classList.toggle('dashboard-section-hidden', showActive);
-    }
+    tabs.forEach(function (t) {
+        const isActive = currentMarketTab === t.key;
+        if (t.section) {
+            t.section.hidden = !isActive;
+            t.section.classList.toggle('dashboard-section-hidden', !isActive);
+        }
+        if (t.btn) {
+            t.btn.classList.toggle('active', isActive);
+            t.btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        }
+    });
 
-    if (activeTabBtn) {
-        activeTabBtn.classList.toggle('active', showActive);
-        activeTabBtn.setAttribute('aria-selected', showActive ? 'true' : 'false');
-    }
-
-    if (marketplaceTabBtn) {
-        marketplaceTabBtn.classList.toggle('active', !showActive);
-        marketplaceTabBtn.setAttribute('aria-selected', showActive ? 'false' : 'true');
+    // Hide bottom row widgets when on Sold tab
+    if (bottomRow) {
+        const isSold = currentMarketTab === 'sold';
+        bottomRow.hidden = isSold;
+        bottomRow.classList.toggle('dashboard-section-hidden', isSold);
     }
 }
 
 function setMarketTab(tab, options) {
     const settings = options || {};
-    currentMarketTab = tab === 'marketplace' ? 'marketplace' : 'active';
+    const validTabs = ['active', 'marketplace', 'sold'];
+    currentMarketTab = validTabs.includes(tab) ? tab : 'active';
     syncMarketTabUi();
 
     if (!settings.skipPagination) {
@@ -1025,14 +1008,7 @@ function initializeMarketTabs() {
 }
 
 function initializeDashboardModeToggle() {
-    const soldToggleBtn = document.getElementById('dashboardSoldToggleBtn');
-    if (!soldToggleBtn || soldToggleBtn.dataset.bound) return;
-
-    soldToggleBtn.dataset.bound = '1';
-    soldToggleBtn.addEventListener('click', function () {
-        setDashboardMode(currentDashboardMode === 'sold' ? 'market' : 'sold');
-        updatePagination();
-    });
+    // Sold is now a tab; this function is kept as a no-op for compatibility.
 }
 
 function initializeAuctionView() {
@@ -1352,16 +1328,16 @@ function updatePagination() {
     }
 
     if (marketplaceEmptyState) {
-        marketplaceEmptyState.hidden = currentDashboardMode === 'sold' || currentMarketTab !== 'marketplace' || filteredMarketplaceItems.length > 0;
+        marketplaceEmptyState.hidden = currentMarketTab !== 'marketplace' || filteredMarketplaceItems.length > 0;
     }
 
     if (soldEmptyState) {
-        soldEmptyState.hidden = currentDashboardMode !== 'sold' || filteredSoldItems.length > 0;
+        soldEmptyState.hidden = currentMarketTab !== 'sold' || filteredSoldItems.length > 0;
     }
 
     // Enable/disable pagination buttons
-    document.getElementById('prevBtn').disabled = currentDashboardMode === 'sold' || currentPage === 1 || visibleItems.length === 0;
-    document.getElementById('nextBtn').disabled = currentDashboardMode === 'sold' || currentPage === totalPages || visibleItems.length === 0;
+    document.getElementById('prevBtn').disabled = currentMarketTab === 'sold' || currentPage === 1 || visibleItems.length === 0;
+    document.getElementById('nextBtn').disabled = currentMarketTab === 'sold' || currentPage === totalPages || visibleItems.length === 0;
 
     syncDashboardModeUi();
     persistDashboardUiState();

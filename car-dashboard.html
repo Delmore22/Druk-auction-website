@@ -57,6 +57,18 @@
                         <i class="fas fa-store" aria-hidden="true"></i>
                         Marketplace
                     </button>
+                    <button
+                        class="option-toggle market-tab-toggle"
+                        id="dashboardTabSold"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="soldSection"
+                        data-market-tab="sold"
+                    >
+                        <i class="fa-solid fa-money-check-dollar" aria-hidden="true"></i>
+                        Sold
+                    </button>
                 </div>
 
                 <div class="live-auctions market-tab-panel" id="activeBiddingSection" role="tabpanel" aria-labelledby="dashboardTabActive">
@@ -111,30 +123,30 @@
                         No marketplace vehicles match your search.
                     </div>
                 </div>
+
+                <div class="live-auctions market-tab-panel" id="soldSection" role="tabpanel" aria-labelledby="dashboardTabSold" hidden>
+                    <div class="section-title">
+                        <div class="section-title-copy">
+                            <h3>
+                                Sold Vehicles
+                            </h3>
+                            <p>Temporary sold view for the demo phase. After launch, this section should be limited to vehicles sold from the logged-in user's inventory.</p>
+                        </div>
+                        <div class="view-toggle">
+                            <button class="view-btn tile-btn active" title="Tile View" type="button">⊞</button>
+                            <button class="view-btn list-btn" title="List View" type="button">≡</button>
+                        </div>
+                    </div>
+
+                    <div id="soldContainer" class="auctions-container tile-view">
+                        <!-- Temporary sold vehicles are rendered by car-dashboard.js -->
+                    </div>
+
+                    <div id="soldEmptyState" class="search-empty-state" hidden>
+                        No sold vehicles match your search.
+                    </div>
+                </div>
             </div>
-
-            <section class="live-auctions dashboard-sold-section" id="soldSection" hidden>
-                <div class="section-title">
-                    <div class="section-title-copy">
-                        <h3>
-                            Sold Vehicles
-                        </h3>
-                        <p>Temporary sold view for the demo phase. After launch, this section should be limited to vehicles sold from the logged-in user's inventory.</p>
-                    </div>
-                    <div class="view-toggle">
-                        <button class="view-btn tile-btn active" title="Tile View" type="button">⊞</button>
-                        <button class="view-btn list-btn" title="List View" type="button">≡</button>
-                    </div>
-                </div>
-
-                <div id="soldContainer" class="auctions-container tile-view">
-                    <!-- Temporary sold vehicles are rendered by car-dashboard.js -->
-                </div>
-
-                <div id="soldEmptyState" class="search-empty-state" hidden>
-                    No sold vehicles match your search.
-                </div>
-            </section>
 
             <!-- Bottom Row Placeholders -->
             <div class="bottom-row" id="dashboardBottomRow">
