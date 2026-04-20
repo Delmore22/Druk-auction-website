@@ -59,6 +59,32 @@ function setLoading(button, loading) {
 	button.textContent = loading ? "Working..." : button.dataset.defaultText;
 }
 
+function setIdentityStorage(user, role) {
+	if (!user) return;
+	const email = String(user.email || "").trim();
+	const displayName = String(user.displayName || "").trim();
+	const fallbackName = email ? email.split("@")[0].replace(/[._-]+/g, " ").trim() : "";
+	const accountName = displayName || fallbackName || "Member";
+
+	try {
+		window.localStorage.setItem("accountName", accountName);
+		window.localStorage.setItem("accountEmail", email);
+		window.localStorage.setItem("accountRole", role || "member");
+	} catch (err) {
+		// Ignore storage failures to avoid blocking auth behavior.
+	}
+}
+
+function clearIdentityStorage() {
+	try {
+		window.localStorage.removeItem("accountName");
+		window.localStorage.removeItem("accountEmail");
+		window.localStorage.removeItem("accountRole");
+	} catch (err) {
+		// Ignore storage failures to avoid blocking auth behavior.
+	}
+}
+
 function normalizeCode(code) {
 	return (code || "").trim().toUpperCase().replace(/\s+/g, "");
 }
@@ -134,12 +160,14 @@ async function updateSessionUi(user) {
 		adminPanel.classList.add("is-hidden");
 		adminPanel.hidden = true;
 		generatedCode.textContent = "";
+		clearIdentityStorage();
 		return;
 	}
 
 	const userDoc = await getDoc(doc(db, "users", user.uid));
 	const role = userDoc.exists() ? String(userDoc.data().role || "") : "";
 	const isAdmin = role === "admin";
+	setIdentityStorage(user, role || "member");
 
 	sessionSummary.textContent = `${user.email} is signed in${isAdmin ? " (admin)" : ""}.`;
 	sessionPanel.classList.remove("is-hidden");
@@ -240,11 +268,22 @@ signupPanel.addEventListener("submit", async (event) => {
 logoutButton.addEventListener("click", async () => {
 	try {
 		await signOut(auth);
+		clearIdentityStorage();
 		setMessage("Logged out.", "is-ok");
 	} catch (err) {
 		setMessage(toFriendlyError(err), "is-error");
 	}
 });
+
+if (new URLSearchParams(window.location.search).get("logout") === "1") {
+	if (auth.currentUser) {
+		signOut(auth).catch(function () {
+			// Ignore sign-out errors and still clear local identity cache.
+		});
+	}
+	clearIdentityStorage();
+	setMessage("Logged out.", "is-ok");
+}
 
 generateCodeButton.addEventListener("click", async () => {
 	const user = auth.currentUser;

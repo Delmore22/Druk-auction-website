@@ -395,11 +395,17 @@
     function initHeaderUserName() {
         var nameEl   = document.getElementById('headerUserName');
         var avatarEl = document.getElementById('headerUserAvatar');
+        var nameDropdownEl = document.getElementById('headerUserNameDropdown');
+        var emailEl = document.getElementById('headerUserEmail');
+        var roleEl = document.getElementById('headerUserRole');
         if (!nameEl) return;
 
         function applyName(name) {
             if (!name || !name.trim()) return;
             nameEl.textContent = name.trim();
+            if (nameDropdownEl) {
+                nameDropdownEl.textContent = name.trim();
+            }
             if (avatarEl) {
                 var parts = name.trim().split(/\s+/);
                 var initials = parts.length >= 2
@@ -409,24 +415,52 @@
             }
         }
 
-        applyName(storageGet('accountName') || 'John Dealer');
+        function applyRole(role) {
+            if (!roleEl) return;
+            if (!role || !role.trim()) {
+                roleEl.textContent = 'Member';
+                return;
+            }
+            roleEl.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+        }
+
+        function applyEmail(email) {
+            if (!emailEl) return;
+            if (!email || !email.trim()) {
+                emailEl.textContent = 'No email available';
+                return;
+            }
+            emailEl.textContent = email.trim();
+        }
+
+        var storedEmail = storageGet('accountEmail') || '';
+        var fallbackName = storedEmail ? storedEmail.split('@')[0].replace(/[._-]+/g, ' ') : '';
+        applyName(storageGet('accountName') || fallbackName || 'John Dealer');
+        applyEmail(storedEmail || 'john.dealer@example.com');
+        applyRole(storageGet('accountRole') || 'member');
 
         // Update immediately if settings page saves in another tab
         window.addEventListener('storage', function (e) {
             if (e.key === 'accountName') applyName(e.newValue);
+            if (e.key === 'accountEmail') applyEmail(e.newValue);
+            if (e.key === 'accountRole') applyRole(e.newValue);
         });
     }
 
     function initUserMenu() {
         var trigger = document.getElementById('userMenuTrigger');
         var dropdown = document.getElementById('userDropdown');
+        var logoutLink = document.getElementById('userMenuLogout');
         if (!trigger || !dropdown) return;
+        dropdown.hidden = true;
 
         function openMenu() {
             trigger.setAttribute('aria-expanded', 'true');
+            dropdown.hidden = false;
         }
         function closeMenu() {
             trigger.setAttribute('aria-expanded', 'false');
+            dropdown.hidden = true;
         }
         function toggleMenu() {
             trigger.getAttribute('aria-expanded') === 'true' ? closeMenu() : openMenu();
@@ -453,6 +487,18 @@
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeMenu();
         });
+
+        if (logoutLink) {
+            logoutLink.addEventListener('click', function () {
+                try {
+                    window.localStorage.removeItem('accountName');
+                    window.localStorage.removeItem('accountEmail');
+                    window.localStorage.removeItem('accountRole');
+                } catch (err) {
+                    // Ignore storage failures and continue to logout redirect.
+                }
+            });
+        }
     }
 
     function initComponents() {
