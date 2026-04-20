@@ -279,33 +279,7 @@ function getAuctionListMeta(car, sectionMode) {
 function getCardPhotoCandidateSources(car) {
     const primary = String((car && car.photo) || `cars-photos/${(car && car.id) || ''}.png`).trim();
     const explicitGallery = Array.isArray(car && car.photos) ? car.photos : [];
-    const candidates = [primary].concat(explicitGallery).filter(Boolean);
-
-    const extMatch = primary.match(/^(.*?)(\.[a-z0-9]+)$/i);
-    if (extMatch) {
-        const basePath = extMatch[1];
-        const extension = extMatch[2];
-
-        for (let index = 2; index <= 12; index += 1) {
-            const suffix = String(index).padStart(2, '0');
-            candidates.push(`${basePath}-${suffix}${extension}`);
-        }
-    }
-
-    return Array.from(new Set(candidates));
-}
-
-function probeImageSource(source) {
-    return new Promise(function (resolve) {
-        const image = new Image();
-        image.onload = function () {
-            resolve(source);
-        };
-        image.onerror = function () {
-            resolve(null);
-        };
-        image.src = source;
-    });
+    return Array.from(new Set([primary].concat(explicitGallery).filter(Boolean)));
 }
 
 function resolveCardPhotoSources(car) {
@@ -319,11 +293,8 @@ function resolveCardPhotoSources(car) {
     }
 
     const candidates = getCardPhotoCandidateSources(car);
-    return Promise.all(candidates.map(probeImageSource)).then(function (sources) {
-        const availableSources = sources.filter(Boolean);
-        cardPhotoSourceCache.set(cacheKey, availableSources);
-        return availableSources;
-    });
+    cardPhotoSourceCache.set(cacheKey, candidates);
+    return Promise.resolve(candidates);
 }
 
 function parseTimeRemainingSeconds(timeRemaining) {

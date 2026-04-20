@@ -18,14 +18,33 @@
             <div class="user-avatar" id="headerUserAvatar">JD</div>
             <div class="user-details">
                 <h3 id="headerUserName">John Dealer</h3>
-                <p>Administrator</p>
+                <p id="headerUserRole">Member</p>
             </div>
             <i class="fa-solid fa-chevron-down user-menu-caret" aria-hidden="true"></i>
-            <div class="user-dropdown" id="userDropdown" role="menu">
-                <a href="settings.html" class="user-dropdown-item" role="menuitem">
-                    <i class="fa-solid fa-gear" aria-hidden="true"></i> Settings
+            <div class="user-dropdown" id="userDropdown" role="menu" hidden>
+                <div class="user-dropdown-header" aria-hidden="true">
+                    <strong id="headerUserNameDropdown">John Dealer</strong>
+                    <span id="headerUserEmail">john.dealer@example.com</span>
+                </div>
+                <a href="settings.html#my-account" class="user-dropdown-item" role="menuitem">
+                    <i class="fa-solid fa-user" aria-hidden="true"></i> My Account
                 </a>
-                <a href="#" class="user-dropdown-item user-dropdown-item--danger" role="menuitem">
+                <a href="settings.html#my-dealership" class="user-dropdown-item" role="menuitem">
+                    <i class="fa-solid fa-building" aria-hidden="true"></i> Dealership
+                </a>
+                <a href="settings.html#manage-users" class="user-dropdown-item" role="menuitem">
+                    <i class="fa-solid fa-users" aria-hidden="true"></i> Manage Users
+                </a>
+                <a href="settings.html#payment-methods" class="user-dropdown-item" role="menuitem">
+                    <i class="fa-solid fa-credit-card" aria-hidden="true"></i> Payment Methods
+                </a>
+                <a href="settings.html#notifications" class="user-dropdown-item" role="menuitem">
+                    <i class="fa-solid fa-bell" aria-hidden="true"></i> Notifications
+                </a>
+                <a href="settings.html#reg-documents" class="user-dropdown-item" role="menuitem">
+                    <i class="fa-solid fa-file-shield" aria-hidden="true"></i> Registration Docs
+                </a>
+                <a id="userMenuLogout" href="index.html?logout=1" class="user-dropdown-item user-dropdown-item--danger" role="menuitem">
                     <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Log Out
                 </a>
             </div>
