@@ -99,10 +99,16 @@
                                 <span class="jump-text">Vehicle Specs</span>
                                 <span class="jump-status" aria-hidden="true"></span>
                             </a>
-                            <a class="jump-link" data-section="sellerDisclosureSection" href="#sellerDisclosureSection">
+                            <a class="jump-link" data-section="disclosureOverviewSection" href="#disclosureOverviewSection">
                                 <span class="jump-step" aria-hidden="true"></span>
                                 <span class="jump-icon" aria-hidden="true"><i class="fas fa-file-signature"></i></span>
-                                <span class="jump-text">Seller Disclosure</span>
+                                <span class="jump-text">Disclosure Overview</span>
+                                <span class="jump-status" aria-hidden="true"></span>
+                            </a>
+                            <a class="jump-link" data-section="conditionOfVehicleSection" href="#conditionOfVehicleSection">
+                                <span class="jump-step" aria-hidden="true"></span>
+                                <span class="jump-icon" aria-hidden="true"><i class="fas fa-tools"></i></span>
+                                <span class="jump-text">Condition of Vehicle</span>
                                 <span class="jump-status" aria-hidden="true"></span>
                             </a>
                             <a class="jump-link" data-section="sellerCommentsSection" href="#sellerCommentsSection">
@@ -146,6 +152,7 @@
                                 <input type="text" id="vehicleVin" name="vin" placeholder="Enter VIN" required>
                                 <div class="vin-decode-actions">
                                     <button type="button" class="vin-decode-btn" id="decodeVinBtn">Decode VIN</button>
+                                    <button type="button" class="vin-clear-btn" id="clearVinBtn" title="Clear VIN" aria-label="Clear VIN">Clear VIN</button>
                                     <small id="vinDecodeStatus" class="vin-decode-status" aria-live="polite"></small>
                                 </div>
                             </div>
@@ -336,10 +343,9 @@
                         </div>
                     </fieldset>
 
-                    <fieldset class="form-section" id="sellerDisclosureSection">
-                        <legend>Seller Disclosure</legend>
+                    <fieldset class="form-section" id="disclosureOverviewSection">
+                        <legend>Disclosure Overview</legend>
                         <p class="seller-disclosure-meta">All condition disclosures are provided by the seller. Platform does not inspect or verify vehicle condition.</p>
-
                         <div class="form-grid one-column">
                             <div class="seller-disclosure-question">To the best of seller's knowledge, has this vehicle had structural/frame damage? <span class="required-marker" aria-hidden="true">*</span></div>
                             <div class="radio-group-row">
@@ -349,151 +355,163 @@
                                 <label><input type="radio" name="structuralDamage" value="unknown"> Unknown</label>
                             </div>
                             <div class="alert-note">Structural Damage is damage to the main load-bearing platform of a vehicle. Selecting yes may invalidate condition comments for this listing.</div>
-
                             <div class="radio-group-row">
                                 <span>Sold As Is</span>
                                 <label><input type="radio" name="soldAsIs" value="yes"> Yes</label>
                                 <label><input type="radio" name="soldAsIs" value="no" checked> No</label>
                             </div>
-
                             <div class="radio-group-row">
                                 <span>Salvage</span>
                                 <label><input type="radio" name="salvage" value="yes"> Yes</label>
                                 <label><input type="radio" name="salvage" value="no" checked> No</label>
                             </div>
                         </div>
+                    </fieldset>
 
-                        <div class="condition-block" data-condition-block="interior">
-                            <h4>Interior Condition</h4>
-                            <label class="checkbox-line"><input type="checkbox" name="interiorNoDamage"> No Damage</label>
-                            <div class="condition-rows" id="interiorConditionRows">
-                                <div class="condition-row">
-                                    <select name="interiorDescription[]">
-                                        <option value="">Description</option>
-                                        <option>Seat Wear</option>
-                                        <option>Trim Damage</option>
-                                        <option>Stain</option>
-                                    </select>
-                                    <select name="interiorCondition[]">
-                                        <option value="">Condition</option>
-                                        <option>Scratched</option>
-                                        <option>Torn</option>
-                                        <option>Broken</option>
-                                    </select>
-                                    <select name="interiorSeverity[]">
-                                        <option value="">Severity</option>
-                                        <option>Minor</option>
-                                        <option>Moderate</option>
-                                        <option>Major</option>
-                                    </select>
+                    <fieldset class="form-section collapsible" id="conditionOfVehicleSection">
+                        <legend>
+                            <button type="button" class="collapse-toggle" aria-expanded="false" aria-controls="conditionOfVehicleContent">
+                                Condition of Vehicle (Optional)
+                                <span class="collapse-icon" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                            </button>
+                        </legend>
+                        <div id="conditionOfVehicleContent" class="collapse-content" hidden>
+                            <div class="condition-block">
+                                <h4>Interior Condition</h4>
+                                <label class="checkbox-line"><input type="checkbox" name="interiorNoDamage" id="interiorNoDamage"> No Damage</label>
+                                <div class="condition-rows" id="interiorConditionRows">
+                                    <div class="condition-row">
+                                        <select name="interiorPanel[]">
+                                            <option value="">Panel / Area</option>
+                                            <option value="Front Seats">Front Seats</option>
+                                            <option value="Rear Seats">Rear Seats</option>
+                                            <option value="Dashboard">Dashboard</option>
+                                            <option value="Door Trim">Door Trim</option>
+                                            <option value="Headliner">Headliner</option>
+                                            <option value="Carpet">Carpet</option>
+                                        </select>
+                                        <select name="interiorDamageType[]">
+                                            <option value="">Damage Type</option>
+                                            <option value="Tear">Tear</option>
+                                            <option value="Stain">Stain</option>
+                                            <option value="Burn">Burn</option>
+                                            <option value="Crack">Crack</option>
+                                            <option value="Broken">Broken</option>
+                                        </select>
+                                        <select name="interiorSeverity[]">
+                                            <option value="">Severity</option>
+                                            <option value="Minor">Minor</option>
+                                            <option value="Moderate">Moderate</option>
+                                            <option value="Major">Major</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-add-row" data-target="interiorConditionRows">+ Add Row</button>
+                            </div>
+
+                            <div class="condition-block">
+                                <h4>Exterior Condition</h4>
+                                <label class="checkbox-line"><input type="checkbox" name="exteriorNoDamage" id="exteriorNoDamage"> No Damage</label>
+                                <div class="condition-rows" id="exteriorConditionRows">
+                                    <div class="condition-row">
+                                        <select name="exteriorPanel[]">
+                                            <option value="">Panel / Area</option>
+                                            <option value="Hood">Hood</option>
+                                            <option value="Front Bumper">Front Bumper</option>
+                                            <option value="Rear Bumper">Rear Bumper</option>
+                                            <option value="Driver Door">Driver Door</option>
+                                            <option value="Passenger Door">Passenger Door</option>
+                                            <option value="Rear Driver Door">Rear Driver Door</option>
+                                            <option value="Rear Passenger Door">Rear Passenger Door</option>
+                                            <option value="Driver Fender">Driver Fender</option>
+                                            <option value="Passenger Fender">Passenger Fender</option>
+                                            <option value="Driver Quarter Panel">Driver Quarter Panel</option>
+                                            <option value="Passenger Quarter Panel">Passenger Quarter Panel</option>
+                                            <option value="Trunk / Tailgate">Trunk / Tailgate</option>
+                                            <option value="Roof">Roof</option>
+                                            <option value="Windshield">Windshield</option>
+                                        </select>
+                                        <select name="exteriorDamageType[]">
+                                            <option value="">Damage Type</option>
+                                            <option value="Dent">Dent</option>
+                                            <option value="Scratch">Scratch</option>
+                                            <option value="Paint Chip">Paint Chip</option>
+                                            <option value="Rust">Rust</option>
+                                            <option value="Crack">Crack</option>
+                                            <option value="Broken">Broken</option>
+                                        </select>
+                                        <select name="exteriorSeverity[]">
+                                            <option value="">Severity</option>
+                                            <option value="Minor">Minor</option>
+                                            <option value="Moderate">Moderate</option>
+                                            <option value="Major">Major</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-add-row" data-target="exteriorConditionRows">+ Add Row</button>
+                            </div>
+
+                            <div class="condition-block">
+                                <h4>Tire Condition</h4>
+                                <div class="form-grid two-column">
+                                    <div class="form-group">
+                                        <label for="tireLeftFront">Left Front</label>
+                                        <select id="tireLeftFront" name="tireLeftFront">
+                                            <option value="">Not Specified</option>
+                                            <option value="Good">Good</option>
+                                            <option value="Fair">Fair</option>
+                                            <option value="Poor">Poor</option>
+                                            <option value="Bald">Bald</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="tireRightFront">Right Front</label>
+                                        <select id="tireRightFront" name="tireRightFront">
+                                            <option value="">Not Specified</option>
+                                            <option value="Good">Good</option>
+                                            <option value="Fair">Fair</option>
+                                            <option value="Poor">Poor</option>
+                                            <option value="Bald">Bald</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="tireLeftRear">Left Rear</label>
+                                        <select id="tireLeftRear" name="tireLeftRear">
+                                            <option value="">Not Specified</option>
+                                            <option value="Good">Good</option>
+                                            <option value="Fair">Fair</option>
+                                            <option value="Poor">Poor</option>
+                                            <option value="Bald">Bald</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="tireRightRear">Right Rear</label>
+                                        <select id="tireRightRear" name="tireRightRear">
+                                            <option value="">Not Specified</option>
+                                            <option value="Good">Good</option>
+                                            <option value="Fair">Fair</option>
+                                            <option value="Poor">Poor</option>
+                                            <option value="Bald">Bald</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="tireSpare">Spare</label>
+                                        <select id="tireSpare" name="tireSpare">
+                                            <option value="">Not Specified</option>
+                                            <option value="Full Size">Full Size</option>
+                                            <option value="Compact">Compact</option>
+                                            <option value="Repair Kit">Repair Kit</option>
+                                            <option value="None">None</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="radio-group-row">
+                                    <span>All Tires Match (Brand &amp; Size)</span>
+                                    <label><input type="radio" name="tiresMatch" value="yes"> Yes</label>
+                                    <label><input type="radio" name="tiresMatch" value="no"> No</label>
                                 </div>
                             </div>
-                            <button type="button" class="inline-action" data-add-row="interiorConditionRows">Add Another Row</button>
                         </div>
-
-                        <div class="condition-block" data-condition-block="exterior">
-                            <h4>Exterior Condition</h4>
-                            <label class="checkbox-line"><input type="checkbox" name="exteriorNoDamage"> No Damage</label>
-                            <div class="condition-rows" id="exteriorConditionRows">
-                                <div class="condition-row">
-                                    <select name="exteriorDescription[]">
-                                        <option value="">Description</option>
-                                        <option>Dent</option>
-                                        <option>Scratch</option>
-                                        <option>Rust</option>
-                                    </select>
-                                    <select name="exteriorCondition[]">
-                                        <option value="">Condition</option>
-                                        <option>Paint Damage</option>
-                                        <option>Panel Damage</option>
-                                        <option>Cracked</option>
-                                    </select>
-                                    <select name="exteriorSeverity[]">
-                                        <option value="">Severity</option>
-                                        <option>Minor</option>
-                                        <option>Moderate</option>
-                                        <option>Major</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <button type="button" class="inline-action" data-add-row="exteriorConditionRows">Add Another Row</button>
-                        </div>
-
-                        <h4>Tire Condition</h4>
-                        <div class="form-grid two-column">
-                            <div class="form-group">
-                                <label for="tireLeftFront">Left Front</label>
-                                <select id="tireLeftFront" name="tireLeftFront">
-                                    <option value="">Not Specified</option>
-                                    <option>Good</option>
-                                    <option>Fair</option>
-                                    <option>Poor</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="tireRightFront">Right Front</label>
-                                <select id="tireRightFront" name="tireRightFront">
-                                    <option value="">Not Specified</option>
-                                    <option>Good</option>
-                                    <option>Fair</option>
-                                    <option>Poor</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="tireLeftRear">Left Rear</label>
-                                <select id="tireLeftRear" name="tireLeftRear">
-                                    <option value="">Not Specified</option>
-                                    <option>Good</option>
-                                    <option>Fair</option>
-                                    <option>Poor</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="tireRightRear">Right Rear</label>
-                                <select id="tireRightRear" name="tireRightRear">
-                                    <option value="">Not Specified</option>
-                                    <option>Good</option>
-                                    <option>Fair</option>
-                                    <option>Poor</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="tireSpare">Spare</label>
-                                <select id="tireSpare" name="tireSpare">
-                                    <option value="">Not Specified</option>
-                                    <option>Present</option>
-                                    <option>Missing</option>
-                                    <option>Repair Kit</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="radio-group-row">
-                            <span>All Tires Match (Brand/Size)</span>
-                            <label><input type="radio" name="tiresMatch" value="yes"> Yes</label>
-                            <label><input type="radio" name="tiresMatch" value="no"> No</label>
-                        </div>
-
-                        <h4>Keys</h4>
-                        <div id="keyRows" class="condition-rows">
-                            <div class="condition-row keys-row">
-                                <select name="keyType[]">
-                                    <option value="">Type</option>
-                                    <option>Master</option>
-                                    <option>Valet</option>
-                                    <option>FOB</option>
-                                </select>
-                                <select name="keyQuantity[]">
-                                    <option value="">Quantity</option>
-                                    <option>0</option>
-                                    <option>1</option>
-                                    <option>2</option>
-                                    <option>3+</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="button" class="inline-action" data-add-key-row="keyRows">Add Another Row</button>
-
                     </fieldset>
 
                     <fieldset class="form-section" id="sellerCommentsSection">
@@ -534,8 +552,8 @@
                                 <input type="email" id="sellerContactEmail" name="sellerContactEmail" required>
                             </div>
                             <div class="form-group">
-                                <label for="sellerCcEmail">CC Email <span class="required-marker" aria-hidden="true">*</span></label>
-                                <input type="email" id="sellerCcEmail" name="sellerCcEmail" required>
+                                <label for="sellerCcEmail">CC Email</label>
+                                <input type="email" id="sellerCcEmail" name="sellerCcEmail">
                             </div>
                         </div>
 
@@ -688,6 +706,27 @@
                         <div class="site-notice-message" id="siteNoticeMessage"></div>
                         <div class="site-notice-actions">
                             <button type="button" class="btn-submit" id="siteNoticeOkBtn">OK</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekend Warning Modal -->
+                <div class="site-confirm-modal" id="weekendWarningModal" hidden>
+                    <div class="site-notice-backdrop" data-close-weekend-warning></div>
+                    <div class="site-notice-dialog" role="dialog" aria-modal="true" aria-labelledby="weekendWarningTitle" aria-describedby="weekendWarningMessage">
+                        <div class="site-notice-header">
+                            <div>
+                                <p class="site-notice-eyebrow">Collectors Alliance Exchange</p>
+                                <h2 id="weekendWarningTitle">Weekend Listing</h2>
+                            </div>
+                            <button type="button" class="site-notice-close" data-close-weekend-warning aria-label="Close warning">
+                                <i class="fas fa-times" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="site-notice-message" id="weekendWarningMessage">Are you sure you want to list on a Weekend? Vehicles will be on the "Active Bidding" section for the first 24 hours once you start the listing.</div>
+                        <div class="site-notice-actions">
+                            <button type="button" class="btn-cancel" id="weekendWarningCancelBtn">Cancel</button>
+                            <button type="button" class="btn-submit" id="weekendWarningContinueBtn">Continue</button>
                         </div>
                     </div>
                 </div>

@@ -734,6 +734,41 @@ function initVinDecoder() {
     var decodeButton = document.getElementById('decodeVinBtn');
     var statusEl = document.getElementById('vinDecodeStatus');
 
+    var clearVinBtn = document.getElementById('clearVinBtn');
+    if (clearVinBtn) {
+        clearVinBtn.addEventListener('click', function () {
+            // Clear VIN and decode status
+            vinInput.value = '';
+            setStatus('', null);
+
+            // Clear all fields the decoder populates so a new decode starts fresh
+            var decodedFieldIds = [
+                'vehicleYear', 'vehicleMake', 'vehicleModel', 'vehicleBodyType',
+                'vehicleTrim', 'vehicleEngine', 'vehicleTransmission',
+                'vehicleDriveTrain', 'vehicleFuelType'
+            ];
+            decodedFieldIds.forEach(function (fieldId) {
+                var field = document.getElementById(fieldId);
+                if (field) {
+                    field.value = '';
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+
+            // Remove VIN and decoded fields from draft
+            try {
+                var draft = JSON.parse(window.localStorage.getItem(ADD_VEHICLE_DRAFT_KEY) || '{}');
+                if (draft && typeof draft === 'object') {
+                    var toClear = ['vin', 'year', 'make', 'model', 'bodyType', 'trim', 'engine', 'transmission', 'driveTrain', 'fuelType'];
+                    toClear.forEach(function (key) { draft[key] = ''; });
+                    window.localStorage.setItem(ADD_VEHICLE_DRAFT_KEY, JSON.stringify(draft));
+                }
+            } catch (e) {}
+
+            vinInput.focus();
+        });
+    }
+
     if (!vinInput || !decodeButton || !statusEl) return;
 
     function sanitizeVin(raw) {
@@ -1879,4 +1914,144 @@ function navigateBack() {
     } else {
         window.location.href = 'car-dashboard.html';
     }
+}
+
+// Collapsible Condition of Vehicle section
+function initConditionCollapse() {
+    var toggle = document.querySelector('#conditionOfVehicleSection .collapse-toggle');
+    var content = document.getElementById('conditionOfVehicleContent');
+    if (!toggle || !content) return;
+    toggle.addEventListener('click', function () {
+        var expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', !expanded);
+        content.hidden = expanded;
+    });
+    // Default collapsed
+    toggle.setAttribute('aria-expanded', 'false');
+    content.hidden = true;
+}
+
+// Add Row buttons for condition tables
+function initConditionAddRows() {
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-add-row');
+        if (!btn) return;
+        var targetId = btn.getAttribute('data-target');
+        var container = document.getElementById(targetId);
+        if (!container) return;
+        var firstRow = container.querySelector('.condition-row');
+        if (!firstRow) return;
+        var clone = firstRow.cloneNode(true);
+        // Reset select values in the clone
+        clone.querySelectorAll('select').forEach(function (sel) { sel.value = ''; });
+        container.appendChild(clone);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initConditionCollapse();
+    initConditionAddRows();
+    initWeekendWarning();
+});
+
+// Weekend warning: Friday noon – Sunday noon
+function isWeekendWindow(date) {
+    // date is a JS Date object
+    var day = date.getDay();   // 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
+    var hour = date.getHours();
+    var min = date.getMinutes();
+    var timeInMinutes = hour * 60 + min;
+    var noon = 12 * 60;
+
+    // Friday at noon or later
+    if (day === 5 && timeInMinutes >= noon) return true;
+    // All day Saturday
+    if (day === 6) return true;
+    // Sunday before noon (strictly before 12:00)
+    if (day === 0 && timeInMinutes < noon) return true;
+
+    return false;
+}
+
+function initWeekendWarning() {
+    var modal = document.getElementById('weekendWarningModal');
+    var cancelBtn = document.getElementById('weekendWarningCancelBtn');
+    var continueBtn = document.getElementById('weekendWarningContinueBtn');
+    var startNowChk = document.getElementById('startNow');
+    var startDateInput = document.getElementById('listingStartDate');
+    var startTimeInput = document.getElementById('listingStartTime');
+
+    if (!modal || !cancelBtn || !continueBtn) return;
+
+    var lastFocused = null;
+    var pendingCancel = null; // function to call if user cancels
+
+    function openModal(onCancel) {
+        lastFocused = document.activeElement;
+        pendingCancel = typeof onCancel === 'function' ? onCancel : null;
+        modal.hidden = false;
+        document.body.classList.add('preview-modal-open');
+        continueBtn.focus();
+    }
+
+    function closeModal(runCancel) {
+        modal.hidden = true;
+        document.body.classList.remove('preview-modal-open');
+        if (runCancel && pendingCancel) {
+            pendingCancel();
+        }
+        pendingCancel = null;
+        if (lastFocused && typeof lastFocused.focus === 'function') {
+            lastFocused.focus();
+        }
+    }
+
+    // Close on backdrop / X
+    modal.querySelectorAll('[data-close-weekend-warning]').forEach(function (el) {
+        el.addEventListener('click', function () { closeModal(false); });
+    });
+
+    // Cancel — undo the triggering action
+    cancelBtn.addEventListener('click', function () { closeModal(true); });
+
+    // Continue — just dismiss
+    continueBtn.addEventListener('click', function () { closeModal(false); });
+
+    // Trap Escape key
+    modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeModal(false); }
+    });
+
+    // Trigger: Start Now checkbox
+    if (startNowChk) {
+        startNowChk.addEventListener('change', function () {
+            if (!startNowChk.checked) return;
+            if (isWeekendWindow(new Date())) {
+                openModal(function () {
+                    startNowChk.checked = false;
+                });
+            }
+        });
+    }
+
+    // Trigger: manual start date or time change
+    function checkManualDate() {
+        var dateVal = startDateInput ? startDateInput.value : '';
+        var timeVal = startTimeInput ? startTimeInput.value : '00:00';
+        if (!dateVal) return;
+
+        // Build a Date from the selected date + time (local)
+        var dt = new Date(dateVal + 'T' + (timeVal || '00:00'));
+        if (isNaN(dt.getTime())) return;
+
+        if (isWeekendWindow(dt)) {
+            openModal(function () {
+                if (startDateInput) startDateInput.value = '';
+                if (startTimeInput) startTimeInput.value = '';
+            });
+        }
+    }
+
+    if (startDateInput) startDateInput.addEventListener('change', checkManualDate);
+    if (startTimeInput) startTimeInput.addEventListener('change', checkManualDate);
 }

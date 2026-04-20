@@ -571,6 +571,22 @@
     cursor: not-allowed;
 }
 
+.vin-clear-btn {
+    border: 1px solid var(--border-color);
+    background: var(--placeholder-bg);
+    color: var(--text-color);
+    border-radius: 6px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.vin-clear-btn:hover {
+    border-color: var(--accent-color);
+    background: var(--accent-rgba);
+}
+
 .vin-decode-status {
     color: var(--secondary-text);
     font-size: 0.82rem;
@@ -771,7 +787,8 @@
     grid-template-columns: minmax(150px, 1fr) 96px;
 }
 
-.inline-action {
+.inline-action,
+.btn-add-row {
     margin-top: 10px;
     border: none;
     background: none;
@@ -1072,7 +1089,6 @@ body.preview-modal-open {
 }
 
 .site-notice-message {
-    white-space: pre-wrap;
     color: #334155;
     line-height: 1.65;
     max-height: 46vh;
@@ -1230,4 +1246,37 @@ body.preview-modal-open {
     .car-add-vehicle-page h1 {
         font-size: 1.5rem;
     }
+}
+
+.collapsible legend {
+    padding: 0;
+    margin-bottom: 0.5rem;
+}
+.collapse-toggle {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font: inherit;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    cursor: pointer;
+    padding: 0;
+    outline: none;
+    transition: color 0.18s;
+}
+.collapse-toggle:focus-visible {
+    color: var(--accent-color);
+    outline: 2px solid var(--accent-color);
+}
+.collapse-icon {
+    display: inline-flex;
+    transition: transform 0.2s;
+}
+.collapse-toggle[aria-expanded="true"] .collapse-icon {
+    transform: rotate(180deg);
+}
+.collapse-content[hidden] {
+    display: none !important;
 }
