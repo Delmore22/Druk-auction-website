@@ -6,12 +6,12 @@ import {
 	createUserWithEmailAndPassword,
 	updateProfile,
 	deleteUser,
-	signOut,
-	getIdTokenResult
+	signOut
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
 	getFirestore,
 	doc,
+	getDoc,
 	setDoc,
 	runTransaction,
 	serverTimestamp
@@ -137,8 +137,9 @@ async function updateSessionUi(user) {
 		return;
 	}
 
-	const token = await getIdTokenResult(user, true);
-	const isAdmin = Boolean(token.claims.admin);
+	const userDoc = await getDoc(doc(db, "users", user.uid));
+	const role = userDoc.exists() ? String(userDoc.data().role || "") : "";
+	const isAdmin = role === "admin";
 
 	sessionSummary.textContent = `${user.email} is signed in${isAdmin ? " (admin)" : ""}.`;
 	sessionPanel.classList.remove("is-hidden");
@@ -254,8 +255,9 @@ generateCodeButton.addEventListener("click", async () => {
 
 	try {
 		setLoading(generateCodeButton, true);
-		const token = await getIdTokenResult(user, true);
-		if (!token.claims.admin) {
+		const userDoc = await getDoc(doc(db, "users", user.uid));
+		const role = userDoc.exists() ? String(userDoc.data().role || "") : "";
+		if (role !== "admin") {
 			throw new Error("Only admin accounts can generate access codes.");
 		}
 
