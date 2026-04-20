@@ -285,31 +285,13 @@ body {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    min-width: 270px;
+    min-width: 160px;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     box-shadow: 0 6px 20px var(--shadow);
     z-index: 1000;
     overflow: hidden;
-}
-
-.user-dropdown-header {
-    display: grid;
-    gap: 0.15rem;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border-color);
-    background: linear-gradient(90deg, var(--accent-rgba), transparent);
-}
-
-.user-dropdown-header strong {
-    font-size: 0.9rem;
-    color: var(--text-color);
-}
-
-.user-dropdown-header span {
-    font-size: 0.78rem;
-    color: var(--secondary-text);
 }
 
 .user-info[aria-expanded="true"] .user-dropdown {
@@ -322,17 +304,9 @@ body {
     gap: 0.6rem;
     padding: 0.65rem 1rem;
     font-size: 0.9rem;
-    color: var(--text-color) !important;
+    color: var(--text-color);
     text-decoration: none;
     transition: background 0.15s;
-}
-
-.user-dropdown-item:link,
-.user-dropdown-item:visited,
-.user-dropdown-item:hover,
-.user-dropdown-item:active {
-    color: var(--text-color) !important;
-    text-decoration: none !important;
 }
 
 .user-dropdown-item:hover {
@@ -341,13 +315,6 @@ body {
 
 .user-dropdown-item--danger {
     color: #c0392b;
-}
-
-.user-dropdown-item--danger:link,
-.user-dropdown-item--danger:visited,
-.user-dropdown-item--danger:hover,
-.user-dropdown-item--danger:active {
-    color: #c0392b !important;
 }
 
 .user-dropdown-item--danger:hover {
@@ -952,14 +919,6 @@ body {
     color: inherit;
 }
 
-.quick-action:link,
-.quick-action:visited,
-.quick-action:hover,
-.quick-action:active {
-    color: inherit !important;
-    text-decoration: none !important;
-}
-
 .quick-action:hover {
     background: var(--accent-rgba);
     transform: translateY(-2px);
@@ -990,13 +949,13 @@ body {
 .action-details h4 {
     margin: 0 0 0.2rem;
     font-size: 0.95rem;
-    color: var(--text-color) !important;
+    color: var(--text-color);
 }
 
 .action-details p {
     margin: 0;
     font-size: 0.82rem;
-    color: var(--secondary-text) !important;
+    color: var(--secondary-text);
     line-height: 1.4;
 }
 
