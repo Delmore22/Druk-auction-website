@@ -122,13 +122,17 @@ function showTab(tabName) {
 	tabSignup.setAttribute("aria-selected", !showLogin ? "true" : "false");
 
 	loginPanel.classList.toggle("is-hidden", !showLogin);
+	loginPanel.hidden = !showLogin;
 	signupPanel.classList.toggle("is-hidden", showLogin);
+	signupPanel.hidden = showLogin;
 }
 
 async function updateSessionUi(user) {
 	if (!user) {
 		sessionPanel.classList.add("is-hidden");
+		sessionPanel.hidden = true;
 		adminPanel.classList.add("is-hidden");
+		adminPanel.hidden = true;
 		generatedCode.textContent = "";
 		return;
 	}
@@ -138,7 +142,9 @@ async function updateSessionUi(user) {
 
 	sessionSummary.textContent = `${user.email} is signed in${isAdmin ? " (admin)" : ""}.`;
 	sessionPanel.classList.remove("is-hidden");
+	sessionPanel.hidden = false;
 	adminPanel.classList.toggle("is-hidden", !isAdmin);
+	adminPanel.hidden = !isAdmin;
 }
 
 function toFriendlyError(err) {
@@ -281,7 +287,9 @@ onAuthStateChanged(auth, async (user) => {
 		await updateSessionUi(user);
 		if (user) {
 			loginPanel.classList.add("is-hidden");
+			loginPanel.hidden = true;
 			signupPanel.classList.add("is-hidden");
+			signupPanel.hidden = true;
 			tabLogin.classList.remove("is-active");
 			tabSignup.classList.remove("is-active");
 		} else {
