@@ -4,6 +4,9 @@ const stickyHeader = document.getElementById('stickyHeader');
 const dashboardPerfDebugEnabled = new URLSearchParams(window.location.search).get('debugPerf') === '1';
 const dashboardPerfConsoleEnabled = new URLSearchParams(window.location.search).get('debugPerfLog') === '1';
 
+// Favorites helpers (getFavorites, saveFavorites, isFavorite, toggleFavorite, createFavoriteBtn)
+// are provided as globals by components.js — loaded before this file.
+
 function initDashboardPerfDebug(scrollHost) {
     if (!dashboardPerfDebugEnabled || !scrollHost) return;
 
@@ -277,6 +280,10 @@ function getAuctionListMeta(car, sectionMode) {
 }
 
 function getCardPhotoCandidateSources(car) {
+    if (typeof window.getVehicleGallerySources === 'function') {
+        return window.getVehicleGallerySources(car);
+    }
+
     const primary = String((car && car.photo) || `cars-photos/${(car && car.id) || ''}.png`).trim();
     const explicitGallery = Array.isArray(car && car.photos) ? car.photos : [];
     return Array.from(new Set([primary].concat(explicitGallery).filter(Boolean)));
@@ -742,6 +749,10 @@ function createAuctionCardElement(car, sectionMode) {
                 ? 'auction-action-chip is-primary is-buy-action'
                 : 'auction-action-chip is-buy-action';
             buyNow.textContent = 'Buy Now';
+            const secondaryPrice = getAuctionSecondaryPrice(car);
+            if (secondaryPrice && secondaryPrice.value !== '--') {
+                buyNow.dataset.tooltip = 'Buy Now: ' + secondaryPrice.value;
+            }
 
             row.appendChild(bidNow);
             row.appendChild(buyNow);
@@ -760,6 +771,16 @@ function createAuctionCardElement(car, sectionMode) {
     item.appendChild(photo);
     item.appendChild(details);
     item.appendChild(saleTag);
+
+    // Favorite button — tile version sits on the card itself (photo is absolute-positioned)
+    const favBtnTile = createFavoriteBtn(car.id);
+    favBtnTile.classList.add('fav-btn-tile');
+    item.appendChild(favBtnTile);
+
+    // Favorite button — list version sits inside the sale tag panel
+    const favBtnList = createFavoriteBtn(car.id);
+    favBtnList.classList.add('fav-btn-list');
+    saleTag.appendChild(favBtnList);
 
     return item;
 }

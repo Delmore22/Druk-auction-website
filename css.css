@@ -1142,3 +1142,74 @@ body {
         margin-left: 0;
     }
 }
+
+/* ========== BUY NOW PRICE TOOLTIP (body-level, escapes all overflow clipping) ========== */
+#buyNowTooltip {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    background: #1a1a2e;
+    color: #f3efe4;
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: opacity 0.13s ease;
+}
+
+#buyNowTooltip.is-visible {
+    opacity: 1;
+}
+
+#buyNowTooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(212, 175, 55, 0.5);
+}
+
+/* ========== FAVORITE HEART BUTTON (shared: dashboard + details) ========== */
+.fav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.65);
+    transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.fav-btn:hover {
+    color: #fb7185;
+    transform: scale(1.15);
+}
+
+.fav-btn.is-favorited {
+    color: #fb7185;
+}
+
+.fav-btn i {
+    font-size: 1.05rem;
+}
+
+/* Pulse animation on toggle */
+@keyframes favPulse {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.38); }
+    70%  { transform: scale(0.92); }
+    100% { transform: scale(1); }
+}
+
+.fav-btn.fav-btn-pulse {
+    animation: favPulse 0.32s ease forwards;
+}

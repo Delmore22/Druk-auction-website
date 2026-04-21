@@ -750,6 +750,27 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Cancel All Modal -->
+                <div class="site-confirm-modal" id="cancelAllModal" hidden>
+                    <div class="site-notice-backdrop" data-close-cancel-all></div>
+                    <div class="site-notice-dialog" role="dialog" aria-modal="true" aria-labelledby="cancelAllTitle" aria-describedby="cancelAllMessage">
+                        <div class="site-notice-header">
+                            <div>
+                                <p class="site-notice-eyebrow">Collectors Alliance Exchange</p>
+                                <h2 id="cancelAllTitle">Clear All Fields?</h2>
+                            </div>
+                            <button type="button" class="site-notice-close" data-close-cancel-all aria-label="Close warning">
+                                <i class="fas fa-times" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="site-notice-message" id="cancelAllMessage">Are you sure you want to clear all fields and start over? This will remove everything you have entered on this page.</div>
+                        <div class="site-notice-actions">
+                            <button type="button" class="btn-cancel" id="cancelAllCancelBtn">Cancel</button>
+                            <button type="button" class="btn-submit" id="cancelAllConfirmBtn">Clear All</button>
+                        </div>
+                    </div>
+                </div>
                 </section>
             </div>
         </div>

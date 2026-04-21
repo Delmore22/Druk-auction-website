@@ -608,3 +608,160 @@
         init();
     }
 })();
+
+// ========== Vehicle Gallery Sources (shared across dashboard/details) ==========
+(function () {
+    'use strict';
+
+    function getVehicleGallerySources(car) {
+        var primary = String((car && car.photo) || ('cars-photos/' + ((car && car.id) || '') + '.png')).trim();
+        var explicitGallery = Array.isArray(car && car.photos) ? car.photos : [];
+        var inferredGallery = [];
+
+        // Legacy demo compatibility: Mustang has file-based gallery assets.
+        if (car && car.id === '1967-ford-mustang-fastback') {
+            ['02', '03', '04', '05', '06', '07', '08', '09'].forEach(function (suffix) {
+                inferredGallery.push('cars-photos/1967-ford-mustang-fastback-' + suffix + '.png');
+            });
+        }
+
+        return Array.from(new Set([primary].concat(explicitGallery, inferredGallery).filter(Boolean)));
+    }
+
+    window.getVehicleGallerySources = getVehicleGallerySources;
+})();
+
+// ========== Favorites (shared across dashboard and details pages) ==========
+(function () {
+    'use strict';
+
+    var FAVORITES_KEY = 'dashboardFavoritesV1';
+
+    function getFavorites() {
+        try {
+            var raw = window.localStorage.getItem(FAVORITES_KEY);
+            var parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) { return []; }
+    }
+
+    function saveFavorites(ids) {
+        try {
+            window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(ids));
+        } catch (e) {}
+    }
+
+    function isFavorite(carId) {
+        return getFavorites().indexOf(carId) !== -1;
+    }
+
+    function toggleFavorite(carId) {
+        var favs = getFavorites();
+        var idx = favs.indexOf(carId);
+        if (idx === -1) {
+            favs.push(carId);
+        } else {
+            favs.splice(idx, 1);
+        }
+        saveFavorites(favs);
+        return idx === -1; // true = now favorited
+    }
+
+    function createFavoriteBtn(carId) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'fav-btn' + (isFavorite(carId) ? ' is-favorited' : '');
+        btn.setAttribute('aria-label', isFavorite(carId) ? 'Remove from favorites' : 'Add to favorites');
+        btn.setAttribute('aria-pressed', isFavorite(carId) ? 'true' : 'false');
+        btn.innerHTML = '<i class="' + (isFavorite(carId) ? 'fas' : 'far') + ' fa-heart" aria-hidden="true"></i>';
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var nowFav = toggleFavorite(carId);
+            btn.classList.toggle('is-favorited', nowFav);
+            btn.setAttribute('aria-pressed', nowFav ? 'true' : 'false');
+            btn.setAttribute('aria-label', nowFav ? 'Remove from favorites' : 'Add to favorites');
+            btn.querySelector('i').className = (nowFav ? 'fas' : 'far') + ' fa-heart';
+            btn.classList.add('fav-btn-pulse');
+            btn.addEventListener('animationend', function () {
+                btn.classList.remove('fav-btn-pulse');
+            }, { once: true });
+            // Sync all other fav buttons for the same car on the page
+            document.querySelectorAll('.fav-btn[data-car-id="' + carId + '"]').forEach(function (other) {
+                if (other === btn) return;
+                other.classList.toggle('is-favorited', nowFav);
+                other.setAttribute('aria-pressed', nowFav ? 'true' : 'false');
+                other.setAttribute('aria-label', nowFav ? 'Remove from favorites' : 'Add to favorites');
+                other.querySelector('i').className = (nowFav ? 'fas' : 'far') + ' fa-heart';
+            });
+        });
+        btn.dataset.carId = carId;
+        return btn;
+    }
+
+    window.getFavorites = getFavorites;
+    window.saveFavorites = saveFavorites;
+    window.isFavorite = isFavorite;
+    window.toggleFavorite = toggleFavorite;
+    window.createFavoriteBtn = createFavoriteBtn;
+})();
+
+// ========== Buy Now Tooltip (body-level, escapes all overflow clipping) ==========
+(function () {
+    'use strict';
+
+    var tip = null;
+    var hideTimer = null;
+
+    function getOrCreateTip() {
+        if (!tip) {
+            tip = document.createElement('div');
+            tip.id = 'buyNowTooltip';
+            document.body.appendChild(tip);
+        }
+        return tip;
+    }
+
+    function showTip(el) {
+        var label = el.getAttribute('data-tooltip');
+        if (!label) return;
+        clearTimeout(hideTimer);
+        var t = getOrCreateTip();
+        t.textContent = label;
+        // Position above the element, centered
+        var rect = el.getBoundingClientRect();
+        t.style.left = '0px';
+        t.style.top = '0px';
+        t.classList.add('is-visible');
+        // Measure after paint
+        requestAnimationFrame(function () {
+            var tw = t.offsetWidth;
+            var th = t.offsetHeight;
+            var left = rect.left + (rect.width / 2) - (tw / 2);
+            var top = rect.top - th - 10;
+            // Keep within viewport horizontally
+            left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
+            t.style.left = left + 'px';
+            t.style.top = top + 'px';
+        });
+    }
+
+    function hideTip() {
+        clearTimeout(hideTimer);
+        if (tip) {
+            tip.classList.remove('is-visible');
+        }
+    }
+
+    document.addEventListener('mouseover', function (e) {
+        var el = e.target.closest('[data-tooltip]');
+        if (el) showTip(el);
+    });
+
+    document.addEventListener('mouseout', function (e) {
+        var el = e.target.closest('[data-tooltip]');
+        if (el) hideTip();
+    });
+
+    document.addEventListener('scroll', hideTip, true);
+})();

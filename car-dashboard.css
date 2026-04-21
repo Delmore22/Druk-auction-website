@@ -416,6 +416,8 @@
     border-color: #a99971;
 }
 
+/* Buy Now tooltip is rendered via JS into #buyNowTooltip (see css.css) */
+
 .dark-theme .auction-action-chip.is-buy-action:not(.is-primary) {
     border-color: #6f6758;
     background: #4b463d;
@@ -537,6 +539,9 @@
     border-radius: 10px;
     margin-bottom: 0.75rem;
     box-shadow: 0 1px 3px var(--shadow);
+    /* Allow tooltip pseudo-elements to overflow the card */
+    contain: layout style;
+    overflow: visible;
 }
 
 .auctions-container.list-view .auction-item:nth-child(even) {
@@ -681,6 +686,64 @@
 .tile-view .auction-photo-nav-btn:focus-visible {
     outline: 2px solid var(--accent-color);
     outline-offset: 1px;
+}
+
+/* ===== Favorite Heart Button — dashboard-specific positions ===== */
+/* Base .fav-btn styles live in css.css */
+
+/* Tile view — top-right corner of the card, above the photo overlay */
+.fav-btn-tile {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    z-index: 4;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(17, 24, 39, 0.55);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.fav-btn-tile.is-favorited {
+    background: rgba(17, 24, 39, 0.72);
+    border-color: rgba(251, 113, 133, 0.5);
+    color: #fb7185;
+}
+
+/* List view — top-right of the sale tag panel */
+.fav-btn-list {
+    display: none;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 4;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--placeholder-bg);
+    border: 1px solid var(--border-color);
+    color: var(--tertiary-text);
+}
+
+.fav-btn-list.is-favorited {
+    color: #fb7185;
+    border-color: rgba(251, 113, 133, 0.4);
+}
+
+.list-view .fav-btn-tile {
+    display: none;
+}
+
+.list-view .fav-btn-list {
+    display: inline-flex;
+}
+
+/* Sale tag needs position:relative for fav-btn-list absolute positioning */
+.list-view .sale-tag {
+    position: relative;
 }
 
 .tile-view .auction-item::after {
@@ -947,6 +1010,7 @@
     justify-self: end;
     gap: 0.45rem;
     margin-top: 0;
+    overflow: visible;
 }
 
 .list-view .auction-row-actions.is-tile-row {

@@ -245,6 +245,8 @@ body.car-details-page {
     transform: none;
 }
 
+/* Buy Now tooltip is rendered via JS into #buyNowTooltip (see css.css) */
+
 .cdv-overview-grid,
 .cdv-content-grid {
     display: grid;
@@ -340,6 +342,29 @@ body.car-details-page {
 
 .cdv-media-hero {
     min-height: 380px;
+}
+
+/* Favorite heart button overlaid on the hero image */
+.fav-btn-hero {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 4;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(17, 24, 39, 0.6);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1.1rem;
+}
+
+.fav-btn-hero.is-favorited {
+    background: rgba(17, 24, 39, 0.78);
+    border-color: rgba(251, 113, 133, 0.55);
+    color: #fb7185;
 }
 
 .cdv-media-thumbs {

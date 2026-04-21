@@ -132,6 +132,12 @@
                     title: 'Replace the temporary sold view with user-owned sold inventory after launch',
                     text: 'The Sold toggle currently opens a temporary sold-vehicle section for the demo state, but after launch it should only show vehicles sold from the logged-in user inventory.',
                     file: 'car-dashboard.html / car-dashboard.js / partials/below-header.html'
+                },
+                {
+                    id: 'dashboard-favorites-backend-sync',
+                    title: 'Migrate Favorites from localStorage to user account storage after launch',
+                    text: 'The Favorites (heart icon) feature currently stores saved vehicles in localStorage, which means favorites are browser- and device-specific and are lost if the user clears their browser data. Once user accounts are in place, favorites should be persisted to the backend (Supabase or Firebase) so they sync across devices and sessions.',
+                    file: 'car-dashboard.js / my-searches.html'
                 }
             ]
         },
@@ -206,28 +212,28 @@
             ]
         },
         {
-            id: 'watchlist-page',
-            title: 'Watchlist',
-            file: 'watchlist.html',
+            id: 'my-searches-page',
+            title: 'My Searches',
+            file: 'my-searches.html',
             description: 'Saved opportunities and bid monitoring page.',
             tasks: [
                 {
-                    id: 'watchlist-review-summary-stats',
-                    title: 'Replace or validate the Watchlist summary metrics',
+                    id: 'my-searches-review-summary-stats',
+                    title: 'Replace or validate the My Searches summary metrics',
                     text: 'Tracked Lots, Bid Alerts, High Match, and Next Closing values are currently fixed sample numbers.',
-                    file: 'watchlist.html'
+                    file: 'my-searches.html'
                 },
                 {
-                    id: 'watchlist-review-demo-vehicles',
-                    title: 'Review the tracked vehicle list for sample-only watchlist content',
+                    id: 'my-searches-review-demo-vehicles',
+                    title: 'Review the tracked vehicle list for sample-only My Searches content',
                     text: 'The current watchlist entries and strategy notes read as polished demo data and should be reconciled with the real launch plan.',
-                    file: 'watchlist.html'
+                    file: 'my-searches.html'
                 },
                 {
-                    id: 'watchlist-validate-actions',
-                    title: 'Validate Watchlist actions and sidebar shortcuts',
+                    id: 'my-searches-validate-actions',
+                    title: 'Validate My Searches actions and sidebar shortcuts',
                     text: 'Check that the page actions, anchor jumps, and browse links support a real user flow rather than a static demonstration.',
-                    file: 'watchlist.html'
+                    file: 'my-searches.html'
                 }
             ]
         },

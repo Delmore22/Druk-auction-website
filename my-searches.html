@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watchlist - Collectors Alliance Exchange</title>
+    <title>My Searches - Collectors Alliance Exchange</title>
     <link rel="stylesheet" href="css.css">
     <link rel="stylesheet" href="secondary-pages.css">
+    <link rel="stylesheet" href="my-searches.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
-<body class="dark-theme watchlist-page" data-page="watchlist">
+<body class="dark-theme my-searches-page" data-page="my-searches">
     <div id="header-placeholder"></div>
 
     <div id="below-header-placeholder"></div>
@@ -19,16 +20,30 @@
         <main class="main-content">
             <div class="section-shell">
                 <section class="page-hero">
-                    <div class="page-eyebrow"><i class="fas fa-star"></i> Saved Opportunities</div>
-                    <h1>Watchlist</h1>
-                    <p>Monitor the vehicles you are following most closely, spot price movement quickly, and keep your next bids organized before the next live event.</p>
+                    <div class="page-eyebrow"><i class="fas fa-heart"></i> Your Saved Vehicles</div>
+                    <h1>My Searches</h1>
+                    <p>Vehicles you have favorited appear here for quick access. Pick up where you left off, compare lots, and keep your shortlist ready before the next live event.</p>
                     <div class="hero-actions">
                         <a class="hero-btn primary" href="car-dashboard.html">Browse Listings</a>
-                        <a class="hero-btn" href="#watchlist-items">Review Tracked Vehicles</a>
+                        <a class="hero-btn" href="#watchlist-items">View Tracked Vehicles</a>
                     </div>
                 </section>
 
-                <section class="summary-grid" aria-label="Watchlist summary">
+                <!-- Favorites Section (populated by my-searches.js) -->
+                <section class="panel-card" id="favoritesSection" aria-label="Favorited vehicles" aria-live="polite">
+                    <div class="card-heading">
+                        <div>
+                            <h2><i class="fas fa-heart fav-heading-icon" aria-hidden="true"></i> Favorites</h2>
+                            <p>Vehicles you have saved from the dashboard or detail pages.</p>
+                        </div>
+                        <button class="fav-clear-btn" id="clearAllFavsBtn" type="button" aria-label="Clear all favorites" hidden>Clear all</button>
+                    </div>
+                    <div id="favoritesGrid" class="favorites-grid">
+                        <!-- Cards injected here by my-searches.js -->
+                    </div>
+                </section>
+
+                <section class="summary-grid" aria-label="My Searches summary">
                     <article class="summary-card">
                         <div class="summary-label">Tracked Lots</div>
                         <div class="summary-value">17</div>
@@ -210,5 +225,6 @@
     <div id="footer-placeholder"></div>
 
     <script src="components.js"></script>
+    <script src="my-searches.js"></script>
 </body>
 </html>

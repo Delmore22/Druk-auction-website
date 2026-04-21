@@ -309,15 +309,63 @@ function initAddVehicleForm() {
 
     // Handle cancel button
     if (cancelBtn) {
-        cancelBtn.addEventListener('click', function () {
-            if (isFormDirty()) {
-                showSiteConfirm('Discard Changes', 'Are you sure you want to discard your changes?', 'Discard Changes', function () {
-                    navigateBack();
-                });
-            } else {
-                navigateBack();
-            }
+        cancelBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            openCancelAllModal();
         });
+    }
+
+    function openCancelAllModal() {
+        var modal = document.getElementById('cancelAllModal');
+        var cancelBtn = document.getElementById('cancelAllCancelBtn');
+        var confirmBtn = document.getElementById('cancelAllConfirmBtn');
+        if (!modal || !cancelBtn || !confirmBtn) return;
+        modal.hidden = false;
+        document.body.classList.add('preview-modal-open');
+        confirmBtn.focus();
+
+        function closeModal() {
+            modal.hidden = true;
+            document.body.classList.remove('preview-modal-open');
+            cancelBtn.removeEventListener('click', onCancel);
+            confirmBtn.removeEventListener('click', onConfirm);
+            modal.querySelectorAll('[data-close-cancel-all]').forEach(function (el) {
+                el.removeEventListener('click', onCancel);
+            });
+        }
+        function onCancel() { closeModal(); }
+        function onConfirm() {
+            clearAllFields();
+            closeModal();
+        }
+        cancelBtn.addEventListener('click', onCancel);
+        confirmBtn.addEventListener('click', onConfirm);
+        modal.querySelectorAll('[data-close-cancel-all]').forEach(function (el) {
+            el.addEventListener('click', onCancel);
+        });
+    }
+
+    function clearAllFields() {
+        // Clear all form fields
+        var form = document.getElementById('addVehicleForm');
+        if (!form) return;
+        form.reset();
+        // Clear VIN and decoder fields
+        var vinInput = document.getElementById('vehicleVin');
+        if (vinInput) vinInput.value = '';
+        var decodedFieldIds = [
+            'vehicleYear', 'vehicleMake', 'vehicleModel', 'vehicleBodyType',
+            'vehicleTrim', 'vehicleEngine', 'vehicleTransmission',
+            'vehicleDriveTrain', 'vehicleFuelType'
+        ];
+        decodedFieldIds.forEach(function (fieldId) {
+            var field = document.getElementById(fieldId);
+            if (field) field.value = '';
+        });
+        // Clear localStorage draft
+        try {
+            window.localStorage.removeItem(ADD_VEHICLE_DRAFT_KEY);
+        } catch (e) {}
     }
 }
 

@@ -707,8 +707,10 @@ function buildAuctionPanelElement(car) {
     } else {
         if (status === 'sale' || status === 'reserve-off') {
             var buyNow = car.buyNowPrice ? car.buyNowPrice : Math.round(safeBid * 1.1);
-            actions.appendChild(createElement('button', 'ap-btn ap-btn-buynow', 'BUY NOW $' + buyNow.toLocaleString()));
-            actions.lastChild.type = 'button';
+            var buyNowBtn = createElement('button', 'ap-btn ap-btn-buynow', 'BUY NOW $' + buyNow.toLocaleString());
+            buyNowBtn.type = 'button';
+            buyNowBtn.dataset.tooltip = 'Buy Now: $' + buyNow.toLocaleString();
+            actions.appendChild(buyNowBtn);
         }
 
         actions.appendChild(createElement('button', 'ap-btn ap-btn-bid', 'BID $' + safeBid.toLocaleString()));
@@ -797,22 +799,16 @@ function getVehicleVin(car) {
 }
 
 function getVehiclePhotoSources(car, titleText) {
-    var sources = [];
+    var gallery = typeof window.getVehicleGallerySources === 'function'
+        ? window.getVehicleGallerySources(car)
+        : (car && car.photo ? [car.photo] : []);
 
-    if (car.photo) {
-        sources.push({ src: car.photo, alt: titleText + ' primary photo' });
-    }
-
-    if (car.id === '1967-ford-mustang-fastback') {
-        ['02', '03', '04', '05', '06', '07', '08', '09'].forEach(function (suffix, index) {
-            sources.push({
-                src: 'cars-photos/1967-ford-mustang-fastback-' + suffix + '.png',
-                alt: titleText + ' photo ' + (index + 2)
-            });
-        });
-    }
-
-    return sources;
+    return gallery.map(function (src, index) {
+        return {
+            src: src,
+            alt: index === 0 ? (titleText + ' primary photo') : (titleText + ' photo ' + (index + 1))
+        };
+    });
 }
 
 function getVehicleLocationParts(car) {
@@ -940,6 +936,12 @@ function buildMediaSection(car, titleText) {
     heroImage.loading = 'eager';
     heroImage.setAttribute('data-lightbox-index', '0');
     hero.appendChild(heroImage);
+
+    // Favorite button overlaid on the hero image (top-right corner)
+    var favBtnHero = createFavoriteBtn(car.id);
+    favBtnHero.classList.add('fav-btn-hero');
+    hero.appendChild(favBtnHero);
+
     mediaGrid.appendChild(hero);
 
     if (photoSources.length > 1) {
@@ -1042,6 +1044,9 @@ function buildBidStrip(car, sourceSection) {
     var buyNow = createElement('button', 'cdv-bid-button', displayStatus === 'sold' ? 'Sale Closed' : 'Buy Now $' + reserveValue.toLocaleString());
     buyNow.type = 'button';
     buyNow.disabled = displayStatus === 'sold';
+    if (displayStatus !== 'sold') {
+        buyNow.dataset.tooltip = 'Buy Now: $' + reserveValue.toLocaleString();
+    }
 
     var secondary = createElement('button', 'cdv-bid-button', displayStatus === 'sold' ? 'View History' : 'Set Proxy');
     secondary.type = 'button';
@@ -1235,4 +1240,44 @@ function renderCarDetail(car, sourceSection) {
     section.appendChild(buildMediaSection(car, titleText));
     section.appendChild(buildOverviewSection(car, titleText, sourceSection));
     section.appendChild(buildContentSection(car));
+
+    // Wire sidebar Watchlist quick-action to favorites
+    var sidebarFavAction = document.getElementById('sidebarFavAction');
+    var sidebarFavIcon = document.getElementById('sidebarFavIcon');
+    if (sidebarFavAction) {
+        function syncSidebarFav() {
+            var fav = isFavorite(car.id);
+            sidebarFavAction.setAttribute('aria-label', fav ? 'Remove from favorites' : 'Save to favorites');
+            sidebarFavAction.setAttribute('title', fav ? 'Remove from favorites' : 'Save to favorites');
+            var iconEl = sidebarFavAction.querySelector('.action-icon i');
+            if (iconEl) iconEl.className = (fav ? 'fas' : 'far') + ' fa-heart';
+            if (sidebarFavIcon) {
+                var collapsedIcon = sidebarFavIcon.querySelector('i');
+                if (collapsedIcon) collapsedIcon.className = (fav ? 'fas' : 'far') + ' fa-heart';
+                sidebarFavIcon.setAttribute('aria-label', fav ? 'Remove from favorites' : 'Save to favorites');
+                sidebarFavIcon.setAttribute('title', fav ? 'Remove from favorites' : 'Save to favorites');
+                sidebarFavIcon.setAttribute('data-tooltip', fav ? 'Remove from favorites' : 'Save to favorites');
+            }
+        }
+        syncSidebarFav();
+        sidebarFavAction.addEventListener('click', function (e) {
+            e.preventDefault();
+            toggleFavorite(car.id);
+            syncSidebarFav();
+            // Sync all fav-btn instances on the page too
+            document.querySelectorAll('.fav-btn[data-car-id="' + car.id + '"]').forEach(function (btn) {
+                var fav = isFavorite(car.id);
+                btn.classList.toggle('is-favorited', fav);
+                btn.setAttribute('aria-pressed', fav ? 'true' : 'false');
+                btn.setAttribute('aria-label', fav ? 'Remove from favorites' : 'Add to favorites');
+                btn.querySelector('i').className = (fav ? 'fas' : 'far') + ' fa-heart';
+            });
+        });
+        if (sidebarFavIcon) {
+            sidebarFavIcon.addEventListener('click', function (e) {
+                e.preventDefault();
+                sidebarFavAction.click();
+            });
+        }
+    }
 }
