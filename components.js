@@ -755,12 +755,18 @@
 
     document.addEventListener('mouseover', function (e) {
         var el = e.target.closest('[data-tooltip]');
-        if (el) showTip(el);
+        // Skip sidebar elements (they use CSS pseudo-element tooltips)
+        if (el && !el.classList.contains('nav-item') && !el.classList.contains('collapsed-icon')) {
+            showTip(el);
+        }
     });
 
     document.addEventListener('mouseout', function (e) {
         var el = e.target.closest('[data-tooltip]');
-        if (el) hideTip();
+        // Skip sidebar elements (they use CSS pseudo-element tooltips)
+        if (el && !el.classList.contains('nav-item') && !el.classList.contains('collapsed-icon')) {
+            hideTip();
+        }
     });
 
     document.addEventListener('scroll', hideTip, true);
