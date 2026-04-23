@@ -4,6 +4,8 @@
     // ── Favorites section ──────────────────────────────────────────────────────
 
     var CARS_JSON = 'data/cars.json';
+    var SAVED_ADVANCED_SEARCHES_KEY = 'savedAdvancedSearchesV1';
+    var editingSavedSearchId = null;
 
     function getFavoritedCars(allCars) {
         var ids = getFavorites(); // provided by components.js
@@ -159,6 +161,8 @@
     }
 
     function init() {
+        renderSavedSearches();
+
         fetch(CARS_JSON)
             .then(function (res) {
                 if (!res.ok) throw new Error('Could not load ' + CARS_JSON);
@@ -178,6 +182,186 @@
                     grid.appendChild(msg);
                 }
             });
+    }
+
+    function getSavedAdvancedSearches() {
+        try {
+            var raw = window.localStorage.getItem(SAVED_ADVANCED_SEARCHES_KEY);
+            if (!raw) return [];
+            var parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (err) {
+            return [];
+        }
+    }
+
+    function saveSavedAdvancedSearches(list) {
+        try {
+            window.localStorage.setItem(SAVED_ADVANCED_SEARCHES_KEY, JSON.stringify(list));
+        } catch (err) {
+            // Ignore storage errors.
+        }
+    }
+
+    function formatSavedSearchDate(iso) {
+        if (!iso) return 'Saved recently';
+        var date = new Date(iso);
+        if (Number.isNaN(date.getTime())) return 'Saved recently';
+        return 'Saved ' + date.toLocaleString();
+    }
+
+    function buildSavedSearchItem(entry, options) {
+        var settings = options || {};
+        var isEditing = settings.isEditing === true;
+        var item = document.createElement('article');
+        item.className = 'saved-search-item';
+        if (isEditing) {
+            item.classList.add('is-editing');
+        }
+
+        var main = document.createElement('div');
+        main.className = 'saved-search-main';
+
+        if (isEditing) {
+            var titleEditor = document.createElement('input');
+            titleEditor.type = 'text';
+            titleEditor.className = 'saved-search-name-input';
+            titleEditor.value = entry.label || '';
+            titleEditor.placeholder = 'Search name';
+            titleEditor.setAttribute('aria-label', 'Saved search name');
+            titleEditor.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    settings.onSave(entry.id, titleEditor.value);
+                }
+
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    settings.onCancel();
+                }
+            });
+            main.appendChild(titleEditor);
+            window.setTimeout(function () {
+                titleEditor.focus();
+                titleEditor.select();
+            }, 0);
+        } else {
+            var title = document.createElement('p');
+            title.className = 'saved-search-name';
+            title.textContent = entry.label || 'Untitled search';
+            main.appendChild(title);
+        }
+
+        var meta = document.createElement('p');
+        meta.className = 'saved-search-meta';
+        meta.textContent = formatSavedSearchDate(entry.createdAt);
+        main.appendChild(meta);
+
+        var actions = document.createElement('div');
+        actions.className = 'saved-search-actions';
+
+        if (isEditing) {
+            var saveBtn = document.createElement('button');
+            saveBtn.type = 'button';
+            saveBtn.className = 'saved-search-action-btn save';
+            saveBtn.textContent = 'Save';
+            saveBtn.addEventListener('click', function () {
+                var input = main.querySelector('.saved-search-name-input');
+                settings.onSave(entry.id, input ? input.value : '');
+            });
+            actions.appendChild(saveBtn);
+
+            var cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'saved-search-action-btn cancel';
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.addEventListener('click', function () {
+                settings.onCancel();
+            });
+            actions.appendChild(cancelBtn);
+        } else {
+            var runLink = document.createElement('a');
+            runLink.className = 'saved-search-action-btn run';
+            runLink.href = 'car-dashboard.html?savedSearch=' + encodeURIComponent(entry.id);
+            runLink.textContent = 'Run Search';
+            actions.appendChild(runLink);
+
+            var editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = 'saved-search-action-btn edit';
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', function () {
+                settings.onStartEdit(entry.id);
+            });
+            actions.appendChild(editBtn);
+        }
+
+        var deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'saved-search-action-btn delete';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', function () {
+            settings.onDelete(entry.id);
+        });
+        actions.appendChild(deleteBtn);
+
+        item.appendChild(main);
+        item.appendChild(actions);
+
+        return item;
+    }
+
+    function renderSavedSearches() {
+        var listEl = document.getElementById('savedSearchesList');
+        if (!listEl) return;
+
+        var entries = getSavedAdvancedSearches();
+        listEl.textContent = '';
+
+        if (!entries.length) {
+            var empty = document.createElement('p');
+            empty.className = 'saved-search-empty';
+            empty.textContent = 'No saved searches yet. Use Save & Search from Advanced Search on the dashboard.';
+            listEl.appendChild(empty);
+            return;
+        }
+
+        entries.forEach(function (entry) {
+            var row = buildSavedSearchItem(entry, {
+                isEditing: editingSavedSearchId === entry.id,
+                onStartEdit: function (entryId) {
+                    editingSavedSearchId = entryId;
+                    renderSavedSearches();
+                },
+                onCancel: function () {
+                    editingSavedSearchId = null;
+                    renderSavedSearches();
+                },
+                onSave: function (entryId, nextLabel) {
+                    var trimmedLabel = String(nextLabel || '').trim();
+                    if (!trimmedLabel) return;
+
+                    var renamed = getSavedAdvancedSearches().map(function (candidate) {
+                        if (candidate.id !== entryId) return candidate;
+                        return Object.assign({}, candidate, { label: trimmedLabel });
+                    });
+                    saveSavedAdvancedSearches(renamed);
+                    editingSavedSearchId = null;
+                    renderSavedSearches();
+                },
+                onDelete: function (entryId) {
+                    var next = getSavedAdvancedSearches().filter(function (candidate) {
+                        return candidate.id !== entryId;
+                    });
+                    saveSavedAdvancedSearches(next);
+                    if (editingSavedSearchId === entryId) {
+                        editingSavedSearchId = null;
+                    }
+                    renderSavedSearches();
+                }
+            });
+            listEl.appendChild(row);
+        });
     }
 
     document.addEventListener('components:ready', init);

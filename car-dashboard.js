@@ -149,6 +149,8 @@ let allMarketplaceItems = [];
 let filteredMarketplaceItems = [];
 let allSoldItems = [];
 let filteredSoldItems = [];
+const SAVED_ADVANCED_SEARCHES_KEY = 'savedAdvancedSearchesV1';
+const PENDING_ADVANCED_SEARCH_KEY = 'pendingAdvancedSearchV1';
 const cardPhotoSourceCache = new Map();
 let searchFilterState = {
     make: new Set(),
@@ -744,13 +746,14 @@ function createAuctionCardElement(car, sectionMode) {
                 : 'auction-action-chip is-bid-action';
             bidNow.textContent = 'Bid Now';
 
+            const hasBuyNowPrice = Number.isFinite(car && car.buyNowPrice);
             const buyNow = document.createElement('span');
             buyNow.className = sectionMode === 'marketplace'
                 ? 'auction-action-chip is-primary is-buy-action'
                 : 'auction-action-chip is-buy-action';
-            buyNow.textContent = 'Buy Now';
-            const secondaryPrice = getAuctionSecondaryPrice(car);
-            if (secondaryPrice && secondaryPrice.value !== '--') {
+            buyNow.textContent = hasBuyNowPrice ? 'Buy Now' : 'Make Offer';
+            if (hasBuyNowPrice) {
+                const secondaryPrice = getAuctionSecondaryPrice(car);
                 buyNow.dataset.tooltip = 'Buy Now: ' + secondaryPrice.value;
             }
 
@@ -1016,6 +1019,8 @@ function initializeAuctionView() {
     loadMarketplaceData().then(function () {
         initializeAuctionSearch();
         restoreDashboardUiState();
+        applySavedSearchFromUrlIfAny();
+        applyPendingAdvancedSearchFromStorage();
     });
 }
 
@@ -1349,3 +1354,381 @@ function previousPage() {
         updatePagination();
     }
 }
+
+// ========== ADVANCED SEARCHES MODAL ==========
+function initializeAdvanceSearchesModal() {
+    const modal = document.getElementById('advanceSearchesModal');
+    const overlay = document.querySelector('.advance-searches-overlay');
+    const openBtn = document.getElementById('openAdvanceSearchesBtn');
+    const closeBtn = document.getElementById('closeAdvanceSearchesBtn');
+    const applyBtn = document.getElementById('applyAdvanceFiltersBtn');
+    const clearBtn = document.getElementById('clearAdvanceFiltersBtn');
+    const saveBtn = document.getElementById('saveAdvanceFiltersBtn');
+    const saveNameInput = document.getElementById('advSearchLabel');
+
+    if (!modal || !overlay || !openBtn || !closeBtn || !applyBtn || !clearBtn || !saveBtn || !saveNameInput) {
+        return;
+    }
+
+    const url = new URL(window.location.href);
+    const openedFromShortcut = url.searchParams.get('openAdvancedSearch') === '1';
+    const returnTo = url.searchParams.get('returnTo') || '';
+    let hasCommittedSearch = false;
+
+    function isSafeReturnPath(path) {
+        if (!path) return false;
+        if (/^(?:[a-z]+:)?\/\//i.test(path)) return false;
+        if (/^javascript:/i.test(path)) return false;
+        return true;
+    }
+
+    function maybeReturnToOrigin() {
+        if (!openedFromShortcut || hasCommittedSearch) return;
+        if (!isSafeReturnPath(returnTo)) return;
+        window.location.href = returnTo;
+    }
+
+    function openModal() {
+        modal.removeAttribute('hidden');
+    }
+
+    function closeModal(reason) {
+        modal.setAttribute('hidden', '');
+        if (reason === 'cancel') {
+            maybeReturnToOrigin();
+        }
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', function () { closeModal('cancel'); });
+    overlay.addEventListener('click', function () { closeModal('cancel'); });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !modal.hasAttribute('hidden')) {
+            closeModal('cancel');
+        }
+    });
+
+    // Apply filters button
+    applyBtn.addEventListener('click', function () {
+        const filters = getAdvancedSearchFiltersFromModal();
+
+        // Apply filters to the dashboard
+        applyAdvanceSearchFilters(filters);
+
+        // Close modal
+        hasCommittedSearch = true;
+        closeModal('commit');
+    });
+
+    // Clear filters button
+    clearBtn.addEventListener('click', function () {
+        resetAdvanceSearchModalInputs();
+
+        // Reset dashboard to show all items
+        clearAdvanceSearchFilters();
+    });
+
+    saveBtn.addEventListener('click', function () {
+        const filters = getAdvancedSearchFiltersFromModal();
+        const typedLabel = String(saveNameInput.value || '').trim();
+        const fallbackLabel = 'Saved search ' + new Date().toLocaleString();
+        const label = typedLabel || fallbackLabel;
+
+        const savedSearches = getSavedAdvancedSearches();
+        savedSearches.unshift({
+            id: 'adv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+            label: label,
+            filters: filters,
+            createdAt: new Date().toISOString()
+        });
+        saveSavedAdvancedSearches(savedSearches.slice(0, 40));
+
+        applyAdvanceSearchFilters(filters);
+        hasCommittedSearch = true;
+        closeModal('commit');
+    });
+
+    if (url.searchParams.get('openAdvancedSearch') === '1') {
+        openModal();
+        url.searchParams.delete('openAdvancedSearch');
+        url.searchParams.delete('returnTo');
+        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+    }
+}
+
+function getAdvancedSearchFiltersFromModal() {
+    return {
+        year: document.getElementById('advYear').value,
+        make: document.getElementById('advMake').value,
+        model: document.getElementById('advModel').value,
+        vin: document.getElementById('advVin').value,
+        minBid: document.getElementById('advMinBid').value,
+        auctionFormat: document.getElementById('advAuctionFormat').value,
+        listingStatus: document.getElementById('advListingStatus').value,
+        seller: document.getElementById('advSeller').value,
+        engine: document.getElementById('advEngine').value,
+        transmission: document.getElementById('advTransmission').value,
+        drivetrain: document.getElementById('advDrivetrain').value,
+        mileage: document.getElementById('advMileage').value,
+        condition: document.getElementById('advCondition').value,
+        color: document.getElementById('advColor').value,
+        interior: document.getElementById('advInterior').value,
+        equipment: Array.from(document.querySelectorAll('.search-checkboxes input[type="checkbox"]:checked')).map(function (el) {
+            return el.value;
+        })
+    };
+}
+
+function setAdvancedSearchFiltersToModal(filters) {
+    const safe = filters || {};
+
+    document.getElementById('advYear').value = safe.year || '';
+    document.getElementById('advMake').value = safe.make || '';
+    document.getElementById('advModel').value = safe.model || '';
+    document.getElementById('advVin').value = safe.vin || '';
+    document.getElementById('advMinBid').value = safe.minBid || '';
+    document.getElementById('advAuctionFormat').value = safe.auctionFormat || '';
+    document.getElementById('advListingStatus').value = safe.listingStatus || '';
+    document.getElementById('advSeller').value = safe.seller || '';
+    document.getElementById('advEngine').value = safe.engine || '';
+    document.getElementById('advTransmission').value = safe.transmission || '';
+    document.getElementById('advDrivetrain').value = safe.drivetrain || '';
+    document.getElementById('advMileage').value = safe.mileage || '';
+    document.getElementById('advCondition').value = safe.condition || '';
+    document.getElementById('advColor').value = safe.color || '';
+    document.getElementById('advInterior').value = safe.interior || '';
+
+    const equipmentSet = new Set(Array.isArray(safe.equipment) ? safe.equipment : []);
+    document.querySelectorAll('.search-checkboxes input[type="checkbox"]').forEach(function (el) {
+        el.checked = equipmentSet.has(el.value);
+    });
+}
+
+function resetAdvanceSearchModalInputs() {
+    setAdvancedSearchFiltersToModal({});
+    const saveNameInput = document.getElementById('advSearchLabel');
+    if (saveNameInput) {
+        saveNameInput.value = '';
+    }
+}
+
+function getSavedAdvancedSearches() {
+    try {
+        const raw = window.localStorage.getItem(SAVED_ADVANCED_SEARCHES_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function saveSavedAdvancedSearches(savedSearches) {
+    try {
+        window.localStorage.setItem(SAVED_ADVANCED_SEARCHES_KEY, JSON.stringify(savedSearches));
+    } catch (error) {
+        // Ignore storage write errors.
+    }
+}
+
+function applySavedSearchFromUrlIfAny() {
+    const url = new URL(window.location.href);
+    const savedSearchId = url.searchParams.get('savedSearch');
+    if (!savedSearchId) return;
+
+    const match = getSavedAdvancedSearches().find(function (entry) {
+        return entry && entry.id === savedSearchId && entry.filters;
+    });
+    if (!match) return;
+
+    setAdvancedSearchFiltersToModal(match.filters);
+    const saveNameInput = document.getElementById('advSearchLabel');
+    if (saveNameInput) {
+        saveNameInput.value = match.label || '';
+    }
+
+    applyAdvanceSearchFilters(match.filters);
+}
+
+function applyPendingAdvancedSearchFromStorage() {
+    let parsed = null;
+
+    try {
+        const raw = window.localStorage.getItem(PENDING_ADVANCED_SEARCH_KEY);
+        if (!raw) return;
+        parsed = JSON.parse(raw);
+    } catch (error) {
+        parsed = null;
+    }
+
+    try {
+        window.localStorage.removeItem(PENDING_ADVANCED_SEARCH_KEY);
+    } catch (error) {
+        // Ignore storage cleanup failures.
+    }
+
+    if (!parsed || !parsed.filters || typeof parsed.filters !== 'object') return;
+
+    setAdvancedSearchFiltersToModal(parsed.filters);
+    applyAdvanceSearchFilters(parsed.filters);
+}
+
+function applyAdvanceSearchFilters(filters) {
+    // This function filters the dashboard based on modal selections
+    // It will be called when the user clicks "Apply Search"
+
+    filteredActiveAuctionItems = allActiveAuctionItems.filter(function (item) {
+        return itemMatchesAdvanceFilters(item, filters);
+    });
+
+    filteredMarketplaceItems = allMarketplaceItems.filter(function (item) {
+        return itemMatchesAdvanceFilters(item, filters);
+    });
+
+    filteredSoldItems = allSoldItems.filter(function (item) {
+        return itemMatchesAdvanceFilters(item, filters);
+    });
+
+    filteredAuctionItems = filteredActiveAuctionItems.concat(filteredMarketplaceItems, filteredSoldItems);
+
+    currentPage = 1;
+    updatePagination();
+}
+
+function clearAdvanceSearchFilters() {
+    // Reset all filters to show all items
+    filteredActiveAuctionItems = [...allActiveAuctionItems];
+    filteredMarketplaceItems = [...allMarketplaceItems];
+    filteredSoldItems = [...allSoldItems];
+    filteredAuctionItems = filteredActiveAuctionItems.concat(filteredMarketplaceItems, filteredSoldItems);
+
+    currentPage = 1;
+    updatePagination();
+}
+
+function itemMatchesAdvanceFilters(item, filters) {
+    // Get the car data from the item element
+    const carId = item.dataset.carName || item.getAttribute('data-car-name');
+    const car = allCars.find(function (c) { return c.id === carId; });
+
+    if (!car) return false;
+
+    const carMake = String(car.make || '').toLowerCase();
+    const carModel = String(car.model || '').toLowerCase();
+    const carSeller = String(car.seller || '').toLowerCase();
+    const carEngine = String(car.engine || '').toLowerCase();
+    const carTransmission = String(car.transmission || '').toLowerCase();
+    const carDrivetrain = String(car.drivetrain || '').toLowerCase();
+    const carCondition = String(car.condition || '').toLowerCase();
+    const carColor = String(car.color || '').toLowerCase();
+    const carInterior = String(car.interior || '').toLowerCase();
+
+    // Year filter
+    if (filters.year) {
+        const carYear = Number(car.year);
+        const [minYear, maxYear] = parseYearRange(filters.year);
+        if (carYear < minYear || carYear > maxYear) return false;
+    }
+
+    // Make filter
+    if (filters.make && carMake !== String(filters.make).toLowerCase()) return false;
+
+    // Model filter
+    if (filters.model && !carModel.includes(String(filters.model).toLowerCase())) return false;
+
+    // VIN filter
+    if (filters.vin && !String(car.vin || car.id).toUpperCase().includes(filters.vin.toUpperCase())) return false;
+
+    // Bid range filter
+    if (filters.minBid) {
+        const [minPrice, maxPrice] = parsePriceRange(filters.minBid);
+        const carBid = Number(car.currentBid) || 0;
+        if (carBid < minPrice || (maxPrice && carBid > maxPrice)) return false;
+    }
+
+    // Auction format filter
+    if (filters.auctionFormat) {
+        const status = normalizeStatus(car.status, car).className;
+        if (filters.auctionFormat === 'buynow' && !Number.isFinite(car.buyNowPrice)) return false;
+        if (filters.auctionFormat === 'live' && status === 'status-sold') return false;
+    }
+
+    // Listing status filter
+    if (filters.listingStatus) {
+        const status = normalizeStatus(car.status, car);
+        if (filters.listingStatus === 'active' && status.className === 'status-sold') return false;
+        if (filters.listingStatus === 'closed' && status.className !== 'status-sold') return false;
+    }
+
+    // Seller filter
+    if (filters.seller && !carSeller.includes(String(filters.seller).toLowerCase())) return false;
+
+    // Engine filter
+    if (filters.engine && carEngine !== String(filters.engine).toLowerCase()) return false;
+
+    // Transmission filter
+    if (filters.transmission && carTransmission !== String(filters.transmission).toLowerCase()) return false;
+
+    // Drivetrain filter
+    if (filters.drivetrain && carDrivetrain && carDrivetrain !== String(filters.drivetrain).toLowerCase()) return false;
+
+    // Mileage filter
+    if (filters.mileage) {
+        const [minMiles, maxMiles] = parseMileageRange(filters.mileage);
+        const carMiles = Number(String(car.mileage || '').replace(/[^0-9]/g, '')) || 0;
+        if (carMiles < minMiles || (maxMiles && carMiles > maxMiles)) return false;
+    }
+
+    // Condition filter
+    if (filters.condition && carCondition && carCondition !== String(filters.condition).toLowerCase()) return false;
+
+    // Color filter
+    if (filters.color && carColor && !carColor.includes(String(filters.color).toLowerCase())) return false;
+
+    // Interior filter
+    if (filters.interior && carInterior && !carInterior.includes(String(filters.interior).toLowerCase())) return false;
+
+    // Equipment filter
+    if (filters.equipment && filters.equipment.length > 0) {
+        const hasAllEquipment = filters.equipment.every(function (eq) {
+            return car.equipment && car.equipment.includes(eq);
+        });
+        if (!hasAllEquipment) return false;
+    }
+
+    return true;
+}
+
+function parseYearRange(rangeStr) {
+    const parts = rangeStr.split('-');
+    if (parts[0] === '1950' || parts[0] === '1961' || parts[0] === '1971' || parts[0] === '1980') {
+        return [Number(parts[0]), Number(parts[1])];
+    }
+    if (rangeStr === '1980+') {
+        return [1980, 9999];
+    }
+    return [1900, 2100];
+}
+
+function parsePriceRange(rangeStr) {
+    const parts = rangeStr.split('-').map(function (p) { return Number(p.replace(/[^0-9]/g, '')); });
+    if (rangeStr === '0-25000') return [0, 25000];
+    if (rangeStr === '25000-50000') return [25000, 50000];
+    if (rangeStr === '50000-100000') return [50000, 100000];
+    if (rangeStr === '100000+') return [100000, 999999999];
+    return [0, 999999999];
+}
+
+function parseMileageRange(rangeStr) {
+    if (rangeStr === '0-25000') return [0, 25000];
+    if (rangeStr === '25000-75000') return [25000, 75000];
+    if (rangeStr === '75000+') return [75000, 999999999];
+    return [0, 999999999];
+}
+
+// Initialize modal when components are ready
+document.addEventListener('components:ready', function () {
+    initializeAdvanceSearchesModal();
+});

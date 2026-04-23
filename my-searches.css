@@ -1,5 +1,9 @@
 /* My Searches page-specific styles */
 
+#favoritesSection {
+    scroll-margin-top: 160px;
+}
+
 .fav-clear-btn {
     display: inline-flex;
     align-items: center;
@@ -209,4 +213,145 @@
     font-size: 0.84rem;
     text-align: center;
     padding: 2rem 1rem;
+}
+
+.saved-searches-list {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.saved-search-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--placeholder-bg);
+}
+
+.saved-search-main {
+    min-width: 0;
+}
+
+.saved-search-name {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--primary-text);
+}
+
+.saved-search-name-input {
+    width: 100%;
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding: 0.45rem 0.6rem;
+}
+
+.saved-search-name-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.18);
+}
+
+.saved-search-meta {
+    margin: 0.2rem 0 0;
+    font-size: 0.78rem;
+    color: var(--tertiary-text);
+}
+
+.saved-search-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-shrink: 0;
+}
+
+.saved-search-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    padding: 0.45rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.saved-search-action-btn.run {
+    background: rgba(212, 175, 55, 0.12);
+    color: var(--accent-color);
+    border-color: rgba(212, 175, 55, 0.35);
+}
+
+.saved-search-action-btn.run:hover {
+    background: rgba(212, 175, 55, 0.2);
+}
+
+.saved-search-action-btn.edit {
+    background: rgba(96, 165, 250, 0.12);
+    color: #93c5fd;
+    border-color: rgba(96, 165, 250, 0.4);
+}
+
+.saved-search-action-btn.edit:hover {
+    background: rgba(96, 165, 250, 0.2);
+}
+
+.saved-search-action-btn.save {
+    background: rgba(34, 197, 94, 0.16);
+    color: #86efac;
+    border-color: rgba(34, 197, 94, 0.4);
+}
+
+.saved-search-action-btn.save:hover {
+    background: rgba(34, 197, 94, 0.24);
+}
+
+.saved-search-action-btn.cancel {
+    background: transparent;
+    color: var(--secondary-text);
+}
+
+.saved-search-action-btn.cancel:hover {
+    background: rgba(148, 163, 184, 0.14);
+}
+
+.saved-search-action-btn.delete {
+    background: transparent;
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.45);
+}
+
+.saved-search-action-btn.delete:hover {
+    background: rgba(248, 113, 113, 0.14);
+}
+
+.saved-search-empty {
+    text-align: center;
+    color: var(--tertiary-text);
+    padding: 1.4rem 0.5rem;
+    font-size: 0.88rem;
+}
+
+@media (max-width: 768px) {
+    .saved-search-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .saved-search-actions {
+        width: 100%;
+    }
+
+    .saved-search-action-btn {
+        flex: 1;
+    }
 }

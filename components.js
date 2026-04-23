@@ -65,6 +65,242 @@
         }
     }
 
+    var SAVED_ADVANCED_SEARCHES_KEY = 'savedAdvancedSearchesV1';
+    var PENDING_ADVANCED_SEARCH_KEY = 'pendingAdvancedSearchV1';
+
+    function isDashboardPage() {
+        return document.body && document.body.dataset && document.body.dataset.page === 'dashboard';
+    }
+
+    function getOrCreateAdvancedSearchModal() {
+        var existing = document.getElementById('advanceSearchesModal');
+        if (existing) return existing;
+
+        var wrapper = document.createElement('div');
+        wrapper.innerHTML =
+            '<div id="advanceSearchesModal" class="advance-searches-modal" hidden>' +
+                '<div class="advance-searches-overlay"></div>' +
+                '<div class="advance-searches-content">' +
+                    '<div class="advance-searches-header">' +
+                        '<h2>Advanced Search</h2>' +
+                        '<button type="button" class="modal-close-btn" aria-label="Close advanced search" id="closeAdvanceSearchesBtn">' +
+                            '<i class="fa-solid fa-times" aria-hidden="true"></i>' +
+                        '</button>' +
+                    '</div>' +
+                    '<div class="advance-searches-body">' +
+                        '<fieldset class="search-fieldset">' +
+                            '<legend>Vehicle Information</legend>' +
+                            '<div class="search-grid">' +
+                                '<div class="search-field"><label for="advYear">Year Range</label><select id="advYear" class="search-input"><option value="">All Years</option><option value="1950-1960">1950-1960</option><option value="1961-1970">1961-1970</option><option value="1971-1980">1971-1980</option><option value="1980+">1980+</option></select></div>' +
+                                '<div class="search-field"><label for="advMake">Manufacturer</label><select id="advMake" class="search-input"><option value="">All Makes</option><option value="ford">Ford</option><option value="chevrolet">Chevrolet</option><option value="cadillac">Cadillac</option><option value="porsche">Porsche</option><option value="jaguar">Jaguar</option></select></div>' +
+                                '<div class="search-field"><label for="advModel">Model</label><input type="text" id="advModel" class="search-input" placeholder="e.g., Mustang, Bel Air"></div>' +
+                                '<div class="search-field"><label for="advVin">Vehicle ID (VIN)</label><input type="text" id="advVin" class="search-input" placeholder="Full or partial VIN"></div>' +
+                            '</div>' +
+                        '</fieldset>' +
+                        '<fieldset class="search-fieldset">' +
+                            '<legend>Pricing &amp; Auction Details</legend>' +
+                            '<div class="search-grid">' +
+                                '<div class="search-field"><label for="advMinBid">Minimum Bid Range</label><select id="advMinBid" class="search-input"><option value="">Any</option><option value="0-25000">$0 - $25k</option><option value="25000-50000">$25k - $50k</option><option value="50000-100000">$50k - $100k</option><option value="100000+">$100k+</option></select></div>' +
+                                '<div class="search-field"><label for="advAuctionFormat">Sale Format</label><select id="advAuctionFormat" class="search-input"><option value="">All Formats</option><option value="live">Live Auction</option><option value="buynow">Buy Now Available</option><option value="sealed">Sealed Bid</option></select></div>' +
+                                '<div class="search-field"><label for="advListingStatus">Listing Status</label><select id="advListingStatus" class="search-input"><option value="">All</option><option value="active">Active</option><option value="upcoming">Upcoming</option><option value="closed">Recently Closed</option></select></div>' +
+                                '<div class="search-field"><label for="advSeller">Seller Name</label><input type="text" id="advSeller" class="search-input" placeholder="Filter by dealer"></div>' +
+                            '</div>' +
+                        '</fieldset>' +
+                        '<fieldset class="search-fieldset">' +
+                            '<legend>Mechanical Specifications</legend>' +
+                            '<div class="search-grid">' +
+                                '<div class="search-field"><label for="advEngine">Engine Type</label><select id="advEngine" class="search-input"><option value="">All Engines</option><option value="v8">V8</option><option value="v6">V6</option><option value="inline6">Inline-6</option><option value="v12">V12</option></select></div>' +
+                                '<div class="search-field"><label for="advTransmission">Transmission</label><select id="advTransmission" class="search-input"><option value="">All Types</option><option value="manual">Manual</option><option value="automatic">Automatic</option><option value="3speed">3-Speed</option><option value="4speed">4-Speed</option></select></div>' +
+                                '<div class="search-field"><label for="advDrivetrain">Drivetrain</label><select id="advDrivetrain" class="search-input"><option value="">All Types</option><option value="rwd">Rear-Wheel Drive</option><option value="awd">All-Wheel Drive</option></select></div>' +
+                                '<div class="search-field"><label for="advMileage">Mileage Range</label><select id="advMileage" class="search-input"><option value="">Any</option><option value="0-25000">Under 25k miles</option><option value="25000-75000">25k - 75k miles</option><option value="75000+">Over 75k miles</option></select></div>' +
+                            '</div>' +
+                        '</fieldset>' +
+                        '<fieldset class="search-fieldset">' +
+                            '<legend>Condition &amp; Features</legend>' +
+                            '<div class="search-grid">' +
+                                '<div class="search-field"><label for="advCondition">Overall Condition</label><select id="advCondition" class="search-input"><option value="">All Conditions</option><option value="excellent">Excellent</option><option value="very-good">Very Good</option><option value="good">Good</option><option value="restored">Fully Restored</option><option value="survivor">Original Survivor</option></select></div>' +
+                                '<div class="search-field"><label for="advColor">Exterior Color</label><input type="text" id="advColor" class="search-input" placeholder="e.g., Blue, Red"></div>' +
+                                '<div class="search-field"><label for="advInterior">Interior Color</label><input type="text" id="advInterior" class="search-input" placeholder="e.g., Leather Black"></div>' +
+                            '</div>' +
+                            '<div class="search-checkboxes">' +
+                                '<label class="search-checkbox"><input type="checkbox" value="powertop"> Power Top</label>' +
+                                '<label class="search-checkbox"><input type="checkbox" value="powerwheels"> Power Windows</label>' +
+                                '<label class="search-checkbox"><input type="checkbox" value="aircon"> Air Conditioning</label>' +
+                                '<label class="search-checkbox"><input type="checkbox" value="numbermatch"> Numbers Matching</label>' +
+                            '</div>' +
+                        '</fieldset>' +
+                    '</div>' +
+                    '<div class="advance-searches-footer">' +
+                        '<div class="advance-searches-save-name"><label for="advSearchLabel">Saved search name</label><input type="text" id="advSearchLabel" class="search-input" placeholder="e.g., Weekend Muscle Cars"></div>' +
+                        '<button type="button" class="search-action-btn clear" id="clearAdvanceFiltersBtn">Clear All</button>' +
+                        '<button type="button" class="search-action-btn save" id="saveAdvanceFiltersBtn">Save &amp; Search</button>' +
+                        '<button type="button" class="search-action-btn search" id="applyAdvanceFiltersBtn">Apply Search</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+
+        var modal = wrapper.firstChild;
+        document.body.appendChild(modal);
+        return modal;
+    }
+
+    function getAdvancedSearchFiltersFromModal(modal) {
+        function value(id) {
+            var input = modal.querySelector('#' + id);
+            return input ? input.value : '';
+        }
+
+        return {
+            year: value('advYear'),
+            make: value('advMake'),
+            model: value('advModel'),
+            vin: value('advVin'),
+            minBid: value('advMinBid'),
+            auctionFormat: value('advAuctionFormat'),
+            listingStatus: value('advListingStatus'),
+            seller: value('advSeller'),
+            engine: value('advEngine'),
+            transmission: value('advTransmission'),
+            drivetrain: value('advDrivetrain'),
+            mileage: value('advMileage'),
+            condition: value('advCondition'),
+            color: value('advColor'),
+            interior: value('advInterior'),
+            equipment: Array.prototype.slice.call(modal.querySelectorAll('.search-checkboxes input[type="checkbox"]:checked')).map(function (el) {
+                return el.value;
+            })
+        };
+    }
+
+    function resetAdvancedSearchModal(modal) {
+        ['advYear','advMake','advModel','advVin','advMinBid','advAuctionFormat','advListingStatus','advSeller','advEngine','advTransmission','advDrivetrain','advMileage','advCondition','advColor','advInterior','advSearchLabel'].forEach(function (id) {
+            var input = modal.querySelector('#' + id);
+            if (input) input.value = '';
+        });
+
+        Array.prototype.forEach.call(modal.querySelectorAll('.search-checkboxes input[type="checkbox"]'), function (checkbox) {
+            checkbox.checked = false;
+        });
+    }
+
+    function getSavedAdvancedSearches() {
+        var raw = storageGet(SAVED_ADVANCED_SEARCHES_KEY);
+        if (!raw) return [];
+        try {
+            var parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (err) {
+            return [];
+        }
+    }
+
+    function saveSavedAdvancedSearches(list) {
+        storageSet(SAVED_ADVANCED_SEARCHES_KEY, JSON.stringify(Array.isArray(list) ? list : []));
+    }
+
+    function savePendingAdvancedSearch(filters) {
+        storageSet(PENDING_ADVANCED_SEARCH_KEY, JSON.stringify({ filters: filters, createdAt: Date.now() }));
+    }
+
+    function navigateToDashboard() {
+        var dashboardUrl = new URL('car-dashboard.html', window.location.href);
+        window.location.href = dashboardUrl.pathname + dashboardUrl.search + dashboardUrl.hash;
+    }
+
+    function initializeGlobalAdvancedSearchModal() {
+        var modal = getOrCreateAdvancedSearchModal();
+        if (!modal || modal.dataset.globalBound === '1') return;
+        modal.dataset.globalBound = '1';
+
+        if (isDashboardPage()) {
+            return;
+        }
+
+        var overlay = modal.querySelector('.advance-searches-overlay');
+        var closeBtn = modal.querySelector('#closeAdvanceSearchesBtn');
+        var applyBtn = modal.querySelector('#applyAdvanceFiltersBtn');
+        var clearBtn = modal.querySelector('#clearAdvanceFiltersBtn');
+        var saveBtn = modal.querySelector('#saveAdvanceFiltersBtn');
+        var saveNameInput = modal.querySelector('#advSearchLabel');
+
+        function setSubmittingState(actionLabel) {
+            modal.classList.add('is-submitting');
+            if (applyBtn) applyBtn.disabled = true;
+            if (saveBtn) saveBtn.disabled = true;
+            if (clearBtn) clearBtn.disabled = true;
+            if (closeBtn) closeBtn.disabled = true;
+            if (overlay) overlay.style.pointerEvents = 'none';
+
+            if (actionLabel === 'apply' && applyBtn) {
+                applyBtn.textContent = 'Opening Results...';
+            }
+
+            if (actionLabel === 'save' && saveBtn) {
+                saveBtn.textContent = 'Saving & Opening...';
+            }
+        }
+
+        function openModal() {
+            modal.removeAttribute('hidden');
+        }
+
+        function closeModal() {
+            modal.setAttribute('hidden', '');
+        }
+
+        document.addEventListener('click', function (event) {
+            var trigger = event.target.closest('#openAdvanceSearchesBtn');
+            if (!trigger) return;
+            event.preventDefault();
+            openModal();
+        });
+
+        if (overlay) overlay.addEventListener('click', closeModal);
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !modal.hasAttribute('hidden')) {
+                closeModal();
+            }
+        });
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                resetAdvancedSearchModal(modal);
+            });
+        }
+
+        if (applyBtn) {
+            applyBtn.addEventListener('click', function () {
+                var filters = getAdvancedSearchFiltersFromModal(modal);
+                setSubmittingState('apply');
+                savePendingAdvancedSearch(filters);
+                navigateToDashboard();
+            });
+        }
+
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function () {
+                var filters = getAdvancedSearchFiltersFromModal(modal);
+                var typedLabel = saveNameInput ? String(saveNameInput.value || '').trim() : '';
+                var label = typedLabel || ('Saved search ' + new Date().toLocaleString());
+
+                var savedSearches = getSavedAdvancedSearches();
+                savedSearches.unshift({
+                    id: 'adv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+                    label: label,
+                    filters: filters,
+                    createdAt: new Date().toISOString()
+                });
+                saveSavedAdvancedSearches(savedSearches.slice(0, 40));
+
+                setSubmittingState('save');
+                savePendingAdvancedSearch(filters);
+                navigateToDashboard();
+            });
+        }
+    }
+
     var SEARCH_UI_STATE_KEY = 'auctionSearchUiState';
 
     function normalizeSearchUiState(rawState) {
@@ -392,6 +628,10 @@
         });
     }
 
+    function initAdvanceSearchesShortcut() {
+        initializeGlobalAdvancedSearchModal();
+    }
+
     function initHeaderUserName() {
         var nameEl   = document.getElementById('headerUserName');
         var avatarEl = document.getElementById('headerUserAvatar');
@@ -505,6 +745,7 @@
         requestStickyOffsetsUpdate();
         window.addEventListener('resize', requestStickyOffsetsUpdate);
         initActionButtons();
+        initAdvanceSearchesShortcut();
         initThemeToggle();
         initHeaderUserName();
         initUserMenu();
