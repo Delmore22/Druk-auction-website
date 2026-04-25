@@ -3,16 +3,176 @@
 var siteNoticeController = null;
 var siteConfirmController = null;
 var ADD_VEHICLE_DRAFT_KEY = 'addVehicleManualDraftV1';
+var VEHICLE_SUBMISSIONS_TABLE = 'vehicle_submissions';
+var DEFAULT_VEHICLE_SUBMISSIONS_BUCKET = 'vehicle-submission-photos';
+var vehicleSubmissionSupabaseClient = null;
+var vehicleSubmissionSupabaseBucket = DEFAULT_VEHICLE_SUBMISSIONS_BUCKET;
 
 document.addEventListener('components:ready', function () {
     initSiteNotice();
     initSiteConfirm();
+    initializeVehicleSubmissionSupabase();
     initAddVehicleToggle();
     initInventoryProviders();
     initAddVehicleForm();
     initManualEntryEnhancements();
     initBackButton();
 });
+
+function getVehicleSubmissionConfig() {
+    return window.ADD_VEHICLE_SUPABASE_CONFIG || {};
+}
+
+function looksLikePlaceholderConfigValue(value) {
+    return !value || /your[-_ ]/i.test(value) || /replace[-_ ]/i.test(value);
+}
+
+function hasValidVehicleSubmissionConfig() {
+    var config = getVehicleSubmissionConfig();
+    return !looksLikePlaceholderConfigValue(config.url) && !looksLikePlaceholderConfigValue(config.anonKey);
+}
+
+function initializeVehicleSubmissionSupabase() {
+    var config;
+
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        return false;
+    }
+
+    if (!hasValidVehicleSubmissionConfig()) {
+        return false;
+    }
+
+    config = getVehicleSubmissionConfig();
+    vehicleSubmissionSupabaseBucket = config.bucket || DEFAULT_VEHICLE_SUBMISSIONS_BUCKET;
+    vehicleSubmissionSupabaseClient = window.supabase.createClient(config.url, config.anonKey);
+    return true;
+}
+
+function getSubmissionErrorMessage(err, fallback) {
+    if (!err) {
+        return fallback;
+    }
+
+    if (typeof err.message === 'string' && err.message) {
+        return err.message;
+    }
+
+    if (typeof err.error_description === 'string' && err.error_description) {
+        return err.error_description;
+    }
+
+    if (typeof err.details === 'string' && err.details) {
+        return err.details;
+    }
+
+    try {
+        return JSON.stringify(err);
+    } catch (stringifyError) {
+        return fallback;
+    }
+}
+
+function generateVehicleSubmissionId() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+    }
+
+    return 'vehicle-submission-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+}
+
+function sanitizeSubmissionFileName(name) {
+    return String(name || 'upload')
+        .toLowerCase()
+        .replace(/[^a-z0-9.\-_]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+}
+
+function collectSubmissionAttachmentPaths(items) {
+    return (Array.isArray(items) ? items : []).reduce(function (paths, item) {
+        if (item && item.path) {
+            paths.push(item.path);
+        }
+        return paths;
+    }, []);
+}
+
+async function uploadSubmissionPhotos(submissionId, files) {
+    var uploaded = [];
+    var storage;
+
+    if (!vehicleSubmissionSupabaseClient || !Array.isArray(files) || !files.length) {
+        return uploaded;
+    }
+
+    storage = vehicleSubmissionSupabaseClient.storage.from(vehicleSubmissionSupabaseBucket);
+
+    for (var index = 0; index < files.length; index += 1) {
+        var file = files[index];
+        var safeName = sanitizeSubmissionFileName(file && file.name);
+        var filePath = submissionId + '/' + (index + 1) + '-' + safeName;
+        var uploadResult = await storage.upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+        });
+
+        if (uploadResult.error) {
+            throw uploadResult.error;
+        }
+
+        var publicUrlResult = storage.getPublicUrl(filePath);
+        uploaded.push({
+            name: file.name || safeName,
+            type: file.type || '',
+            sizeBytes: file.size || 0,
+            path: filePath,
+            url: publicUrlResult && publicUrlResult.data ? publicUrlResult.data.publicUrl : ''
+        });
+    }
+
+    return uploaded;
+}
+
+async function removeSubmissionPhotos(paths) {
+    if (!vehicleSubmissionSupabaseClient || !Array.isArray(paths) || !paths.length) {
+        return;
+    }
+
+    await vehicleSubmissionSupabaseClient.storage.from(vehicleSubmissionSupabaseBucket).remove(paths);
+}
+
+function getFileArray(input) {
+    if (!input || !input.files) {
+        return [];
+    }
+
+    return Array.prototype.slice.call(input.files);
+}
+
+function buildVehicleSubmissionRecord(vehicleData, photoAttachments) {
+    var photos = Array.isArray(photoAttachments) ? photoAttachments : [];
+    var normalizedPayload = createSubmissionPreviewPayload(vehicleData);
+    var summaryLabel = [vehicleData.year, vehicleData.make, vehicleData.model].filter(Boolean).join(' ');
+
+    normalizedPayload.photos = photos;
+
+    return {
+        vin: vehicleData.vin || null,
+        year: vehicleData.year ? String(vehicleData.year) : null,
+        make: vehicleData.make || null,
+        model: vehicleData.model || null,
+        seller_name: vehicleData.sellerContactName || null,
+        seller_company: vehicleData.sellerCompanyName || null,
+        seller_email: vehicleData.sellerContactEmail || null,
+        status_label: 'Submitted for Review',
+        review_status: 'pending',
+        review_notes: null,
+        summary_label: summaryLabel || 'Vehicle Submission',
+        submitted_payload: normalizedPayload,
+        submitted_at: new Date().toISOString()
+    };
+}
 
 function initAddVehicleToggle() {
     var toggles = document.querySelectorAll('.option-toggle');
@@ -291,7 +451,7 @@ function initAddVehicleForm() {
     });
 
     // Handle form submission
-    form.addEventListener('submit', function (event) {
+    form.addEventListener('submit', async function (event) {
         event.preventDefault();
         form.dataset.submitIntent = 'false';
 
@@ -301,9 +461,24 @@ function initAddVehicleForm() {
         }
 
         var vehicleData = collectVehicleData(form);
-        submitVehicle(vehicleData);
-        if (draftController) {
-            draftController.clear();
+        var submitButton = form.querySelector('.btn-submit');
+        var originalLabel = submitButton ? submitButton.textContent : '';
+
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
+        }
+
+        try {
+            var submitResult = await submitVehicle(vehicleData);
+            if (submitResult && submitResult.saved && draftController) {
+                draftController.clear();
+            }
+        } finally {
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = originalLabel;
+            }
         }
     });
 
@@ -1898,34 +2073,46 @@ function isFormDirty() {
     return false;
 }
 
-function submitVehicle(vehicleData) {
+async function submitVehicle(vehicleData) {
+    var photoInput = document.getElementById('vehiclePhotos');
+    var photoFiles = getFileArray(photoInput);
+    var submissionId;
+    var uploadedPhotos = [];
+    var insertResult;
+
     console.log('Submitting vehicle data:', vehicleData);
 
-    // TODO: Send data to server
-    // Example API call:
-    // fetch('/api/vehicles', {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify(vehicleData)
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     if (data.success) {
-    //         alert('Vehicle added successfully!');
-    //         window.location.href = '/car-dashboard.html';
-    //     } else {
-    //         alert('Error adding vehicle: ' + data.message);
-    //     }
-    // })
-    // .catch(error => {
-    //     console.error('Error:', error);
-    //     alert('An error occurred while adding the vehicle.');
-    // });
+    if (!vehicleSubmissionSupabaseClient) {
+        showSiteNotice('Submission Backend Needed', 'The manual entry form is ready, but Supabase is not configured for vehicle submissions yet. Add your project settings in add-vehicle.supabase-config.js.');
+        return { saved: false };
+    }
 
-    showSiteNotice('Vehicle Added', 'Vehicle data submitted successfully!');
-    resetForm();
+    submissionId = generateVehicleSubmissionId();
+
+    try {
+        uploadedPhotos = await uploadSubmissionPhotos(submissionId, photoFiles);
+        insertResult = await vehicleSubmissionSupabaseClient
+            .from(VEHICLE_SUBMISSIONS_TABLE)
+            .insert(buildVehicleSubmissionRecord(vehicleData, uploadedPhotos))
+            .select('id, summary_label, review_status, submitted_at')
+            .single();
+
+        if (insertResult.error) {
+            throw insertResult.error;
+        }
+
+        showSiteNotice('Vehicle Submitted', 'Your vehicle was sent to the review queue and is now marked as pending approval. It will stay out of the live marketplace until it is approved.');
+        resetForm();
+        return {
+            saved: true,
+            entry: insertResult.data || null
+        };
+    } catch (error) {
+        await removeSubmissionPhotos(collectSubmissionAttachmentPaths(uploadedPhotos));
+        console.error('Vehicle submission failed:', error);
+        showSiteNotice('Submission Failed', 'The vehicle could not be sent to Supabase: ' + getSubmissionErrorMessage(error, 'Unknown error'));
+        throw error;
+    }
 }
 
 function resetForm() {

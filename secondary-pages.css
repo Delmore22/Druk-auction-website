@@ -220,6 +220,142 @@
     overflow: hidden;
 }
 
+.my-vehicles-page .review-queue-panel {
+    background: var(--header-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    padding: 1.1rem 1.15rem;
+}
+
+.my-vehicles-page .review-queue-status {
+    margin: 0 0 0.9rem;
+    color: var(--secondary-text);
+    font-size: 0.92rem;
+}
+
+.my-vehicles-page .review-queue-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.9rem;
+}
+
+.my-vehicles-page .review-queue-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.95rem;
+    display: grid;
+    gap: 0.7rem;
+}
+
+.my-vehicles-page .review-queue-item.is-empty {
+    grid-column: 1 / -1;
+    color: var(--secondary-text);
+    text-align: center;
+}
+
+.my-vehicles-page .review-queue-item h3 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.my-vehicles-page .review-queue-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    color: var(--secondary-text);
+    font-size: 0.82rem;
+}
+
+/* review-queue status pill — uses existing record-pill pattern from css.css */
+.my-vehicles-page .review-queue-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    background: #d97706;
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.my-vehicles-page .review-queue-actions {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 0.3rem;
+}
+
+.my-vehicles-page .review-queue-btn {
+    min-height: 34px;
+    padding: 0 1rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s;
+}
+
+.my-vehicles-page .review-queue-btn:hover {
+    filter: brightness(1.08);
+}
+
+.my-vehicles-page .review-queue-btn.approve {
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    color: #ffffff;
+}
+
+.my-vehicles-page .review-queue-btn.reject {
+    background: linear-gradient(135deg, #f87171 0%, #b91c1c 100%);
+    color: #ffffff;
+    border: none;
+}
+
+.dark-theme .my-vehicles-page .review-queue-btn.reject {
+    background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+    color: #ffffff;
+    border: none;
+}
+
+/* Review decision modal textarea */
+.my-vehicles-page .inventory-edit-field textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--placeholder-bg);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    resize: vertical;
+}
+
+/* Approve confirm button variant */
+.hero-btn.approve {
+    background: #16a34a;
+    color: #ffffff;
+    border-color: #16a34a;
+}
+
+.hero-btn.approve:hover {
+    background: #15803d;
+}
+
+.hero-btn.reject {
+    background: var(--placeholder-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.hero-btn.reject:hover {
+    filter: brightness(0.95);
+}
+
 .my-vehicles-page .inventory-topbar {
     display: flex;
     align-items: center;

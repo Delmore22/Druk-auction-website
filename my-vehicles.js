@@ -2,6 +2,18 @@
     var tableBody = document.getElementById('inventoryTableBody');
     var inventoryTableWrap = document.getElementById('inventoryTableWrap');
     var inventoryCardGrid = document.getElementById('inventoryCardGrid');
+    var reviewQueueStatus = document.getElementById('reviewQueueStatus');
+    var reviewQueueList = document.getElementById('reviewQueueList');
+    var reviewDecisionModal = document.getElementById('reviewDecisionModal');
+    var reviewDecisionTitle = document.getElementById('reviewDecisionTitle');
+    var reviewDecisionVehicle = document.getElementById('reviewDecisionVehicle');
+    var reviewDecisionNotes = document.getElementById('reviewDecisionNotes');
+    var reviewDecisionNotesLabel = document.getElementById('reviewDecisionNotesLabel');
+    var reviewDecisionConfirm = document.getElementById('reviewDecisionConfirm');
+    var reviewDecisionCancel = document.getElementById('reviewDecisionCancel');
+    var reviewDecisionClose = document.getElementById('reviewDecisionClose');
+    var activeReviewEntry = null;
+    var activeReviewAction = null;
     var viewedCount = document.getElementById('inventoryViewedCount');
     var totalCount = document.getElementById('inventoryTotalCount');
     var rangeLabel = document.getElementById('inventoryRange');
@@ -39,6 +51,263 @@
     var inventoryPriceStorageKey = 'myVehiclesBuyNowOverrides';
     var activePriceEditCarId = null;
     var currentInventoryView = inventoryViewMode.value === 'card' ? 'card' : 'table';
+    var vehicleSubmissionSupabaseClient = null;
+    var VEHICLE_SUBMISSIONS_TABLE = 'vehicle_submissions';
+
+    function getVehicleSubmissionConfig() {
+        return window.ADD_VEHICLE_SUPABASE_CONFIG || {};
+    }
+
+    function looksLikePlaceholderConfigValue(value) {
+        return !value || /your[-_ ]/i.test(value) || /replace[-_ ]/i.test(value);
+    }
+
+    function getSubmissionErrorMessage(err, fallback) {
+        if (!err) {
+            return fallback;
+        }
+
+        if (typeof err.message === 'string' && err.message) {
+            return err.message;
+        }
+
+        if (typeof err.error_description === 'string' && err.error_description) {
+            return err.error_description;
+        }
+
+        if (typeof err.details === 'string' && err.details) {
+            return err.details;
+        }
+
+        try {
+            return JSON.stringify(err);
+        } catch (stringifyError) {
+            return fallback;
+        }
+    }
+
+    function initializeVehicleSubmissionSupabase() {
+        var config = getVehicleSubmissionConfig();
+
+        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+            return false;
+        }
+
+        if (looksLikePlaceholderConfigValue(config.url) || looksLikePlaceholderConfigValue(config.anonKey)) {
+            return false;
+        }
+
+        vehicleSubmissionSupabaseClient = window.supabase.createClient(config.url, config.anonKey);
+        return true;
+    }
+
+    function formatSubmittedAt(value) {
+        if (!value) return 'Unknown submission time';
+
+        var parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return 'Unknown submission time';
+
+        return new Intl.DateTimeFormat(undefined, {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+        }).format(parsed);
+    }
+
+    function renderReviewQueue(entries, message) {
+        if (!reviewQueueStatus || !reviewQueueList) {
+            return;
+        }
+
+        reviewQueueStatus.textContent = message || '';
+        reviewQueueList.textContent = '';
+
+        if (!Array.isArray(entries) || !entries.length) {
+            var emptyState = document.createElement('article');
+            emptyState.className = 'review-queue-item is-empty';
+            emptyState.textContent = 'No vehicle submissions are waiting for review.';
+            reviewQueueList.appendChild(emptyState);
+            return;
+        }
+
+        entries.forEach(function (entry) {
+            var article = document.createElement('article');
+            article.className = 'review-queue-item';
+
+            var title = document.createElement('h3');
+            title.textContent = entry.summary_label || [entry.year, entry.make, entry.model].filter(Boolean).join(' ') || 'Vehicle Submission';
+
+            var meta = document.createElement('div');
+            meta.className = 'review-queue-meta';
+
+            var status = document.createElement('span');
+            status.className = 'review-queue-pill';
+            status.textContent = entry.status_label || 'Submitted for Review';
+
+            var submittedAt = document.createElement('span');
+            submittedAt.textContent = 'Submitted ' + formatSubmittedAt(entry.submitted_at);
+
+            var seller = document.createElement('span');
+            seller.textContent = entry.seller_company || entry.seller_name || 'Seller not provided';
+
+            var vin = document.createElement('span');
+            vin.textContent = 'VIN: ' + (entry.vin || '--');
+
+            meta.appendChild(status);
+            meta.appendChild(submittedAt);
+            meta.appendChild(seller);
+            meta.appendChild(vin);
+
+            var actions = document.createElement('div');
+            actions.className = 'review-queue-actions';
+
+            var approveBtn = document.createElement('button');
+            approveBtn.type = 'button';
+            approveBtn.className = 'review-queue-btn approve';
+            approveBtn.textContent = 'Approve';
+            approveBtn.addEventListener('click', function () {
+                openReviewDecision(entry, 'approve');
+            });
+
+            var rejectBtn = document.createElement('button');
+            rejectBtn.type = 'button';
+            rejectBtn.className = 'review-queue-btn reject';
+            rejectBtn.textContent = 'Reject';
+            rejectBtn.addEventListener('click', function () {
+                openReviewDecision(entry, 'reject');
+            });
+
+            actions.appendChild(approveBtn);
+            actions.appendChild(rejectBtn);
+
+            article.appendChild(title);
+            article.appendChild(meta);
+            article.appendChild(actions);
+            reviewQueueList.appendChild(article);
+        });
+    }
+
+    function openReviewDecision(entry, action) {
+        if (!reviewDecisionModal) return;
+
+        activeReviewEntry = entry;
+        activeReviewAction = action;
+
+        var vehicleLabel = entry.summary_label || [entry.year, entry.make, entry.model].filter(Boolean).join(' ') || 'Vehicle Submission';
+
+        if (reviewDecisionTitle) {
+            reviewDecisionTitle.textContent = action === 'approve' ? 'Approve Submission' : 'Reject Submission';
+        }
+
+        if (reviewDecisionVehicle) {
+            reviewDecisionVehicle.textContent = vehicleLabel;
+        }
+
+        if (reviewDecisionNotesLabel) {
+            reviewDecisionNotesLabel.textContent = action === 'approve'
+                ? 'Optional approval note (visible to submitter):'
+                : 'Reason for rejection (visible to submitter):';
+        }
+
+        if (reviewDecisionNotes) {
+            reviewDecisionNotes.value = '';
+        }
+
+        if (reviewDecisionConfirm) {
+            reviewDecisionConfirm.textContent = action === 'approve' ? 'Approve' : 'Reject';
+            reviewDecisionConfirm.className = 'hero-btn ' + (action === 'approve' ? 'primary approve' : 'reject');
+        }
+
+        reviewDecisionModal.hidden = false;
+        document.body.classList.add('inventory-modal-open');
+
+        if (reviewDecisionNotes) {
+            window.requestAnimationFrame(function () {
+                reviewDecisionNotes.focus();
+            });
+        }
+    }
+
+    function closeReviewDecision() {
+        activeReviewEntry = null;
+        activeReviewAction = null;
+        if (reviewDecisionModal) {
+            reviewDecisionModal.hidden = true;
+        }
+        document.body.classList.remove('inventory-modal-open');
+    }
+
+    function submitReviewDecision() {
+        if (!activeReviewEntry || !activeReviewAction || !vehicleSubmissionSupabaseClient) {
+            closeReviewDecision();
+            return;
+        }
+
+        var notes = reviewDecisionNotes ? reviewDecisionNotes.value.trim() : '';
+        var newStatus = activeReviewAction === 'approve' ? 'approved' : 'rejected';
+        var newStatusLabel = activeReviewAction === 'approve' ? 'Approved' : 'Rejected';
+        var entryId = activeReviewEntry.id;
+
+        if (reviewDecisionConfirm) {
+            reviewDecisionConfirm.disabled = true;
+            reviewDecisionConfirm.textContent = activeReviewAction === 'approve' ? 'Approving...' : 'Rejecting...';
+        }
+
+        vehicleSubmissionSupabaseClient
+            .from(VEHICLE_SUBMISSIONS_TABLE)
+            .update({
+                review_status: newStatus,
+                status_label: newStatusLabel,
+                review_notes: notes || null,
+                reviewed_at: new Date().toISOString()
+            })
+            .eq('id', entryId)
+            .then(function (result) {
+                if (result.error) {
+                    throw result.error;
+                }
+
+                closeReviewDecision();
+                loadReviewQueue();
+            })
+            .catch(function (error) {
+                console.error('Review decision failed:', error);
+                if (reviewDecisionConfirm) {
+                    reviewDecisionConfirm.disabled = false;
+                    reviewDecisionConfirm.textContent = activeReviewAction === 'approve' ? 'Approve' : 'Reject';
+                }
+                alert('Could not save decision: ' + getSubmissionErrorMessage(error, 'Unknown error'));
+            });
+    }
+
+    function loadReviewQueue() {
+        if (!reviewQueueStatus || !reviewQueueList) {
+            return Promise.resolve();
+        }
+
+        if (!initializeVehicleSubmissionSupabase()) {
+            renderReviewQueue([], 'Supabase is not configured for vehicle review submissions yet.');
+            return Promise.resolve();
+        }
+
+        reviewQueueStatus.textContent = 'Loading review queue...';
+
+        return vehicleSubmissionSupabaseClient
+            .from(VEHICLE_SUBMISSIONS_TABLE)
+            .select('id, summary_label, year, make, model, vin, seller_name, seller_company, status_label, review_status, submitted_at')
+            .eq('review_status', 'pending')
+            .order('submitted_at', { ascending: false })
+            .limit(8)
+            .then(function (result) {
+                if (result.error) {
+                    throw result.error;
+                }
+
+                renderReviewQueue(result.data || [], (result.data || []).length ? 'These submissions are stored remotely and are waiting for moderation.' : 'Review queue is connected.');
+            })
+            .catch(function (error) {
+                renderReviewQueue([], 'Could not load the review queue: ' + getSubmissionErrorMessage(error, 'Unknown error'));
+            });
+    }
 
     function formatCurrency(amount) {
         if (!Number.isFinite(amount)) return '--';
@@ -783,5 +1052,32 @@
         }
     });
 
+    if (reviewDecisionCancel) {
+        reviewDecisionCancel.addEventListener('click', closeReviewDecision);
+    }
+
+    if (reviewDecisionClose) {
+        reviewDecisionClose.addEventListener('click', closeReviewDecision);
+    }
+
+    if (reviewDecisionConfirm) {
+        reviewDecisionConfirm.addEventListener('click', submitReviewDecision);
+    }
+
+    if (reviewDecisionModal) {
+        reviewDecisionModal.addEventListener('click', function (event) {
+            if (event.target === reviewDecisionModal || event.target.hasAttribute('data-close-review-decision')) {
+                closeReviewDecision();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && reviewDecisionModal && !reviewDecisionModal.hidden) {
+            closeReviewDecision();
+        }
+    });
+
     loadInventoryData();
+    loadReviewQueue();
 }());
