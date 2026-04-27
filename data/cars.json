@@ -21,8 +21,8 @@
       "location": "Chicago, IL",
       "pickup": "IL - Chicago",
       "buyNowPrice": 52500,
-      "auctionStartAt": "2026-04-02T18:00:00Z",
-      "auctionEndAt": "2026-04-03T18:00:00Z"
+      "auctionStartAt": "2026-04-27T09:00:00Z",
+      "auctionEndAt": "2026-04-28T21:00:00Z"
     },
     {
       "id": "1957-chevrolet-Bel-Air",
@@ -68,8 +68,8 @@
       "seller": "Sun Coast Classics",
       "location": "Miami, FL",
       "pickup": "FL - Miami",
-      "auctionStartAt": "2026-04-02T20:00:00Z",
-      "auctionEndAt": "2026-04-03T20:00:00Z"
+      "auctionStartAt": "2026-04-27T08:00:00Z",
+      "auctionEndAt": "2026-04-27T22:00:00Z"
     },
     {
       "id": "1958-chevrolet--impala",
@@ -93,8 +93,8 @@
       "location": "Kansas City, MO",
       "pickup": "MO - Kansas City",
       "buyNowPrice": 45500,
-      "auctionStartAt": "2026-04-01T18:00:00Z",
-      "auctionEndAt": "2026-04-02T18:00:00Z"
+      "auctionStartAt": "2026-04-27T10:00:00Z",
+      "auctionEndAt": "2026-04-28T10:00:00Z"
     },
     {
       "id": "1959-cadillac-series-62",
@@ -163,8 +163,8 @@
       "location": "Atlanta, GA",
       "pickup": "GA - Atlanta",
       "buyNowPrice": 92500,
-      "auctionStartAt": "2026-04-02T22:00:00Z",
-      "auctionEndAt": "2026-04-03T22:00:00Z"
+      "auctionStartAt": "2026-04-26T18:00:00Z",
+      "auctionEndAt": "2026-04-28T06:00:00Z"
     },
     {
       "id": "1969-mercury-cougar",
@@ -210,8 +210,8 @@
       "location": "Tucson, AZ",
       "pickup": "AZ - Tucson",
       "buyNowPrice": 39500,
-      "auctionStartAt": "2026-04-03T00:00:00Z",
-      "auctionEndAt": "2026-04-04T00:00:00Z"
+      "auctionStartAt": "2026-04-24T20:00:00Z",
+      "auctionEndAt": "2026-04-25T20:00:00Z"
     },
     {
       "id": "car-image-01",
@@ -234,8 +234,8 @@
       "location": "Denver, CO",
       "pickup": "CO - Denver",
       "buyNowPrice": 31500,
-      "auctionStartAt": "2026-03-29T12:00:00Z",
-      "auctionEndAt": "2026-03-30T12:00:00Z"
+      "auctionStartAt": "2026-04-27T11:00:00Z",
+      "auctionEndAt": "2026-04-28T11:00:00Z"
     },
     {
       "id": "car-image-02",
@@ -282,8 +282,8 @@
       "location": "Dallas, TX",
       "pickup": "TX - Dallas",
       "buyNowPrice": 27900,
-      "auctionStartAt": "2026-04-01T10:00:00Z",
-      "auctionEndAt": "2026-04-02T10:00:00Z"
+      "auctionStartAt": "2026-04-27T12:00:00Z",
+      "auctionEndAt": "2026-04-28T12:00:00Z"
     },
     {
       "id": "car-image-04",
@@ -329,8 +329,8 @@
       "location": "Charlotte, NC",
       "pickup": "NC - Charlotte",
       "buyNowPrice": 24500,
-      "auctionStartAt": "2026-04-02T16:00:00Z",
-      "auctionEndAt": "2026-04-03T16:00:00Z"
+      "auctionStartAt": "2026-04-23T16:00:00Z",
+      "auctionEndAt": "2026-04-24T16:00:00Z"
     },
     {
       "id": "car-image-06",
@@ -352,8 +352,8 @@
       "seller": "Northwest Motor Vault",
       "location": "Seattle, WA",
       "pickup": "WA - Seattle",
-      "auctionStartAt": "2026-04-02T19:00:00Z",
-      "auctionEndAt": "2026-04-03T19:00:00Z"
+      "auctionStartAt": "2026-04-27T14:00:00Z",
+      "auctionEndAt": "2026-04-28T14:00:00Z"
     },
     {
       "id": "car-image-07",
@@ -376,8 +376,8 @@
       "location": "Orlando, FL",
       "pickup": "FL - Orlando",
       "buyNowPrice": 52500,
-      "auctionStartAt": "2026-04-01T08:00:00Z",
-      "auctionEndAt": "2026-04-02T08:00:00Z"
+      "auctionStartAt": "2026-04-27T06:00:00Z",
+      "auctionEndAt": "2026-04-28T18:00:00Z"
     },
     {
       "id": "car-image-08",
@@ -400,8 +400,8 @@
       "location": "Scottsdale, AZ",
       "pickup": "AZ - Scottsdale",
       "buyNowPrice": 425000,
-      "auctionStartAt": "2026-04-02T17:00:00Z",
-      "auctionEndAt": "2026-04-03T17:00:00Z"
+      "auctionStartAt": "2026-04-25T17:00:00Z",
+      "auctionEndAt": "2026-04-26T17:00:00Z"
     },
     {
       "id": "car-image-09",
@@ -424,8 +424,8 @@
       "location": "Las Vegas, NV",
       "pickup": "NV - Las Vegas",
       "buyNowPrice": 345000,
-      "auctionStartAt": "2026-04-02T15:00:00Z",
-      "auctionEndAt": "2026-04-03T15:00:00Z"
+      "auctionStartAt": "2026-04-24T15:00:00Z",
+      "auctionEndAt": "2026-04-25T15:00:00Z"
     },
     {
       "id": "car-image-10",
@@ -448,8 +448,8 @@
       "location": "Austin, TX",
       "pickup": "TX - Austin",
       "buyNowPrice": 389000,
-      "auctionStartAt": "2026-03-30T18:00:00Z",
-      "auctionEndAt": "2026-03-31T18:00:00Z"
+      "auctionStartAt": "2026-04-23T18:00:00Z",
+      "auctionEndAt": "2026-04-24T18:00:00Z"
     },
     {
       "id": "car-image-11",
@@ -472,8 +472,8 @@
       "location": "San Diego, CA",
       "pickup": "CA - San Diego",
       "buyNowPrice": 259000,
-      "auctionStartAt": "2026-04-01T20:00:00Z",
-      "auctionEndAt": "2026-04-02T20:00:00Z"
+      "auctionStartAt": "2026-04-25T20:00:00Z",
+      "auctionEndAt": "2026-04-26T20:00:00Z"
     }
   ]
 }
