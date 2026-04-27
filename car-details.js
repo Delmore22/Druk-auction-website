@@ -5,6 +5,8 @@ var lightboxElements = {
     overlay: null,
     image: null
 };
+var vehicleSubmissionSupabaseClient = null;
+var VEHICLE_SUBMISSIONS_TABLE = 'vehicle_submissions';
 
 // Re-init search panel using the shared partial IDs once components are ready
 document.addEventListener('components:ready', function () {
@@ -376,7 +378,9 @@ function initBackToAuctions() {
 function loadCarDetails() {
     var params = new URLSearchParams(window.location.search);
     var carId = params.get('car');
+    var submissionIdParam = params.get('sid');
     var sourceSection = params.get('source');
+
     if (!carId) {
         showCarError('No vehicle selected.', 'car-dashboard.html', 'Browse listings ->');
         return;
@@ -388,15 +392,184 @@ function loadCarDetails() {
         })
         .then(function (data) {
             var car = data.cars.find(function (c) { return c.id === carId; });
-            if (!car) {
-                showCarError('Vehicle not found.', 'car-dashboard.html', 'Browse listings ->');
+            if (car) {
+                renderCarDetail(car, sourceSection);
+                document.title = car.year + ' ' + car.make + ' ' + car.model + ' — Collectors Alliance Exchange';
                 return;
             }
-            renderCarDetail(car, sourceSection);
-            document.title = car.year + ' ' + car.make + ' ' + car.model + ' — Collectors Alliance Exchange';
+
+            return loadApprovedSubmissionCar(carId, submissionIdParam)
+                .then(function (submissionCar) {
+                    if (!submissionCar) {
+                        showCarError('Vehicle not found.', 'car-dashboard.html', 'Browse listings ->');
+                        return;
+                    }
+
+                    renderCarDetail(submissionCar, sourceSection);
+                    document.title = submissionCar.year + ' ' + submissionCar.make + ' ' + submissionCar.model + ' — Collectors Alliance Exchange';
+                });
         })
         .catch(function () {
             showCarError('Could not load vehicle data. Please try again.');
+        });
+}
+
+function getVehicleSubmissionConfig() {
+    return window.ADD_VEHICLE_SUPABASE_CONFIG || {};
+}
+
+function looksLikePlaceholderConfigValue(value) {
+    return !value || /your[-_ ]/i.test(value) || /replace[-_ ]/i.test(value);
+}
+
+function initializeVehicleSubmissionSupabase() {
+    var config = getVehicleSubmissionConfig();
+
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        return false;
+    }
+
+    if (looksLikePlaceholderConfigValue(config.url) || looksLikePlaceholderConfigValue(config.anonKey)) {
+        return false;
+    }
+
+    if (!vehicleSubmissionSupabaseClient) {
+        vehicleSubmissionSupabaseClient = window.supabase.createClient(config.url, config.anonKey);
+    }
+
+    return true;
+}
+
+function loadSubmissionViaRest(submissionId) {
+    var config = getVehicleSubmissionConfig();
+
+    if (looksLikePlaceholderConfigValue(config.url) || looksLikePlaceholderConfigValue(config.anonKey)) {
+        return Promise.resolve(null);
+    }
+
+    var endpoint = String(config.url || '').replace(/\/$/, '') + '/rest/v1/' + VEHICLE_SUBMISSIONS_TABLE
+        + '?select=id,vin,year,make,model,seller_name,seller_company,submitted_payload,review_status'
+        + '&id=eq.' + encodeURIComponent(submissionId)
+        + '&limit=1';
+
+    return fetch(endpoint, {
+        headers: {
+            apikey: config.anonKey,
+            Authorization: 'Bearer ' + config.anonKey
+        }
+    })
+        .then(function (response) {
+            if (!response.ok) {
+                return null;
+            }
+
+            return response.json();
+        })
+        .then(function (rows) {
+            if (!Array.isArray(rows) || !rows.length) {
+                return null;
+            }
+
+            return mapApprovedSubmissionToCar(rows[0]);
+        })
+        .catch(function () {
+            return null;
+        });
+}
+
+function getSubmissionIdFromCarId(carId) {
+    var value = String(carId || '');
+    if (value.indexOf('submission-') === 0) {
+        return value.slice('submission-'.length);
+    }
+
+    // Accept direct UUID-style ids as well so deep links stay resilient.
+    if (/^[0-9a-fA-F-]{30,}$/.test(value)) {
+        return value;
+    }
+
+    return null;
+}
+
+function getSubmissionPhotoUrls(payload) {
+    if (!payload || !Array.isArray(payload.photos)) {
+        return [];
+    }
+
+    return payload.photos.map(function (photo) {
+        if (!photo || typeof photo !== 'object') {
+            return '';
+        }
+
+        return photo.url || photo.path || '';
+    }).filter(Boolean);
+}
+
+function mapApprovedSubmissionToCar(entry) {
+    var payload = entry && entry.submitted_payload && typeof entry.submitted_payload === 'object'
+        ? entry.submitted_payload
+        : {};
+    var photoUrls = getSubmissionPhotoUrls(payload);
+    var estimateValue = Number.parseFloat(payload.estimateValue);
+    var startingBid = Number.parseFloat(payload.startingBid);
+    var reservePrice = Number.parseFloat(payload.reservePrice);
+    var fallbackBid = Number.isFinite(estimateValue)
+        ? estimateValue
+        : (Number.isFinite(startingBid) ? startingBid : 0);
+
+    return {
+        id: 'submission-' + entry.id,
+        submissionId: entry.id,
+        vin: entry.vin || payload.vin || '',
+        year: Number.parseInt(entry.year || payload.year, 10) || entry.year || payload.year || '--',
+        make: entry.make || payload.make || 'Vehicle',
+        model: entry.model || payload.model || 'Submission',
+        engine: payload.engine || '',
+        transmission: payload.transmission || '',
+        bodyStyle: payload.bodyType || payload.bodyStyle || '',
+        mileage: payload.mileage || 'Unknown',
+        condition: payload.titleStatus || 'Approved Submission',
+        description: payload.description || 'Approved submission awaiting auction launch.',
+        photo: photoUrls[0] || '',
+        photos: photoUrls,
+        currentBid: Math.round(fallbackBid),
+        startingBid: Number.isFinite(startingBid) ? Math.round(startingBid) : Math.round(fallbackBid),
+        buyNowPrice: Number.isFinite(reservePrice) ? Math.round(reservePrice) : null,
+        reservePrice: Number.isFinite(reservePrice) ? Math.round(reservePrice) : null,
+        status: 'Sale',
+        seller: entry.seller_company || entry.seller_name || payload.sellerCompanyName || payload.sellerContactName || 'Dealer',
+        location: payload.pickupLocation || payload.pickupCity || 'Pending location review',
+        pickup: payload.pickupLocation || payload.pickupCity || 'Pending location review',
+        timeRemaining: '24:00:00',
+        auctionStartAt: null,
+        auctionEndAt: null
+    };
+}
+
+function loadApprovedSubmissionCar(carId, submissionIdOverride) {
+    var submissionId = submissionIdOverride || getSubmissionIdFromCarId(carId);
+    if (!submissionId) {
+        return Promise.resolve(null);
+    }
+
+    if (!initializeVehicleSubmissionSupabase()) {
+        return loadSubmissionViaRest(submissionId);
+    }
+
+    return vehicleSubmissionSupabaseClient
+        .from(VEHICLE_SUBMISSIONS_TABLE)
+        .select('id, vin, year, make, model, seller_name, seller_company, submitted_payload, review_status')
+        .eq('id', submissionId)
+        .maybeSingle()
+        .then(function (result) {
+            if (result.error || !result.data) {
+                return loadSubmissionViaRest(submissionId);
+            }
+
+            return mapApprovedSubmissionToCar(result.data);
+        })
+        .catch(function () {
+            return loadSubmissionViaRest(submissionId);
         });
 }
 

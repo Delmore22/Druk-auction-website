@@ -19,6 +19,9 @@
     var rangeLabel = document.getElementById('inventoryRange');
     var inventoryViewMode = document.getElementById('inventoryViewMode');
     var rowsPerPageSelect = document.getElementById('inventoryRowsPerPage');
+    var paginationPrevButton = document.getElementById('inventoryPagePrev');
+    var paginationNextButton = document.getElementById('inventoryPageNext');
+    var paginationInfo = document.getElementById('inventoryPageInfo');
     var clearButton = document.getElementById('inventoryClearSearch');
     var dealershipFilterMenu = document.getElementById('dealershipFilterMenu');
     var launchFilterMenu = document.getElementById('launchFilterMenu');
@@ -47,12 +50,72 @@
         { value: 'review', label: 'Needs Review' },
         { value: 'sold', label: 'Sold Archive' }
     ];
-    var statusOptionOrder = ['Ready for sale', 'Inspection Pending', 'Needs inspection', 'Expired', 'Sold'];
+    var statusOptionOrder = ['Ready for Sale', 'Inspection Pending', 'Needs inspection', 'Expired', 'Sold'];
     var inventoryPriceStorageKey = 'myVehiclesBuyNowOverrides';
     var activePriceEditCarId = null;
     var currentInventoryView = inventoryViewMode.value === 'card' ? 'card' : 'table';
+    var currentPage = 1;
     var vehicleSubmissionSupabaseClient = null;
     var VEHICLE_SUBMISSIONS_TABLE = 'vehicle_submissions';
+
+    function getPageSize() {
+        var pageSize = Number.parseInt(rowsPerPageSelect.value, 10);
+        if (!Number.isFinite(pageSize) || pageSize <= 0) {
+            return 20;
+        }
+        return pageSize;
+    }
+
+    function getPaginationMeta(cars) {
+        var total = cars.length;
+        var pageSize = getPageSize();
+
+        if (!total) {
+            currentPage = 1;
+            return {
+                total: 0,
+                pageCount: 1,
+                currentPage: 1,
+                startIndex: 0,
+                endIndex: 0,
+                visibleCars: []
+            };
+        }
+
+        var pageCount = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage < 1) {
+            currentPage = 1;
+        }
+        if (currentPage > pageCount) {
+            currentPage = pageCount;
+        }
+
+        var startIndex = (currentPage - 1) * pageSize;
+        var endIndex = Math.min(startIndex + pageSize, total);
+
+        return {
+            total: total,
+            pageCount: pageCount,
+            currentPage: currentPage,
+            startIndex: startIndex,
+            endIndex: endIndex,
+            visibleCars: cars.slice(startIndex, endIndex)
+        };
+    }
+
+    function updatePaginationControls(meta) {
+        if (paginationInfo) {
+            paginationInfo.textContent = 'Page ' + meta.currentPage + ' of ' + meta.pageCount;
+        }
+
+        if (paginationPrevButton) {
+            paginationPrevButton.disabled = meta.total === 0 || meta.currentPage <= 1;
+        }
+
+        if (paginationNextButton) {
+            paginationNextButton.disabled = meta.total === 0 || meta.currentPage >= meta.pageCount;
+        }
+    }
 
     function getVehicleSubmissionConfig() {
         return window.ADD_VEHICLE_SUPABASE_CONFIG || {};
@@ -268,6 +331,7 @@
 
                 closeReviewDecision();
                 loadReviewQueue();
+                loadInventoryData();
             })
             .catch(function (error) {
                 console.error('Review decision failed:', error);
@@ -389,6 +453,73 @@
         }).replace('/', '-').replace('/', '-');
     }
 
+    function getSubmissionPrimaryPhoto(payload) {
+        var photos = payload && Array.isArray(payload.photos) ? payload.photos : [];
+
+        if (!photos.length) {
+            return '';
+        }
+
+        return photos[0].url || photos[0].path || '';
+    }
+
+    function mapApprovedSubmissionToInventoryCar(entry) {
+        var payload = entry && entry.submitted_payload && typeof entry.submitted_payload === 'object'
+            ? entry.submitted_payload
+            : {};
+        var sellerName = entry.seller_company || entry.seller_name || payload.sellerCompanyName || payload.sellerContactName || 'Dealer';
+        var estimateValue = Number.parseFloat(payload.estimateValue);
+        var buyNowValue = Number.parseFloat(payload.reservePrice || payload.estimateValue || payload.startingBid);
+
+        return {
+            id: 'submission-' + entry.id,
+            submissionId: entry.id,
+            vin: entry.vin || payload.vin || '',
+            year: Number.parseInt(entry.year || payload.year, 10) || entry.year || payload.year || '--',
+            make: entry.make || payload.make || 'Vehicle',
+            model: entry.model || payload.model || 'Submission',
+            engine: payload.engine || '',
+            transmission: payload.transmission || '',
+            bodyStyle: payload.bodyType || payload.bodyStyle || '',
+            mileage: payload.mileage || 'Unknown',
+            condition: payload.titleStatus || 'Approved Submission',
+            description: payload.description || 'Approved submission awaiting auction launch.',
+            photo: getSubmissionPrimaryPhoto(payload),
+            currentBid: Number.isFinite(estimateValue) ? Math.round(estimateValue) : 0,
+            buyNowPrice: Number.isFinite(buyNowValue) ? Math.round(buyNowValue) : null,
+            reservePrice: Number.isFinite(buyNowValue) ? Math.round(buyNowValue) : null,
+            status: 'Sale',
+            seller: sellerName,
+            location: payload.pickupLocation || payload.pickupCity || 'Pending location review',
+            pickup: payload.pickupLocation || payload.pickupCity || 'Pending location review',
+            auctionEndAt: null,
+            inventoryStatusOverride: { label: 'Ready for Sale', className: 'ready-for-sale' }
+        };
+    }
+
+    function loadApprovedInventorySubmissions() {
+        if (!initializeVehicleSubmissionSupabase()) {
+            return Promise.resolve([]);
+        }
+
+        return vehicleSubmissionSupabaseClient
+            .from(VEHICLE_SUBMISSIONS_TABLE)
+            .select('id, vin, year, make, model, seller_name, seller_company, submitted_payload, review_status, reviewed_at')
+            .eq('review_status', 'approved')
+            .order('reviewed_at', { ascending: false })
+            .then(function (result) {
+                if (result.error) {
+                    throw result.error;
+                }
+
+                return (result.data || []).map(mapApprovedSubmissionToInventoryCar);
+            })
+            .catch(function (error) {
+                console.error('Could not load approved inventory submissions:', error);
+                return [];
+            });
+    }
+
     function deriveDealerId(name) {
         var source = String(name || 'Dealer');
         var hash = 0;
@@ -439,6 +570,10 @@
     }
 
     function getInventoryStatus(car) {
+        if (car && car.inventoryStatusOverride && car.inventoryStatusOverride.label && car.inventoryStatusOverride.className) {
+            return car.inventoryStatusOverride;
+        }
+
         var auctionStatus = normalizeStatus(car.status, car);
         var hasCoreListingInfo = Boolean(
             car && car.photo && car.description && car.seller && car.location && car.pickup && car.condition
@@ -460,7 +595,7 @@
             return { label: 'Expired', className: 'expired' };
         }
 
-        return { label: 'Ready for sale', className: 'ready-for-sale' };
+        return { label: 'Ready for Sale', className: 'ready-for-sale' };
     }
 
     function normalizeMileage(value) {
@@ -489,10 +624,26 @@
         return { value: 'review', label: 'Needs Review' };
     }
 
+    function buildCarDetailsHref(car) {
+        var params = [
+            'car=' + encodeURIComponent(car.id),
+            'source=seller',
+            'returnTo=' + encodeURIComponent('my-vehicles.html'),
+            'returnLabel=' + encodeURIComponent('My Vehicles'),
+            'v=20260427'
+        ];
+
+        if (car && car.submissionId) {
+            params.push('sid=' + encodeURIComponent(car.submissionId));
+        }
+
+        return 'car-details.html?' + params.join('&');
+    }
+
     function createVehicleCell(car) {
         var link = document.createElement('a');
         link.className = 'inventory-vehicle';
-        link.href = 'car-details.html?car=' + encodeURIComponent(car.id) + '&source=seller&returnTo=' + encodeURIComponent('my-vehicles.html') + '&returnLabel=' + encodeURIComponent('My Vehicles');
+        link.href = buildCarDetailsHref(car);
         link.target = '_blank';
         link.rel = 'opener';
 
@@ -516,7 +667,7 @@
     function createCardVehicleCell(car, statusMeta) {
         var link = document.createElement('a');
         link.className = 'inventory-vehicle inventory-card-vehicle';
-        link.href = 'car-details.html?car=' + encodeURIComponent(car.id) + '&source=seller&returnTo=' + encodeURIComponent('my-vehicles.html') + '&returnLabel=' + encodeURIComponent('My Vehicles');
+        link.href = buildCarDetailsHref(car);
         link.target = '_blank';
         link.rel = 'opener';
 
@@ -756,6 +907,8 @@
 
     function renderTable(cars) {
         tableBody.textContent = '';
+        var meta = getPaginationMeta(cars);
+        updatePaginationControls(meta);
 
         if (!cars.length) {
             var emptyRow = document.createElement('tr');
@@ -771,14 +924,7 @@
             return;
         }
 
-        var pageSize = Number.parseInt(rowsPerPageSelect.value, 10);
-        if (!Number.isFinite(pageSize) || pageSize <= 0) {
-            pageSize = 20;
-        }
-
-        var visibleCars = cars.slice(0, pageSize);
-
-        visibleCars.forEach(function (car) {
+        meta.visibleCars.forEach(function (car) {
             var statusMeta = getInventoryStatus(car);
             var row = document.createElement('tr');
 
@@ -838,12 +984,14 @@
             tableBody.appendChild(row);
         });
 
-        viewedCount.textContent = String(visibleCars.length);
-        rangeLabel.textContent = '1-' + visibleCars.length + ' of ' + cars.length;
+        viewedCount.textContent = String(meta.visibleCars.length);
+        rangeLabel.textContent = String(meta.startIndex + 1) + '-' + String(meta.endIndex) + ' of ' + String(meta.total);
     }
 
     function renderCards(cars) {
         inventoryCardGrid.textContent = '';
+        var meta = getPaginationMeta(cars);
+        updatePaginationControls(meta);
 
         if (!cars.length) {
             var emptyCard = document.createElement('article');
@@ -853,14 +1001,7 @@
             return;
         }
 
-        var pageSize = Number.parseInt(rowsPerPageSelect.value, 10);
-        if (!Number.isFinite(pageSize) || pageSize <= 0) {
-            pageSize = 20;
-        }
-
-        var visibleCars = cars.slice(0, pageSize);
-
-        visibleCars.forEach(function (car) {
+        meta.visibleCars.forEach(function (car) {
             var statusMeta = getInventoryStatus(car);
             var card = document.createElement('article');
             card.className = 'inventory-card';
@@ -907,22 +1048,19 @@
     }
 
     function setInventoryCounts(cars) {
-        totalCount.textContent = String(cars.length);
+        var meta = getPaginationMeta(cars);
+        totalCount.textContent = String(meta.total);
 
-        if (!cars.length) {
+        if (!meta.total) {
             viewedCount.textContent = '0';
             rangeLabel.textContent = '0-0 of 0';
+            updatePaginationControls(meta);
             return;
         }
 
-        var pageSize = Number.parseInt(rowsPerPageSelect.value, 10);
-        if (!Number.isFinite(pageSize) || pageSize <= 0) {
-            pageSize = 20;
-        }
-
-        var visibleCount = Math.min(cars.length, pageSize);
-        viewedCount.textContent = String(visibleCount);
-        rangeLabel.textContent = '1-' + visibleCount + ' of ' + cars.length;
+        viewedCount.textContent = String(meta.visibleCars.length);
+        rangeLabel.textContent = String(meta.startIndex + 1) + '-' + String(meta.endIndex) + ' of ' + String(meta.total);
+        updatePaginationControls(meta);
     }
 
     function refreshInventoryView() {
@@ -944,27 +1082,42 @@
         filterState.launch.clear();
         filterState.status.clear();
         rowsPerPageSelect.value = '20';
+        currentPage = 1;
         renderFilterMenus();
         refreshInventoryView();
     }
 
     function loadInventoryData() {
-        fetch('data/cars.json')
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
-                }
-                return response.json();
-            })
-            .then(function (payload) {
-                allCars = payload && Array.isArray(payload.cars) ? applyStoredPriceOverrides(payload.cars) : [];
+        return Promise.all([
+            fetch('data/cars.json')
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('HTTP ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(function (payload) {
+                    return payload && Array.isArray(payload.cars) ? payload.cars : [];
+                })
+                .catch(function () {
+                    return [];
+                }),
+            loadApprovedInventorySubmissions()
+        ])
+            .then(function (results) {
+                var staticCars = Array.isArray(results[0]) ? results[0] : [];
+                var approvedCars = Array.isArray(results[1]) ? results[1] : [];
+
+                allCars = applyStoredPriceOverrides(staticCars.concat(approvedCars));
                 renderFilterMenus();
                 refreshInventoryView();
+                return allCars;
             })
             .catch(function () {
                 allCars = [];
                 renderFilterMenus();
                 refreshInventoryView();
+                return [];
             });
     }
 
@@ -990,6 +1143,7 @@
     });
 
     rowsPerPageSelect.addEventListener('change', function () {
+        currentPage = 1;
         refreshInventoryView();
     });
 
@@ -1001,6 +1155,20 @@
     if (clearButton) {
         clearButton.addEventListener('click', function () {
             resetFilters();
+        });
+    }
+
+    if (paginationPrevButton) {
+        paginationPrevButton.addEventListener('click', function () {
+            currentPage = Math.max(1, currentPage - 1);
+            refreshInventoryView();
+        });
+    }
+
+    if (paginationNextButton) {
+        paginationNextButton.addEventListener('click', function () {
+            currentPage += 1;
+            refreshInventoryView();
         });
     }
 
