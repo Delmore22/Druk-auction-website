@@ -774,9 +774,9 @@ body.inventory-modal-open {
 }
 
 .my-vehicles-page .inventory-status.ready-for-sale {
-    background: #15803d;
+    background: #0e7490;
     color: #ffffff;
-    border-color: #166534;
+    border-color: #0c6475;
 }
 
 .my-vehicles-page .inventory-status.inspection-pending {
@@ -810,9 +810,9 @@ body.inventory-modal-open {
 }
 
 .my-vehicles-page .inventory-status.sold {
-    background: #166534;
+    background: #15803d;
     color: #ffffff;
-    border-color: #14532d;
+    border-color: #166534;
 }
 
 .my-vehicles-page .inventory-loading,
