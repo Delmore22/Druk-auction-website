@@ -208,6 +208,17 @@ body.car-details-page {
     background: #0f766e;
 }
 
+.cdv-status-ready-for-sale {
+    background: #7c3aed;
+}
+
+.cdv-seller-preview-note {
+    color: var(--text-muted, #9ca3af);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
 .cdv-bid-actions {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

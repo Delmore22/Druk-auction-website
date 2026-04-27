@@ -536,11 +536,11 @@ function mapApprovedSubmissionToCar(entry) {
         startingBid: Number.isFinite(startingBid) ? Math.round(startingBid) : Math.round(fallbackBid),
         buyNowPrice: Number.isFinite(reservePrice) ? Math.round(reservePrice) : null,
         reservePrice: Number.isFinite(reservePrice) ? Math.round(reservePrice) : null,
-        status: 'Sale',
+        status: 'ready-for-sale',
         seller: entry.seller_company || entry.seller_name || payload.sellerCompanyName || payload.sellerContactName || 'Dealer',
         location: payload.pickupLocation || payload.pickupCity || 'Pending location review',
         pickup: payload.pickupLocation || payload.pickupCity || 'Pending location review',
-        timeRemaining: '24:00:00',
+        timeRemaining: null,
         auctionStartAt: null,
         auctionEndAt: null
     };
@@ -738,6 +738,10 @@ function isActiveAuctionCar(car, status) {
 }
 
 function getCarDetailSectionMode(car, status, sourceSection) {
+    if (sourceSection === 'seller') {
+        return 'seller';
+    }
+
     if (sourceSection === 'active' || sourceSection === 'marketplace' || sourceSection === 'sold') {
         return sourceSection;
     }
@@ -1181,6 +1185,36 @@ function buildBidStrip(car, sourceSection) {
         stat.appendChild(value);
         return stat;
     };
+
+    if (sectionMode === 'seller') {
+        var sellerStatusBadge = createElement('span', 'cdv-status-badge cdv-status-ready-for-sale', 'Ready for Sale');
+        var sellerNote = createElement('span', 'cdv-bid-value cdv-seller-preview-note', 'Not yet listed for auction');
+        stats.appendChild(createBidStat('Status', sellerStatusBadge));
+        stats.appendChild(createElement('div', 'cdv-bid-stat cdv-bid-stat-preview', sellerNote));
+
+        var previewPrimary = createElement('button', 'cdv-bid-button is-primary', 'Bid —');
+        previewPrimary.type = 'button';
+        previewPrimary.disabled = true;
+        previewPrimary.setAttribute('title', 'Listing not yet active');
+
+        var previewBuyNow = createElement('button', 'cdv-bid-button', 'Buy Now —');
+        previewBuyNow.type = 'button';
+        previewBuyNow.disabled = true;
+        previewBuyNow.setAttribute('title', 'Listing not yet active');
+
+        var previewProxy = createElement('button', 'cdv-bid-button', 'Set Proxy');
+        previewProxy.type = 'button';
+        previewProxy.disabled = true;
+        previewProxy.setAttribute('title', 'Listing not yet active');
+
+        actions.appendChild(previewPrimary);
+        actions.appendChild(previewBuyNow);
+        actions.appendChild(previewProxy);
+
+        section.appendChild(stats);
+        section.appendChild(actions);
+        return section;
+    }
 
     if (displayStatus === 'sold') {
         var transportSearchRow = createElement('div', 'cdv-transport-search-row');
