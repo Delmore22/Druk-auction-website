@@ -1189,8 +1189,10 @@ function buildBidStrip(car, sourceSection) {
     if (sectionMode === 'seller') {
         var sellerStatusBadge = createElement('span', 'cdv-status-badge cdv-status-ready-for-sale', 'Ready for Sale');
         var sellerNote = createElement('span', 'cdv-bid-value cdv-seller-preview-note', 'Not yet listed for auction');
+        var sellerNoteStat = createElement('div', 'cdv-bid-stat cdv-bid-stat-preview');
+        sellerNoteStat.appendChild(sellerNote);
         stats.appendChild(createBidStat('Status', sellerStatusBadge));
-        stats.appendChild(createElement('div', 'cdv-bid-stat cdv-bid-stat-preview', sellerNote));
+        stats.appendChild(sellerNoteStat);
 
         var previewPrimary = createElement('button', 'cdv-bid-button is-primary', 'Bid —');
         previewPrimary.type = 'button';
