@@ -160,6 +160,98 @@
         });
     }
 
+    function pickFeaturedVehicle(allCars) {
+        var active = allCars.filter(function (c) {
+            var s = (c.status || '').toLowerCase();
+            return s === 'sale' || s === 'reserve is off' || s === 'appending';
+        });
+        if (!active.length) {
+            active = allCars.filter(function (c) {
+                return (c.status || '').toLowerCase() !== 'sold';
+            });
+        }
+        if (!active.length) return null;
+        return active[Math.floor(Math.random() * active.length)];
+    }
+
+    function renderHeroFeaturedVehicle(allCars) {
+        var container = document.getElementById('heroFeaturedVehicle');
+        if (!container) return;
+
+        var car = pickFeaturedVehicle(allCars);
+        if (!car) return;
+
+        var href = 'car-details.html?car=' + encodeURIComponent(car.id)
+            + '&source=marketplace&returnTo=my-searches.html&returnLabel=My%20Searches';
+        var photoSrc = (car.photos && car.photos.length) ? car.photos[0]
+            : (car.photo || 'images/placeholder-car.png');
+        var title = car.year + ' ' + car.make + ' ' + car.model;
+        var specs = [car.bodyStyle, car.transmission, car.engine].filter(Boolean).join(' · ');
+        var price = car.currentBid
+            ? '$' + Number(car.currentBid).toLocaleString()
+            : (car.startingBid ? '$' + Number(car.startingBid).toLocaleString() : '');
+
+        var s = (car.status || '').toLowerCase();
+        var pillText = s === 'sale' ? 'Live'
+            : s === 'reserve is off' ? 'Reserve Off'
+            : s === 'appending' ? 'Reserve'
+            : (car.status || 'Listed');
+        var pillClass = 'hero-feature-pill'
+            + (s === 'appending' ? ' is-reserve' : '')
+            + (s === 'reserve is off' ? ' is-reserve-off' : '');
+
+        var label = document.createElement('div');
+        label.className = 'hero-feature-label';
+        label.textContent = 'Feature Car of the Day';
+
+        var a = document.createElement('a');
+        a.className = 'hero-feature-card';
+        a.href = href;
+        a.setAttribute('title', 'View ' + title);
+
+        var img = document.createElement('img');
+        img.className = 'hero-feature-img';
+        img.src = photoSrc;
+        img.alt = title;
+        img.loading = 'lazy';
+        img.onerror = function () { this.src = 'images/placeholder-car.png'; };
+
+        var info = document.createElement('div');
+        info.className = 'hero-feature-info';
+
+        var nameEl = document.createElement('span');
+        nameEl.className = 'hero-feature-name';
+        nameEl.textContent = title;
+
+        var specsEl = document.createElement('span');
+        specsEl.className = 'hero-feature-specs';
+        specsEl.textContent = specs;
+
+        var bottom = document.createElement('div');
+        bottom.className = 'hero-feature-bottom';
+
+        var pill = document.createElement('span');
+        pill.className = pillClass;
+        pill.textContent = pillText;
+        bottom.appendChild(pill);
+
+        if (price) {
+            var priceEl = document.createElement('span');
+            priceEl.className = 'hero-feature-price';
+            priceEl.textContent = price;
+            bottom.appendChild(priceEl);
+        }
+
+        info.appendChild(nameEl);
+        info.appendChild(specsEl);
+        info.appendChild(bottom);
+        a.appendChild(img);
+        a.appendChild(info);
+
+        container.appendChild(label);
+        container.appendChild(a);
+    }
+
     function init() {
         renderSavedSearches();
 
@@ -169,7 +261,9 @@
                 return res.json();
             })
             .then(function (data) {
-                renderFavorites(data.cars || []);
+                var cars = data.cars || [];
+                renderFavorites(cars);
+                renderHeroFeaturedVehicle(cars);
             })
             .catch(function (err) {
                 console.error('[my-searches]', err);

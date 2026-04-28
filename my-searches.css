@@ -4,6 +4,18 @@
     padding: 1rem 2rem;
 }
 
+/* Two-column layout — banner height does NOT change */
+.my-searches-page .page-hero.hero-has-feature {
+    display: grid;
+    grid-template-columns: 1fr 0.85fr;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.hero-feature-left {
+    min-width: 0;
+}
+
 .my-searches-page .page-hero h1 {
     font-size: clamp(1.1rem, 2vw, 1.4rem);
     margin-bottom: 0.3rem;
@@ -20,6 +32,125 @@
 
 .my-searches-page .hero-actions {
     margin-top: 0.75rem;
+}
+
+/* Right column — wraps label + card, anchored right */
+.hero-feature-right {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+    align-items: flex-end;
+    align-self: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* "Feature Car of the Day" label — flush above card */
+.hero-feature-label {
+    font-size: 1.82rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+    opacity: 0.82;
+    letter-spacing: 0.01em;
+    width: 100%;
+}
+
+/* Horizontal card: image left, info right — gold accent border */
+.hero-feature-card {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    border: 1.5px solid rgba(218, 165, 32, 0.55);
+    border-left: 3px solid #DAA520;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.28);
+    text-decoration: none;
+    color: #ffffff;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.15s ease;
+}
+
+.hero-feature-card:hover {
+    border-color: rgba(218, 165, 32, 0.9);
+    border-left-color: #DAA520;
+    background: rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    text-decoration: none;
+    color: #ffffff;
+}
+
+.hero-feature-img {
+    width: 44%;
+    height: 100%;
+    max-height: 130px;
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;
+}
+
+.hero-feature-info {
+    flex: 1;
+    padding: 0.55rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.2rem;
+    min-width: 0;
+    align-self: center;
+}
+
+.hero-feature-name {
+    font-size: 0.92rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hero-feature-specs {
+    font-size: 0.75rem;
+    opacity: 0.72;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hero-feature-bottom {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+}
+
+.hero-feature-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: #15803d;
+    color: #ffffff;
+}
+
+.hero-feature-pill.is-reserve  { background: #b45309; }
+.hero-feature-pill.is-reserve-off { background: #0f766e; }
+
+.hero-feature-price {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #DAA520;
+}
+
+@media (max-width: 780px) {
+    .my-searches-page .page-hero.hero-has-feature {
+        grid-template-columns: 1fr;
+    }
+    .hero-feature-right {
+        display: none;
+    }
 }
 
 #favoritesSection {
