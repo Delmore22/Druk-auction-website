@@ -1,5 +1,5 @@
 window.ADD_VEHICLE_SUPABASE_CONFIG = {
-    url: 'https://wmmbvtxwihrbclpfukzy.supabase.co',
-    anonKey: 'sb_publishable_67gDlL-KhfWjH-AnrqaJGw_dh9L88RZ',
+    url: 'https://chllzkgugwuerlnbltay.supabase.co',
+    anonKey: 'sb_publishable_rpzSMoGHXVKEIRwipYmrHg_64fqgX0y',
     bucket: 'vehicle-submission-photos'
 };

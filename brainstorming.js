@@ -121,7 +121,20 @@
     }
 
     function normalizeAttachments(entry) {
-        return Array.isArray(entry.attachments) ? entry.attachments : [];
+        if (!entry || typeof entry !== 'object') {
+            return [];
+        }
+
+        if (Array.isArray(entry.attachments)) {
+            return entry.attachments;
+        }
+
+        // Some migrated rows may store a single attachment object instead of an array.
+        if (entry.attachments && typeof entry.attachments === 'object') {
+            return [entry.attachments];
+        }
+
+        return [];
     }
 
     function normalizeAuthor(entry) {
