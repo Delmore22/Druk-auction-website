@@ -487,7 +487,7 @@
             await removeUploadedImages(collectAttachmentPaths([{ attachments: uploadedImages }]));
             console.error('Brainstorming save failed:', err);
             if (/created_by/i.test(getErrorMessage(err, ''))) {
-                setMessage('This page needs the Created By database upgrade. Run the new SQL file in data/brainstorming-created-by-upgrade.sql.', 'error');
+                setMessage('This page needs the unified schema setup. Run data/collectors-alliance-schema.sql in Supabase.', 'error');
             } else {
                 setMessage('This idea could not be saved to Supabase: ' + getErrorMessage(err, 'Unknown error'), 'error');
             }

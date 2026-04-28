@@ -441,7 +441,7 @@
                     id: 'data-review-sql-exposure',
                     title: 'Keep SQL support files out of the public website surface',
                     text: 'The data folder includes SQL migration files that should not be casually exposed depending on how the site is hosted.',
-                    file: 'data/brainstorming-supabase.sql / data/brainstorming-created-by-upgrade.sql'
+                    file: 'data/collectors-alliance-schema.sql / archive/legacy-sql/'
                 },
                 {
                     id: 'deployment-exclude-smoke-scripts',
