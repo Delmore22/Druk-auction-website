@@ -22,9 +22,14 @@ $VEHICLES_URL   = 'https://wmmbvtxwihrbclpfukzy.supabase.co'
 $VEHICLES_KEY   = 'sb_publishable_67gDlL-KhfWjH-AnrqaJGw_dh9L88RZ'
 
 $NEW_URL         = 'https://chllzkgugwuerlnbltay.supabase.co'
-$NEW_KEY         = 'sb_publishable_rpzSMoGHXVKEIRwipYmrHg_64fqgX0y'
-# Service role key — bypasses RLS for migration inserts only
-$NEW_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNobGx6a2d1Z3d1ZXJsbmJsdGF5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzM5ODY1MCwiZXhwIjoyMDkyOTc0NjUwfQ.gC3kfs6ehgyTbW6dlEYdmMQV3SsVzgXQhTKM8oSy1rw'
+# Service role key — bypasses RLS for migration inserts only.
+# Set this in your shell before running:
+#   $env:COLLECTORS_ALLIANCE_SERVICE_ROLE_KEY = '<service_role_key>'
+$NEW_SERVICE_KEY = $env:COLLECTORS_ALLIANCE_SERVICE_ROLE_KEY
+
+if (-not $NEW_SERVICE_KEY) {
+    throw 'Missing COLLECTORS_ALLIANCE_SERVICE_ROLE_KEY. Set it in the terminal, then run this script again.'
+}
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -185,4 +190,4 @@ Write-Host "`n[4/4] Migrating vehicle-submission-photos storage..." -ForegroundC
 Migrate-StorageBucket -SrcUrl $VEHICLES_URL -SrcKey $VEHICLES_KEY -DstUrl $NEW_URL -DstKey $NEW_SERVICE_KEY -Bucket 'vehicle-submission-photos'
 
 Write-Host "`nMigration complete!" -ForegroundColor Green
-Write-Host "Next step: update brainstorming.supabase-config.js and add-vehicle.supabase-config.js with the new project URL and key." -ForegroundColor Cyan
+Write-Host "Next step: verify tables and buckets in Collectors-Alliance, then commit any remaining local changes." -ForegroundColor Cyan
