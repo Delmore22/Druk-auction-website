@@ -1,5 +1,27 @@
 /* My Searches page-specific styles */
 
+.my-searches-page .page-hero {
+    padding: 1rem 2rem;
+}
+
+.my-searches-page .page-hero h1 {
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    margin-bottom: 0.3rem;
+}
+
+.my-searches-page .page-hero p {
+    font-size: 0.88rem;
+    line-height: 1.4;
+}
+
+.my-searches-page .page-eyebrow {
+    margin-bottom: 0.4rem;
+}
+
+.my-searches-page .hero-actions {
+    margin-top: 0.75rem;
+}
+
 #favoritesSection {
     scroll-margin-top: 160px;
 }
