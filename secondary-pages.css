@@ -767,46 +767,16 @@ body.inventory-modal-open {
     border: 1px solid transparent;
 }
 
-.my-vehicles-page .inventory-status.expired {
-    background: rgba(148, 163, 184, 0.22);
-    color: var(--text-color);
-    border-color: rgba(148, 163, 184, 0.45);
-}
-
-.my-vehicles-page .inventory-status.ready-for-sale {
+.my-vehicles-page .inventory-status.active {
     background: #0e7490;
     color: #ffffff;
     border-color: #0c6475;
 }
 
-.my-vehicles-page .inventory-status.inspection-pending {
+.my-vehicles-page .inventory-status.pending {
     background: #b45309;
     color: #ffffff;
     border-color: #92400e;
-}
-
-.my-vehicles-page .inventory-status.needs-inspection {
-    background: #1d4ed8;
-    color: #ffffff;
-    border-color: #1e40af;
-}
-
-.my-vehicles-page .inventory-status.sale {
-    background: #1d4ed8;
-    color: #ffffff;
-    border-color: #1e40af;
-}
-
-.my-vehicles-page .inventory-status.reserve {
-    background: #b45309;
-    color: #ffffff;
-    border-color: #92400e;
-}
-
-.my-vehicles-page .inventory-status.reserve-off {
-    background: #0f766e;
-    color: #ffffff;
-    border-color: #115e59;
 }
 
 .my-vehicles-page .inventory-status.sold {

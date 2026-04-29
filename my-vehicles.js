@@ -50,7 +50,7 @@
         { value: 'review', label: 'Needs Review' },
         { value: 'sold', label: 'Sold Archive' }
     ];
-    var statusOptionOrder = ['Ready for Sale', 'Inspection Pending', 'Needs inspection', 'Expired', 'Sold'];
+    var statusOptionOrder = ['Active', 'Pending', 'Sold'];
     var inventoryPriceStorageKey = 'myVehiclesBuyNowOverrides';
     var activePriceEditCarId = null;
     var currentInventoryView = inventoryViewMode.value === 'card' ? 'card' : 'table';
@@ -585,7 +585,11 @@
 
     function getInventoryStatus(car) {
         if (car && car.inventoryStatusOverride && car.inventoryStatusOverride.label && car.inventoryStatusOverride.className) {
-            return car.inventoryStatusOverride;
+            // Remap legacy override labels to new three-status system
+            var ol = (car.inventoryStatusOverride.label || '').toLowerCase();
+            if (ol === 'sold') return { label: 'Sold', className: 'sold' };
+            if (ol === 'ready for sale') return { label: 'Active', className: 'active' };
+            return { label: 'Pending', className: 'pending' };
         }
 
         var auctionStatus = normalizeStatus(car.status, car);
@@ -593,23 +597,28 @@
             car && car.photo && car.description && car.seller && car.location && car.pickup && car.condition
         );
 
+        // Explicit Sold
         if (auctionStatus.className === 'sold') {
             return { label: 'Sold', className: 'sold' };
         }
 
+        // Manual Pending hold
+        if (String(car && car.status || '').trim().toLowerCase() === 'pending') {
+            return { label: 'Pending', className: 'pending' };
+        }
+
+        // Incomplete listing data — Pending
         if (!hasCoreListingInfo || normalizeMileage(car.mileage) === '--') {
-            return { label: 'Needs inspection', className: 'needs-inspection' };
+            return { label: 'Pending', className: 'pending' };
         }
 
-        if (auctionStatus.className === 'reserve') {
-            return { label: 'Inspection Pending', className: 'inspection-pending' };
-        }
-
+        // Auction expired — auto Pending
         if (hasExpiredAuction(car)) {
-            return { label: 'Expired', className: 'expired' };
+            return { label: 'Pending', className: 'pending' };
         }
 
-        return { label: 'Ready for Sale', className: 'ready-for-sale' };
+        // Everything else is Active
+        return { label: 'Active', className: 'active' };
     }
 
     function normalizeMileage(value) {
@@ -1123,6 +1132,11 @@
                 var approvedCars = Array.isArray(results[1]) ? results[1] : [];
 
                 allCars = applyStoredPriceOverrides(staticCars.concat(approvedCars));
+                allCars.sort(function (a, b) {
+                    var aSold = (a.status || '').toLowerCase() === 'sold' ? 1 : 0;
+                    var bSold = (b.status || '').toLowerCase() === 'sold' ? 1 : 0;
+                    return aSold - bSold;
+                });
                 renderFilterMenus();
                 refreshInventoryView();
                 return allCars;
