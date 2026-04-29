@@ -460,7 +460,21 @@
             return '';
         }
 
-        return photos[0].url || photos[0].path || '';
+        var photo = photos[0];
+        if (!photo) {
+            return '';
+        }
+
+        // Prefer rebuilding the URL from the stored path + current config.
+        // The stored url may point to a deleted or old Supabase project.
+        if (photo.path) {
+            var config = getVehicleSubmissionConfig();
+            if (config.url && config.bucket) {
+                return config.url + '/storage/v1/object/public/' + config.bucket + '/' + photo.path;
+            }
+        }
+
+        return photo.url || '';
     }
 
     function mapApprovedSubmissionToInventoryCar(entry) {

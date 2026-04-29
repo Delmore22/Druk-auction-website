@@ -496,12 +496,20 @@ function getSubmissionPhotoUrls(payload) {
         return [];
     }
 
+    var config = getVehicleSubmissionConfig();
+
     return payload.photos.map(function (photo) {
         if (!photo || typeof photo !== 'object') {
             return '';
         }
 
-        return photo.url || photo.path || '';
+        // Prefer rebuilding the URL from the stored path + current config.
+        // The stored url may point to a deleted or old Supabase project.
+        if (photo.path && config.url && config.bucket) {
+            return config.url + '/storage/v1/object/public/' + config.bucket + '/' + photo.path;
+        }
+
+        return photo.url || '';
     }).filter(Boolean);
 }
 
