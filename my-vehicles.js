@@ -960,9 +960,6 @@
             var vehicleCell = document.createElement('td');
             vehicleCell.appendChild(createVehicleCell(car));
 
-            var estimateCell = document.createElement('td');
-            estimateCell.textContent = formatCurrency(car.currentBid);
-
             var guaranteedCell = document.createElement('td');
             guaranteedCell.appendChild(createBuyNowEditor(car));
 
@@ -995,7 +992,6 @@
 
             row.appendChild(selectCell);
             row.appendChild(vehicleCell);
-            row.appendChild(estimateCell);
             row.appendChild(guaranteedCell);
             row.appendChild(statusCell);
             row.appendChild(dealerCell);
@@ -1037,7 +1033,6 @@
             metrics.className = 'inventory-card-metrics';
 
             [
-                ['Estimate', formatCurrency(car.currentBid)],
                 ['Buy Now', createBuyNowEditor(car)],
                 ['Dealership', car.seller || 'Dealer'],
                 ['Dealer ID', deriveDealerId(car.seller)],
