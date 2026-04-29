@@ -589,6 +589,16 @@
     background: rgba(148, 163, 184, 0.08);
 }
 
+.my-vehicles-page .inventory-table tbody tr.row-warning,
+.my-vehicles-page .inventory-table tbody tr.row-warning:nth-child(even) {
+    background: rgba(234, 179, 8, 0.14);
+}
+
+.my-vehicles-page .inventory-table tbody tr.row-danger,
+.my-vehicles-page .inventory-table tbody tr.row-danger:nth-child(even) {
+    background: rgba(220, 38, 38, 0.14);
+}
+
 .my-vehicles-page .inventory-table tbody td span {
     display: block;
     color: var(--secondary-text);

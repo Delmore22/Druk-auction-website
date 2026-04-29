@@ -507,6 +507,7 @@
             location: payload.pickupLocation || payload.pickupCity || 'Pending location review',
             pickup: payload.pickupLocation || payload.pickupCity || 'Pending location review',
             auctionEndAt: null,
+            auctionStartAt: entry.submitted_at || null,
             inventoryStatusOverride: { label: 'Ready for Sale', className: 'ready-for-sale' }
         };
     }
@@ -518,7 +519,7 @@
 
         return vehicleSubmissionSupabaseClient
             .from(VEHICLE_SUBMISSIONS_TABLE)
-            .select('id, vin, year, make, model, seller_name, seller_company, submitted_payload, review_status, reviewed_at')
+            .select('id, vin, year, make, model, seller_name, seller_company, submitted_payload, review_status, reviewed_at, submitted_at')
             .eq('review_status', 'approved')
             .order('reviewed_at', { ascending: false })
             .then(function (result) {
@@ -544,6 +545,13 @@
         }
 
         return String(Math.abs(hash % 90000) + 10000);
+    }
+
+    function getInventoryDays(car) {
+        if (!car || !car.auctionStartAt) return null;
+        var start = new Date(car.auctionStartAt);
+        if (Number.isNaN(start.getTime())) return null;
+        return Math.floor((Date.now() - start.getTime()) / (1000 * 60 * 60 * 24));
     }
 
     function normalizeStatus(rawStatus, car) {
@@ -609,11 +617,6 @@
 
         // Incomplete listing data — Pending
         if (!hasCoreListingInfo || normalizeMileage(car.mileage) === '--') {
-            return { label: 'Pending', className: 'pending' };
-        }
-
-        // Auction expired — auto Pending
-        if (hasExpiredAuction(car)) {
             return { label: 'Pending', className: 'pending' };
         }
 
@@ -949,7 +952,13 @@
 
         meta.visibleCars.forEach(function (car) {
             var statusMeta = getInventoryStatus(car);
+            var days = getInventoryDays(car);
             var row = document.createElement('tr');
+            if (days !== null && days >= 60) {
+                row.classList.add('row-danger');
+            } else if (days !== null && days >= 40) {
+                row.classList.add('row-warning');
+            }
 
             var selectCell = document.createElement('td');
             var selectInput = document.createElement('input');
@@ -968,6 +977,9 @@
             statusPill.className = 'inventory-status ' + statusMeta.className;
             statusPill.textContent = statusMeta.label;
             statusCell.appendChild(statusPill);
+
+            var daysCell = document.createElement('td');
+            daysCell.textContent = days !== null ? String(days) : '--';
 
             var dealerCell = document.createElement('td');
             dealerCell.textContent = car.seller || 'Dealer';
@@ -994,6 +1006,7 @@
             row.appendChild(vehicleCell);
             row.appendChild(guaranteedCell);
             row.appendChild(statusCell);
+            row.appendChild(daysCell);
             row.appendChild(dealerCell);
             row.appendChild(ageCell);
             row.appendChild(odometerCell);
@@ -1034,6 +1047,7 @@
 
             [
                 ['Buy Now', createBuyNowEditor(car)],
+                ['Days in Inventory', days !== null ? String(days) : '--'],
                 ['Dealership', car.seller || 'Dealer'],
                 ['Dealer ID', deriveDealerId(car.seller)],
                 ['Age', getAgeValue(car.year)],
@@ -1099,7 +1113,7 @@
         filterState.dealership.clear();
         filterState.launch.clear();
         filterState.status.clear();
-        rowsPerPageSelect.value = '20';
+        rowsPerPageSelect.value = '50';
         currentPage = 1;
         renderFilterMenus();
         refreshInventoryView();

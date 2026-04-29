@@ -163,7 +163,7 @@
       "location": "Atlanta, GA",
       "pickup": "GA - Atlanta",
       "buyNowPrice": 92500,
-      "auctionStartAt": "2026-04-26T18:00:00Z",
+      "auctionStartAt": "2026-03-15T18:00:00Z",
       "auctionEndAt": "2026-04-28T06:00:00Z"
     },
     {
@@ -210,7 +210,7 @@
       "location": "Tucson, AZ",
       "pickup": "AZ - Tucson",
       "buyNowPrice": 39500,
-      "auctionStartAt": "2026-04-24T20:00:00Z",
+      "auctionStartAt": "2026-02-23T20:00:00Z",
       "auctionEndAt": "2026-04-25T20:00:00Z"
     },
     {
@@ -329,7 +329,7 @@
       "location": "Charlotte, NC",
       "pickup": "NC - Charlotte",
       "buyNowPrice": 24500,
-      "auctionStartAt": "2026-04-23T16:00:00Z",
+      "auctionStartAt": "2026-03-19T16:00:00Z",
       "auctionEndAt": "2026-04-24T16:00:00Z"
     },
     {
