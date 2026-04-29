@@ -5,8 +5,10 @@ var lightboxElements = {
     overlay: null,
     image: null
 };
+var inventorySupabaseClient = null;
 var vehicleSubmissionSupabaseClient = null;
 var VEHICLE_SUBMISSIONS_TABLE = 'vehicle_submissions';
+var INVENTORY_VEHICLES_TABLE = 'inventory_vehicles';
 
 // Re-init search panel using the shared partial IDs once components are ready
 document.addEventListener('components:ready', function () {
@@ -385,13 +387,9 @@ function loadCarDetails() {
         showCarError('No vehicle selected.', 'car-dashboard.html', 'Browse listings ->');
         return;
     }
-    fetch('data/cars.json')
-        .then(function (res) {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            return res.json();
-        })
-        .then(function (data) {
-            var car = data.cars.find(function (c) { return c.id === carId; });
+    loadInventoryCars()
+        .then(function (cars) {
+            var car = (cars || []).find(function (c) { return c.id === carId; });
             if (car) {
                 renderCarDetail(car, sourceSection);
                 document.title = car.year + ' ' + car.make + ' ' + car.model + ' — Collectors Alliance Exchange';
@@ -418,6 +416,10 @@ function getVehicleSubmissionConfig() {
     return window.ADD_VEHICLE_SUPABASE_CONFIG || {};
 }
 
+function getInventoryConfig() {
+    return window.INVENTORY_SUPABASE_CONFIG || window.ADD_VEHICLE_SUPABASE_CONFIG || {};
+}
+
 function looksLikePlaceholderConfigValue(value) {
     return !value || /your[-_ ]/i.test(value) || /replace[-_ ]/i.test(value);
 }
@@ -438,6 +440,92 @@ function initializeVehicleSubmissionSupabase() {
     }
 
     return true;
+}
+
+function initializeInventorySupabase() {
+    var config = getInventoryConfig();
+
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        return false;
+    }
+
+    if (looksLikePlaceholderConfigValue(config.url) || looksLikePlaceholderConfigValue(config.anonKey)) {
+        return false;
+    }
+
+    if (!inventorySupabaseClient) {
+        inventorySupabaseClient = window.supabase.createClient(config.url, config.anonKey);
+    }
+
+    return true;
+}
+
+function mapInventoryRowToCar(row) {
+    return {
+        id: row.id,
+        vin: row.vin || '',
+        year: Number.parseInt(row.year, 10) || row.year || '--',
+        make: row.make || 'Vehicle',
+        model: row.model || 'Listing',
+        engine: row.engine || '',
+        transmission: row.transmission || '',
+        bodyStyle: row.body_style || row.bodyStyle || '',
+        mileage: row.mileage || 'Unknown',
+        condition: row.condition || '',
+        description: row.description || '',
+        photo: row.photo || '',
+        startingBid: Number.isFinite(Number(row.starting_bid)) ? Number(row.starting_bid) : 0,
+        currentBid: Number.isFinite(Number(row.current_bid)) ? Number(row.current_bid) : 0,
+        reservePrice: Number.isFinite(Number(row.reserve_price)) ? Number(row.reserve_price) : null,
+        buyNowPrice: Number.isFinite(Number(row.buy_now_price)) ? Number(row.buy_now_price) : null,
+        status: row.market_status || row.status || 'Sale',
+        timeRemaining: row.time_remaining || '00:00:00',
+        seller: row.seller || 'Dealer',
+        location: row.location || '',
+        pickup: row.pickup || '',
+        auctionStartAt: row.auction_start_at || null,
+        auctionEndAt: row.auction_end_at || null
+    };
+}
+
+function loadInventoryCars() {
+    var config = getInventoryConfig();
+    var table = config.table || INVENTORY_VEHICLES_TABLE;
+
+    if (!initializeInventorySupabase()) {
+        return fetch('data/cars.json')
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(function (data) {
+                return data && Array.isArray(data.cars) ? data.cars : [];
+            });
+    }
+
+    return inventorySupabaseClient
+        .from(table)
+        .select('*')
+        .then(function (result) {
+            if (result.error) {
+                throw result.error;
+            }
+
+            return (result.data || [])
+                .filter(function (row) { return row && row.is_archived !== true; })
+                .map(mapInventoryRowToCar);
+        })
+        .catch(function (error) {
+            console.warn('[car-details] Supabase inventory load failed, falling back to JSON:', error);
+            return fetch('data/cars.json')
+                .then(function (res) {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(function (data) {
+                    return data && Array.isArray(data.cars) ? data.cars : [];
+                });
+        });
 }
 
 function loadSubmissionViaRest(submissionId) {

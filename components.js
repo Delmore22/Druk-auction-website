@@ -877,6 +877,20 @@
     'use strict';
 
     var FAVORITES_KEY = 'dashboardFavoritesV1';
+    var favSupabaseClient = null;
+
+    function getFavSupabaseClient() {
+        if (favSupabaseClient) return favSupabaseClient;
+        var config = window.INVENTORY_SUPABASE_CONFIG || window.ADD_VEHICLE_SUPABASE_CONFIG || {};
+        if (!config.url || !config.anonKey) return null;
+        if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+        favSupabaseClient = window.supabase.createClient(config.url, config.anonKey);
+        return favSupabaseClient;
+    }
+
+    function getCurrentUserId() {
+        try { return window.localStorage.getItem('accountUserId') || null; } catch (e) { return null; }
+    }
 
     function getFavorites() {
         try {
@@ -899,13 +913,54 @@
     function toggleFavorite(carId) {
         var favs = getFavorites();
         var idx = favs.indexOf(carId);
-        if (idx === -1) {
+        var nowFavorited = idx === -1;
+        if (nowFavorited) {
             favs.push(carId);
         } else {
             favs.splice(idx, 1);
         }
         saveFavorites(favs);
-        return idx === -1; // true = now favorited
+
+        // Sync to Supabase in the background
+        var userId = getCurrentUserId();
+        var client = getFavSupabaseClient();
+        if (userId && client) {
+            if (nowFavorited) {
+                client.from('user_favorites').insert({ user_id: userId, vehicle_id: carId }).then(function () {});
+            } else {
+                client.from('user_favorites').delete().eq('user_id', userId).eq('vehicle_id', carId).then(function () {});
+            }
+        }
+
+        return nowFavorited; // true = now favorited
+    }
+
+    function loadFavoritesFromSupabase() {
+        var userId = getCurrentUserId();
+        var client = getFavSupabaseClient();
+        if (!userId || !client) return;
+
+        client.from('user_favorites').select('vehicle_id').eq('user_id', userId).then(function (result) {
+            if (result.error || !Array.isArray(result.data)) return;
+            var remoteIds = result.data.map(function (r) { return r.vehicle_id; });
+            // Merge remote with any local ids (preserves offline toggles)
+            var local = getFavorites();
+            var merged = remoteIds.slice();
+            local.forEach(function (id) {
+                if (merged.indexOf(id) === -1) merged.push(id);
+            });
+            saveFavorites(merged);
+            // Refresh any rendered fav buttons on the page
+            merged.forEach(function (id) {
+                document.querySelectorAll('.fav-btn[data-car-id="' + id + '"]').forEach(function (btn) {
+                    btn.classList.add('is-favorited');
+                    btn.setAttribute('aria-pressed', 'true');
+                    btn.setAttribute('aria-label', 'Remove from favorites');
+                    var icon = btn.querySelector('i');
+                    if (icon) icon.className = 'fas fa-heart';
+                });
+            });
+        });
     }
 
     function createFavoriteBtn(carId) {
@@ -945,6 +1000,15 @@
     window.isFavorite = isFavorite;
     window.toggleFavorite = toggleFavorite;
     window.createFavoriteBtn = createFavoriteBtn;
+    window.loadFavoritesFromSupabase = loadFavoritesFromSupabase;
+
+    // Auto-sync from Supabase when the page loads (after a short delay so the
+    // Supabase client scripts have had a chance to execute)
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { loadFavoritesFromSupabase(); });
+    } else {
+        setTimeout(loadFavoritesFromSupabase, 0);
+    }
 })();
 
 // ========== Buy Now Tooltip (body-level, escapes all overflow clipping) ==========

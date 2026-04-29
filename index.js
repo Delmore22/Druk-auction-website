@@ -1,35 +1,9 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import {
-	getAuth,
-	onAuthStateChanged,
-	signInWithEmailAndPassword,
-	createUserWithEmailAndPassword,
-	updateProfile,
-	deleteUser,
-	signOut
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import {
-	getFirestore,
-	doc,
-	getDoc,
-	setDoc,
-	runTransaction,
-	serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-const firebaseConfig = {
-	apiKey: "AIzaSyAC3xaSFXMBH4Q5_3t_8ahitDqLKhBWOQA",
-	authDomain: "classicauction.firebaseapp.com",
-	projectId: "classicauction",
-	storageBucket: "classicauction.firebasestorage.app",
-	messagingSenderId: "621471898709",
-	appId: "1:621471898709:web:ea94de1b232bb7c82f48dc",
-	measurementId: "G-LVZ75CWDE9"
-};
+const SUPABASE_URL = "https://chllzkgugwuerlnbltay.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_rpzSMoGHXVKEIRwipYmrHg_64fqgX0y";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const tabLogin = document.getElementById("tabLogin");
 const tabSignup = document.getElementById("tabSignup");
@@ -62,7 +36,7 @@ function setLoading(button, loading) {
 function setIdentityStorage(user, role) {
 	if (!user) return;
 	const email = String(user.email || "").trim();
-	const displayName = String(user.displayName || "").trim();
+	const displayName = String((user.user_metadata && user.user_metadata.display_name) || "").trim();
 	const fallbackName = email ? email.split("@")[0].replace(/[._-]+/g, " ").trim() : "";
 	const accountName = displayName || fallbackName || "Member";
 
@@ -70,6 +44,7 @@ function setIdentityStorage(user, role) {
 		window.localStorage.setItem("accountName", accountName);
 		window.localStorage.setItem("accountEmail", email);
 		window.localStorage.setItem("accountRole", role || "member");
+		window.localStorage.setItem("accountUserId", user.id || "");
 	} catch (err) {
 		// Ignore storage failures to avoid blocking auth behavior.
 	}
@@ -80,6 +55,7 @@ function clearIdentityStorage() {
 		window.localStorage.removeItem("accountName");
 		window.localStorage.removeItem("accountEmail");
 		window.localStorage.removeItem("accountRole");
+		window.localStorage.removeItem("accountUserId");
 	} catch (err) {
 		// Ignore storage failures to avoid blocking auth behavior.
 	}
@@ -121,28 +97,28 @@ async function redeemAccessCode(code, uid) {
 		throw new Error("Invalid access code format.");
 	}
 
-	const codeRef = doc(db, "access_codes", cleanCode);
+	// Read the code first to give a clear error message
+	const { data: codeRow, error: readError } = await supabase
+		.from("access_codes")
+		.select("status, redeemed_by")
+		.eq("code", cleanCode)
+		.maybeSingle();
 
-	await runTransaction(db, async (transaction) => {
-		const snapshot = await transaction.get(codeRef);
-		if (!snapshot.exists()) {
-			throw new Error("Access code not found.");
-		}
+	if (readError) throw readError;
+	if (!codeRow) throw new Error("Access code not found.");
+	if (codeRow.status !== "active") throw new Error("Access code is not active.");
+	if (codeRow.redeemed_by) throw new Error("Access code has already been used.");
 
-		const data = snapshot.data();
-		if (data.status !== "active") {
-			throw new Error("Access code is not active.");
-		}
-		if (data.redeemedBy) {
-			throw new Error("Access code has already been used.");
-		}
+	// Mark the code as redeemed (conditional update — only succeeds if still active & unredeemed)
+	const { error: updateError, count } = await supabase
+		.from("access_codes")
+		.update({ status: "used", redeemed_by: uid, redeemed_at: new Date().toISOString() })
+		.eq("code", cleanCode)
+		.eq("status", "active")
+		.is("redeemed_by", null);
 
-		transaction.update(codeRef, {
-			status: "used",
-			redeemedBy: uid,
-			redeemedAt: serverTimestamp()
-		});
-	});
+	if (updateError) throw updateError;
+	if (count === 0) throw new Error("Access code has already been used.");
 
 	return cleanCode;
 }
@@ -173,8 +149,13 @@ async function updateSessionUi(user) {
 		return;
 	}
 
-	const userDoc = await getDoc(doc(db, "users", user.uid));
-	const role = userDoc.exists() ? String(userDoc.data().role || "") : "";
+	const { data: userRow } = await supabase
+		.from("users")
+		.select("role")
+		.eq("id", user.id)
+		.maybeSingle();
+
+	const role = userRow ? String(userRow.role || "") : "";
 	const isAdmin = role === "admin";
 	setIdentityStorage(user, role || "member");
 
@@ -187,6 +168,9 @@ async function updateSessionUi(user) {
 
 function toFriendlyError(err) {
 	const message = err && err.message ? err.message : "Unknown error";
+	if (message.includes("Invalid login credentials")) return "Invalid email or password.";
+	if (message.includes("User already registered")) return "This email is already registered.";
+	if (message.includes("Password should be")) return "Use a stronger password with at least 6 characters.";
 	if (message.includes("auth/invalid-credential")) return "Invalid email or password.";
 	if (message.includes("auth/email-already-in-use")) return "This email is already registered.";
 	if (message.includes("auth/weak-password")) return "Use a stronger password with at least 8 characters.";
@@ -216,7 +200,8 @@ loginPanel.addEventListener("submit", async (event) => {
 
 	try {
 		setLoading(loginButton, true);
-		await signInWithEmailAndPassword(auth, email, password);
+		const { error } = await supabase.auth.signInWithPassword({ email, password });
+		if (error) throw error;
 		setMessage("Logged in successfully.", "is-ok");
 	} catch (err) {
 		setMessage(toFriendlyError(err), "is-error");
@@ -238,35 +223,36 @@ signupPanel.addEventListener("submit", async (event) => {
 		return;
 	}
 
-	let createdUser = null;
+	let createdUserId = null;
 	try {
 		setLoading(signupButton, true);
-		const createResult = await createUserWithEmailAndPassword(auth, email, password);
-		createdUser = createResult.user;
+		const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+			email,
+			password,
+			options: { data: { display_name: name } }
+		});
+		if (signUpError) throw signUpError;
+		const createdUser = signUpData.user;
+		createdUserId = createdUser.id;
 
-		const code = await redeemAccessCode(rawCode, createdUser.uid);
+		const code = await redeemAccessCode(rawCode, createdUserId);
 
-		if (name) {
-			await updateProfile(createdUser, { displayName: name });
-		}
-
-		await setDoc(doc(db, "users", createdUser.uid), {
+		const { error: profileError } = await supabase.from("users").upsert({
+			id: createdUserId,
 			email: createdUser.email,
-			displayName: name || "",
+			display_name: name || "",
 			role: "member",
-			accessCode: code,
-			createdAt: serverTimestamp()
-		}, { merge: true });
+			access_code: code,
+			created_at: new Date().toISOString()
+		});
+		if (profileError) throw profileError;
 
 		signupPanel.reset();
 		setMessage("Account created. You are now signed in.", "is-ok");
 	} catch (err) {
-		if (createdUser && auth.currentUser && auth.currentUser.uid === createdUser.uid) {
-			try {
-				await deleteUser(auth.currentUser);
-			} catch (deleteErr) {
-				console.error("Rollback failed after signup error:", deleteErr);
-			}
+		// If signup partially failed, sign out to avoid a logged-in orphan session
+		if (createdUserId) {
+			await supabase.auth.signOut().catch(() => {});
 		}
 		setMessage(toFriendlyError(err), "is-error");
 	} finally {
@@ -276,7 +262,7 @@ signupPanel.addEventListener("submit", async (event) => {
 
 logoutButton.addEventListener("click", async () => {
 	try {
-		await signOut(auth);
+		await supabase.auth.signOut();
 		clearIdentityStorage();
 		setMessage("Logged out.", "is-ok");
 	} catch (err) {
@@ -285,17 +271,16 @@ logoutButton.addEventListener("click", async () => {
 });
 
 if (new URLSearchParams(window.location.search).get("logout") === "1") {
-	if (auth.currentUser) {
-		signOut(auth).catch(function () {
-			// Ignore sign-out errors and still clear local identity cache.
-		});
-	}
+	supabase.auth.signOut().catch(function () {
+		// Ignore sign-out errors and still clear local identity cache.
+	});
 	clearIdentityStorage();
 	setMessage("Logged out.", "is-ok");
 }
 
 generateCodeButton.addEventListener("click", async () => {
-	const user = auth.currentUser;
+	const { data: { session } } = await supabase.auth.getSession();
+	const user = session && session.user;
 	if (!user) {
 		setMessage("You must be logged in.", "is-warn");
 		return;
@@ -303,21 +288,28 @@ generateCodeButton.addEventListener("click", async () => {
 
 	try {
 		setLoading(generateCodeButton, true);
-		const userDoc = await getDoc(doc(db, "users", user.uid));
-		const role = userDoc.exists() ? String(userDoc.data().role || "") : "";
+		const { data: userRow } = await supabase
+			.from("users")
+			.select("role")
+			.eq("id", user.id)
+			.maybeSingle();
+
+		const role = userRow ? String(userRow.role || "") : "";
 		if (role !== "admin") {
 			throw new Error("Only admin accounts can generate access codes.");
 		}
 
 		const code = randomCode();
-		await setDoc(doc(db, "access_codes", code), {
+		const { error } = await supabase.from("access_codes").insert({
+			code,
 			status: "active",
-			createdBy: user.uid,
-			createdByEmail: user.email || "",
-			createdAt: serverTimestamp(),
-			redeemedBy: null,
-			redeemedAt: null
-		}, { merge: false });
+			created_by: user.id,
+			created_by_email: user.email || "",
+			created_at: new Date().toISOString(),
+			redeemed_by: null,
+			redeemed_at: null
+		});
+		if (error) throw error;
 
 		generatedCode.textContent = code;
 		setMessage("Access code generated.", "is-ok");
@@ -332,10 +324,29 @@ generateCodeButton.addEventListener("click", async () => {
 	button.dataset.defaultText = button.textContent;
 });
 
-onAuthStateChanged(auth, async (user) => {
+supabase.auth.onAuthStateChange(async (event, session) => {
 	try {
-		await updateSessionUi(user);
-		if (user) {
+		await updateSessionUi(session && session.user);
+		if (session && session.user) {
+			loginPanel.classList.add("is-hidden");
+			loginPanel.hidden = true;
+			signupPanel.classList.add("is-hidden");
+			signupPanel.hidden = true;
+			tabLogin.classList.remove("is-active");
+			tabSignup.classList.remove("is-active");
+		} else {
+			showTab("login");
+		}
+	} catch (err) {
+		setMessage(toFriendlyError(err), "is-error");
+	}
+});
+
+// Check existing session on page load
+supabase.auth.getSession().then(async ({ data: { session } }) => {
+	try {
+		await updateSessionUi(session && session.user);
+		if (session && session.user) {
 			loginPanel.classList.add("is-hidden");
 			loginPanel.hidden = true;
 			signupPanel.classList.add("is-hidden");

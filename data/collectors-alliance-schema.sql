@@ -113,6 +113,228 @@ begin
 end
 $$;
 
+-- ── inventory_vehicles (live inventory source of truth) ───────────────────
+
+create table if not exists public.inventory_vehicles (
+    id text primary key,
+    vin text,
+    year int,
+    make text,
+    model text,
+    engine text,
+    transmission text,
+    body_style text,
+    mileage text,
+    condition text,
+    description text,
+    photo text,
+    starting_bid numeric,
+    current_bid numeric,
+    reserve_price numeric,
+    buy_now_price numeric,
+    market_status text not null default 'Sale',
+    inventory_status text not null default 'Active' check (inventory_status in ('Active', 'Pending', 'Sold')),
+    listing_type text,
+    time_remaining text,
+    seller text,
+    location text,
+    pickup text,
+    auction_start_at timestamptz,
+    auction_end_at timestamptz,
+    is_demo boolean not null default false,
+    is_archived boolean not null default false,
+    created_at timestamptz not null default timezone('utc', now()),
+    updated_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists inventory_vehicles_inventory_status_idx
+    on public.inventory_vehicles (inventory_status);
+
+create index if not exists inventory_vehicles_market_status_idx
+    on public.inventory_vehicles (market_status);
+
+create index if not exists inventory_vehicles_auction_start_idx
+    on public.inventory_vehicles (auction_start_at desc);
+
+create index if not exists inventory_vehicles_is_archived_idx
+    on public.inventory_vehicles (is_archived);
+
+alter table public.inventory_vehicles enable row level security;
+
+do $$
+begin
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'inventory_vehicles'
+          and policyname = 'inventory_vehicles_select'
+    ) then
+        create policy inventory_vehicles_select
+            on public.inventory_vehicles for select
+            to anon, authenticated using (is_archived = false);
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'inventory_vehicles'
+          and policyname = 'inventory_vehicles_insert'
+    ) then
+        create policy inventory_vehicles_insert
+            on public.inventory_vehicles for insert
+            to anon, authenticated with check (true);
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'inventory_vehicles'
+          and policyname = 'inventory_vehicles_update'
+    ) then
+        create policy inventory_vehicles_update
+            on public.inventory_vehicles for update
+            to anon, authenticated using (true) with check (true);
+    end if;
+end
+$$;
+
+-- ── access_codes ─────────────────────────────────────────────
+
+create table if not exists public.access_codes (
+    code text primary key,
+    status text not null default 'active' check (status in ('active', 'used')),
+    created_by text,
+    created_by_email text,
+    created_at timestamptz not null default timezone('utc', now()),
+    redeemed_by text,
+    redeemed_at timestamptz
+);
+
+alter table public.access_codes enable row level security;
+
+do $$
+begin
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'access_codes'
+          and policyname = 'access_codes_select'
+    ) then
+        create policy access_codes_select
+            on public.access_codes for select
+            to anon, authenticated using (true);
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'access_codes'
+          and policyname = 'access_codes_insert'
+    ) then
+        create policy access_codes_insert
+            on public.access_codes for insert
+            to anon, authenticated with check (true);
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'access_codes'
+          and policyname = 'access_codes_update'
+    ) then
+        create policy access_codes_update
+            on public.access_codes for update
+            to anon, authenticated using (true) with check (true);
+    end if;
+end
+$$;
+
+-- ── users ─────────────────────────────────────────────────────
+
+create table if not exists public.users (
+    id text primary key,
+    email text,
+    display_name text,
+    role text not null default 'member' check (role in ('member', 'dealer', 'admin')),
+    access_code text,
+    created_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.users enable row level security;
+
+do $$
+begin
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'users'
+          and policyname = 'users_select'
+    ) then
+        create policy users_select
+            on public.users for select
+            to anon, authenticated using (true);
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'users'
+          and policyname = 'users_insert'
+    ) then
+        create policy users_insert
+            on public.users for insert
+            to anon, authenticated with check (true);
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'users'
+          and policyname = 'users_update'
+    ) then
+        create policy users_update
+            on public.users for update
+            to anon, authenticated using (true) with check (true);
+    end if;
+end
+$$;
+
+-- ── user_favorites ───────────────────────────────────────────
+
+create table if not exists public.user_favorites (
+    user_id text not null,
+    vehicle_id text not null,
+    added_at timestamptz not null default timezone('utc', now()),
+    primary key (user_id, vehicle_id)
+);
+
+alter table public.user_favorites enable row level security;
+
+do $$
+begin
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'user_favorites'
+          and policyname = 'user_favorites_select'
+    ) then
+        create policy user_favorites_select
+            on public.user_favorites for select
+            to anon, authenticated using (true);
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'user_favorites'
+          and policyname = 'user_favorites_insert'
+    ) then
+        create policy user_favorites_insert
+            on public.user_favorites for insert
+            to anon, authenticated with check (true);
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'user_favorites'
+          and policyname = 'user_favorites_delete'
+    ) then
+        create policy user_favorites_delete
+            on public.user_favorites for delete
+            to anon, authenticated using (true);
+    end if;
+end
+$$;
+
 -- ── Storage buckets ───────────────────────────────────────────
 
 insert into storage.buckets (id, name, public)
