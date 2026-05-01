@@ -9,10 +9,8 @@ $config = @{
     Table = "inventory_vehicles"
 }
 
-$serviceRoleKey = $env:COLLECTORS_ALLIANCE_SERVICE_ROLE_KEY
-if ([string]::IsNullOrWhiteSpace($serviceRoleKey)) {
-    throw "Set COLLECTORS_ALLIANCE_SERVICE_ROLE_KEY before running this script."
-}
+# Uses the public anon key — RLS policies allow anon INSERT/UPDATE on inventory_vehicles
+$anonKey = "sb_publishable_rpzSMoGHXVKEIRwipYmrHg_64fqgX0y"
 
 if (-not (Test-Path -LiteralPath $JsonPath)) {
     throw "Could not find JSON file: $JsonPath"
@@ -67,8 +65,8 @@ $rows = foreach ($car in $cars) {
 
 $endpoint = "{0}/rest/v1/{1}" -f $config.Url.TrimEnd('/'), $config.Table
 $headers = @{
-    apikey = $serviceRoleKey
-    Authorization = "Bearer $serviceRoleKey"
+    apikey = $anonKey
+    Authorization = "Bearer $anonKey"
     Prefer = "resolution=merge-duplicates,return=minimal"
     "Content-Type" = "application/json"
 }
