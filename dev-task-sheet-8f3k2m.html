@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <title>Internal Task Time Sheet</title>
+    <link rel="stylesheet" href="css.css">
+    <link rel="stylesheet" href="secondary-pages.css">
+    <link rel="stylesheet" href="time-sheet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="dark-theme time-sheet-page" data-page="internal-time-sheet">
+    <div id="header-placeholder"></div>
+    <div id="below-header-placeholder"></div>
+
+    <div class="main-container">
+        <div id="left-sidebar-placeholder"></div>
+
+        <main class="main-content">
+            <div class="section-shell">
+                <section class="page-hero">
+                    <div class="page-eyebrow"><i class="fa-solid fa-stopwatch"></i> Internal Developer Tracking</div>
+                    <h1>Task Time Sheet</h1>
+                    <p>Track each assigned task with status, time spent, and notes so approvals and handoffs stay clear.</p>
+                    <div class="timesheet-hero-meta">
+                        <span id="timesheetSavedState">Changes are saved locally</span>
+                    </div>
+                </section>
+
+                <section class="summary-grid" aria-label="Time sheet summary">
+                    <article class="summary-card">
+                        <div class="summary-label">Not Started</div>
+                        <div class="summary-value" id="summaryNotStarted">0</div>
+                        <div class="summary-note">Tasks waiting for work</div>
+                    </article>
+                    <article class="summary-card">
+                        <div class="summary-label">In Development</div>
+                        <div class="summary-value" id="summaryInDevelopment">0</div>
+                        <div class="summary-note">Tasks currently being worked</div>
+                    </article>
+                    <article class="summary-card">
+                        <div class="summary-label">Ready For Approval</div>
+                        <div class="summary-value" id="summaryReadyForApproval">0</div>
+                        <div class="summary-note">Tasks awaiting review</div>
+                    </article>
+                    <article class="summary-card">
+                        <div class="summary-label">Completed</div>
+                        <div class="summary-value" id="summaryCompleted">0</div>
+                        <div class="summary-note">Tasks fully finished</div>
+                    </article>
+                </section>
+
+                <section class="panel-card timesheet-panel" aria-label="Developer time sheet">
+                    <div class="card-heading">
+                        <div>
+                            <h2>Assigned Task List</h2>
+                            <p>Update time and comments directly on each task. Status updates are available at every stage.</p>
+                        </div>
+                    </div>
+
+                    <form class="timesheet-add-form" id="timesheetAddForm" novalidate>
+                        <label>
+                            Task
+                            <input id="newTaskTitle" type="text" maxlength="140" placeholder="Add a new task assignment" required>
+                        </label>
+                        <label>
+                            Estimated Hours
+                            <input id="newTaskEstimate" type="number" min="0" step="0.25" placeholder="0.00">
+                        </label>
+                        <button type="submit" class="timesheet-add-btn">
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i> Add Task
+                        </button>
+                    </form>
+
+                    <div class="timesheet-table-wrap">
+                        <table class="timesheet-table" aria-label="Task time sheet table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Task</th>
+                                    <th scope="col">Est. Hrs</th>
+                                    <th scope="col">Time Spent (hrs)</th>
+                                    <th scope="col">Comments</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Updated</th>
+                                    <th scope="col" aria-label="Actions"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="timesheetTableBody">
+                                <tr>
+                                    <td colspan="7" class="timesheet-loading">Loading tasks...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="components.js"></script>
+    <script src="time-sheet.js"></script>
+</body>
+</html>
