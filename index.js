@@ -108,13 +108,24 @@ async function upsertUserProfileFromAuthUser(user, accessCode) {
 		return normalizeRole(existingRow.role);
 	}
 
-	// New user: assign bootstrap role (admin for known emails, member otherwise).
-	const bootstrapRole = getBootstrapRoleForEmail(email);
+	// New user: determine role from access code's intended_role, falling back to bootstrap role.
+	let newRole = getBootstrapRoleForEmail(email);
+	if (accessCode) {
+		const { data: codeRow } = await supabase
+			.from("access_codes")
+			.select("intended_role")
+			.eq("code", accessCode)
+			.maybeSingle();
+		if (codeRow?.intended_role) {
+			newRole = normalizeRole(codeRow.intended_role);
+		}
+	}
+
 	const payload = {
 		id: user.id,
 		email,
 		display_name: displayName,
-		role: bootstrapRole,
+		role: newRole,
 		created_at: new Date().toISOString()
 	};
 	if (accessCode) payload.access_code = accessCode;
@@ -122,7 +133,7 @@ async function upsertUserProfileFromAuthUser(user, accessCode) {
 	const { error } = await supabase.from("users").insert(payload);
 	if (error) throw error;
 
-	return bootstrapRole;
+	return newRole;
 }
 
 function normalizeCode(code) {

@@ -287,6 +287,191 @@ function applyManagerSectionVisibility(canManageUsers) {
     }
 }
 
+// ── Manage Users ──────────────────────────────────────────────────────────
+
+async function initManageUsers(currentUser) {
+    const listEl      = document.getElementById("userList");
+    const msgEl       = document.getElementById("manageUsersMsg");
+    const searchInput = document.getElementById("userSearchInput");
+    if (!listEl) return;
+
+    let allUsers = [];
+
+    const ROLE_OPTIONS = [
+        { value: "member",      label: "Member" },
+        { value: "viewer",      label: "Viewer" },
+        { value: "dealer",      label: "Dealer" },
+        { value: "full_access", label: "Full Access" },
+        { value: "developer",   label: "Developer" },
+        { value: "ceo",         label: "CEO" },
+        { value: "admin",       label: "Admin" },
+    ];
+
+    function buildRoleSelect(userId, currentRole) {
+        const sel = document.createElement("select");
+        sel.className = "settings-input settings-select";
+        sel.style.cssText = "width:auto;min-width:130px";
+        sel.dataset.userId = userId;
+        ROLE_OPTIONS.forEach(opt => {
+            const o = document.createElement("option");
+            o.value = opt.value;
+            o.textContent = opt.label;
+            if (opt.value === currentRole) o.selected = true;
+            sel.appendChild(o);
+        });
+        return sel;
+    }
+
+    function renderUsers(users) {
+        listEl.innerHTML = "";
+        if (!users.length) {
+            listEl.innerHTML = '<li class="settings-user-row"><span style="color:var(--color-text-muted,#888)">No users found.</span></li>';
+            return;
+        }
+
+        users.forEach(u => {
+            const role    = normalizeRole(u.role);
+            const name    = (u.display_name || "").trim() || u.email.split("@")[0];
+            const isSelf  = u.id === currentUser.id;
+
+            const li = document.createElement("li");
+            li.className = "settings-user-row";
+            li.dataset.userId = u.id;
+
+            // ── Info block
+            const info = document.createElement("div");
+            info.className = "settings-user-info";
+
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "settings-user-name";
+            nameSpan.textContent = name + (isSelf ? " (you)" : "");
+
+            const emailA = document.createElement("a");
+            emailA.href = "mailto:" + u.email;
+            emailA.className = "settings-user-email";
+            emailA.textContent = u.email;
+
+            const meta = document.createElement("span");
+            meta.style.cssText = "font-size:.72rem;color:var(--color-text-muted,#888);display:block;margin-top:2px";
+            meta.textContent = u.created_at
+                ? "Joined " + new Date(u.created_at).toLocaleDateString()
+                : "";
+
+            info.appendChild(nameSpan);
+            info.appendChild(emailA);
+            info.appendChild(meta);
+
+            // ── Actions block
+            const actions = document.createElement("div");
+            actions.style.cssText = "display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-top:.5rem";
+
+            const roleSelect = buildRoleSelect(u.id, role);
+
+            const saveBtn = document.createElement("button");
+            saveBtn.type = "button";
+            saveBtn.className = "settings-action-btn";
+            saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save Role';
+            saveBtn.addEventListener("click", async () => {
+                saveBtn.disabled = true;
+                const newRole = roleSelect.value;
+                const { error } = await supabase.from("users").update({ role: newRole }).eq("id", u.id);
+                if (error) {
+                    setInlineMsg(msgEl, "Failed to update role: " + error.message, true);
+                } else {
+                    u.role = newRole;
+                    setInlineMsg(msgEl, `${name} updated to ${formatRoleLabel(newRole)}.`, false);
+                }
+                saveBtn.disabled = false;
+            });
+
+            const resetBtn = document.createElement("button");
+            resetBtn.type = "button";
+            resetBtn.className = "settings-reset-pw-btn";
+            resetBtn.innerHTML = '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Reset Password';
+            resetBtn.addEventListener("click", async () => {
+                resetBtn.disabled = true;
+                const { error } = await supabase.auth.resetPasswordForEmail(u.email, {
+                    redirectTo: window.location.origin + "/settings.html",
+                });
+                if (error) {
+                    setInlineMsg(msgEl, "Failed to send reset email: " + error.message, true);
+                } else {
+                    setInlineMsg(msgEl, `Password reset email sent to ${u.email}.`, false);
+                }
+                resetBtn.disabled = false;
+            });
+
+            actions.appendChild(roleSelect);
+            actions.appendChild(saveBtn);
+            actions.appendChild(resetBtn);
+
+            if (!isSelf) {
+                const deleteBtn = document.createElement("button");
+                deleteBtn.type = "button";
+                deleteBtn.className = "settings-user-delete";
+                deleteBtn.setAttribute("aria-label", "Delete " + name);
+                deleteBtn.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
+                deleteBtn.addEventListener("click", async () => {
+                    if (!confirm(`Remove ${name} (${u.email}) from the user list?\n\nNote: their login account remains active.`)) return;
+                    deleteBtn.disabled = true;
+                    const { error } = await supabase.from("users").delete().eq("id", u.id);
+                    if (error) {
+                        setInlineMsg(msgEl, "Failed to remove user: " + error.message, true);
+                        deleteBtn.disabled = false;
+                    } else {
+                        setInlineMsg(msgEl, name + " removed.", false);
+                        li.remove();
+                        allUsers = allUsers.filter(x => x.id !== u.id);
+                    }
+                });
+                actions.appendChild(deleteBtn);
+            }
+
+            li.appendChild(info);
+            li.appendChild(actions);
+            listEl.appendChild(li);
+        });
+    }
+
+    async function loadUsers() {
+        listEl.innerHTML = '<li class="settings-user-row"><span style="color:var(--color-text-muted,#888)">Loading users…</span></li>';
+        setInlineMsg(msgEl, "");
+
+        const { data, error } = await supabase
+            .from("users")
+            .select("id, email, display_name, role, created_at")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            setInlineMsg(msgEl, "Failed to load users: " + error.message, true);
+            listEl.innerHTML = "";
+            return;
+        }
+
+        allUsers = data || [];
+        renderUsers(allUsers);
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", () => {
+            const q = searchInput.value.trim().toLowerCase();
+            if (!q) { renderUsers(allUsers); return; }
+            renderUsers(allUsers.filter(u =>
+                (u.display_name || "").toLowerCase().includes(q) ||
+                (u.email || "").toLowerCase().includes(q)
+            ));
+        });
+    }
+
+    // Reload when the panel is re-opened
+    const navBtn = document.querySelector('.settings-nav-item[data-section="manage-users"]');
+    if (navBtn) {
+        navBtn.addEventListener("click", loadUsers);
+    }
+
+    await loadUsers();
+}
+
 function initAdminPanel(user, callerRole) {
     const adminNavBtn  = document.querySelector(".settings-nav-item--admin");
     const generateBtn  = document.getElementById("adminGenerateCodeBtn");
@@ -447,6 +632,7 @@ async function handleSettingsAuthState(session) {
         applyManagerSectionVisibility(canManageUsers);
         if (canManageUsers) {
             initAdminPanel(user, role);
+            await initManageUsers(user);
         }
     } catch (e) {
         // Not critical — admin panel stays hidden
