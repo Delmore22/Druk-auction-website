@@ -24,7 +24,8 @@
                     <button type="button" class="settings-nav-item" data-section="my-dealership">My Dealership</button>
                     <button type="button" class="settings-nav-item" data-section="manage-addresses">Manage Addresses</button>
                     <button type="button" class="settings-nav-item" data-section="payment-methods">Payment Method Settings</button>
-                    <button type="button" class="settings-nav-item" data-section="manage-users">Manage Users</button>
+                    <button type="button" class="settings-nav-item settings-nav-item--manage-users" data-section="manage-users" hidden>Manage Users</button>
+                    <button type="button" class="settings-nav-item settings-nav-item--admin" data-section="admin-tools" hidden>Admin Tools</button>
                     <button type="button" class="settings-nav-item" data-section="reg-documents">Registration Documents</button>
                     <button type="button" class="settings-nav-item" data-section="proxy-bid">Proxy Bid Settings</button>
                     <button type="button" class="settings-nav-item" data-section="notifications">Notification Settings</button>
@@ -240,64 +241,60 @@
                     </section>
 
                     <!-- Manage Users -->
-                    <section class="settings-panel" id="manage-users" aria-labelledby="heading-manage-users">
+                    <section class="settings-panel" id="manage-users" aria-labelledby="heading-manage-users" hidden>
                         <div class="settings-panel-header-row">
                             <h2 class="settings-panel-title" id="heading-manage-users">Manage Users</h2>
-                            <button type="button" class="settings-action-btn" id="newUserBtn">
-                                <i class="fa-solid fa-plus" aria-hidden="true"></i> NEW USER
-                            </button>
+                            <div style="display:flex;gap:.5rem;align-items:center">
+                                <input type="search" id="userSearchInput" class="settings-input" placeholder="Search by name or email…" style="width:220px">
+                                <button type="button" class="settings-action-btn" id="newUserBtn">
+                                    <i class="fa-solid fa-plus" aria-hidden="true"></i> NEW USER
+                                </button>
+                            </div>
                         </div>
-
+                        <p id="manageUsersMsg" class="settings-inline-msg" style="margin-top:.5rem"></p>
                         <ul class="settings-user-list" id="userList">
-                            <li class="settings-user-row">
-                                <div class="settings-user-info">
-                                    <span class="settings-user-name">Daniel Druk <span class="settings-user-role">(Admin)</span></span>
-                                    <a href="mailto:drukauto@gmail.com" class="settings-user-email">drukauto@gmail.com</a>
-                                    <button type="button" class="settings-user-delete" aria-label="Delete user">
-                                        <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                                <button type="button" class="settings-reset-pw-btn">
-                                    <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Reset Password
-                                </button>
-                            </li>
-                            <li class="settings-user-row">
-                                <div class="settings-user-info">
-                                    <span class="settings-user-name">Shelley Fluekiger <span class="settings-user-role">(Full Access)</span></span>
-                                    <a href="mailto:sfluekiger@acvauctions.com" class="settings-user-email">sfluekiger@acvauctions.com</a>
-                                    <button type="button" class="settings-user-delete" aria-label="Delete user">
-                                        <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                                <button type="button" class="settings-reset-pw-btn">
-                                    <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Reset Password
-                                </button>
-                            </li>
-                            <li class="settings-user-row">
-                                <div class="settings-user-info">
-                                    <span class="settings-user-name">Devin Peterson <span class="settings-user-role">(Full Access)</span></span>
-                                    <a href="mailto:dpeterson@acvauctions.com" class="settings-user-email">dpeterson@acvauctions.com</a>
-                                    <button type="button" class="settings-user-delete" aria-label="Delete user">
-                                        <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                                <button type="button" class="settings-reset-pw-btn">
-                                    <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Reset Password
-                                </button>
-                            </li>
-                            <li class="settings-user-row">
-                                <div class="settings-user-info">
-                                    <span class="settings-user-name">Charlie Orloske <span class="settings-user-role">(Full Access)</span></span>
-                                    <a href="mailto:corloske@acvauctions.com" class="settings-user-email">corloske@acvauctions.com</a>
-                                    <button type="button" class="settings-user-delete" aria-label="Delete user">
-                                        <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                                    </button>
-                                </div>
-                                <button type="button" class="settings-reset-pw-btn">
-                                    <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Reset Password
-                                </button>
+                            <li class="settings-user-row settings-user-row--loading" id="userListLoading">
+                                <span style="color:var(--color-text-muted,#888)">Loading users…</span>
                             </li>
                         </ul>
+                    </section>
+
+                    <!-- Admin Tools -->
+                    <section class="settings-panel" id="admin-tools" aria-labelledby="heading-admin-tools" hidden>
+                        <h2 class="settings-panel-title" id="heading-admin-tools">Admin Tools</h2>
+                        <p class="settings-subsection-note">Generate access codes for new users. This section is only available to Admin, Developer, and CEO roles.</p>
+
+                        <div class="settings-form" style="margin-top:1rem">
+                            <div class="settings-field settings-field--row2">
+                                <div class="settings-field-col settings-field-col--flex1">
+                                    <label class="settings-field-label" for="adminCodeRole">Role for this access code</label>
+                                    <div class="settings-field-input-wrap">
+                                        <select id="adminCodeRole" name="adminCodeRole" class="settings-input settings-select">
+                                            <option value="member" selected>Member</option>
+                                            <option value="viewer">Viewer</option>
+                                            <option value="full_access">Full Access</option>
+                                            <option value="developer">Developer</option>
+                                            <option value="ceo">CEO</option>
+                                            <option value="admin">Admin</option>
+                                        </select>
+                                        <i class="fa-solid fa-chevron-down settings-select-caret" aria-hidden="true"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-form-actions">
+                                <span></span>
+                                <button type="button" class="settings-action-btn" id="adminGenerateCodeBtn">
+                                    <i class="fa-solid fa-key" aria-hidden="true"></i> Generate Access Code
+                                </button>
+                            </div>
+
+                            <p id="adminCodeMsg" class="settings-subsection-note" aria-live="polite"></p>
+                            <div id="adminGeneratedCodeWrap" style="display:none; margin-top:0.75rem;">
+                                <strong>Generated Code:</strong>
+                                <code id="adminGeneratedCode"></code>
+                            </div>
+                        </div>
                     </section>
 
                     <!-- Registration Documents -->
@@ -546,5 +543,6 @@
 
     <script src="components.js"></script>
     <script src="settings.js"></script>
+    <script type="module" src="settings-firebase.js"></script>
 </body>
 </html>
