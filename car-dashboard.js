@@ -180,20 +180,10 @@ function looksLikePlaceholderConfigValue(value) {
 }
 
 function initializeInventorySupabase() {
-    const config = getInventoryConfig();
-
-    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+    if (!window._collectorsAllianceClient) {
         return false;
     }
-
-    if (looksLikePlaceholderConfigValue(config.url) || looksLikePlaceholderConfigValue(config.anonKey)) {
-        return false;
-    }
-
-    if (!inventorySupabaseClient) {
-        inventorySupabaseClient = window.supabase.createClient(config.url, config.anonKey);
-    }
-
+    inventorySupabaseClient = window._collectorsAllianceClient;
     return true;
 }
 

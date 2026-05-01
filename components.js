@@ -881,10 +881,8 @@
 
     function getFavSupabaseClient() {
         if (favSupabaseClient) return favSupabaseClient;
-        var config = window.INVENTORY_SUPABASE_CONFIG || window.ADD_VEHICLE_SUPABASE_CONFIG || {};
-        if (!config.url || !config.anonKey) return null;
-        if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
-        favSupabaseClient = window.supabase.createClient(config.url, config.anonKey);
+        if (!window._collectorsAllianceClient) return null;
+        favSupabaseClient = window._collectorsAllianceClient;
         return favSupabaseClient;
     }
 
