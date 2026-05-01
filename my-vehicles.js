@@ -55,7 +55,9 @@
     var activePriceEditCarId = null;
     var currentInventoryView = inventoryViewMode.value === 'card' ? 'card' : 'table';
     var currentPage = 1;
+    var inventorySupabaseClient = null;
     var vehicleSubmissionSupabaseClient = null;
+    var INVENTORY_VEHICLES_TABLE = 'inventory_vehicles';
     var VEHICLE_SUBMISSIONS_TABLE = 'vehicle_submissions';
 
     function getPageSize() {
@@ -121,6 +123,10 @@
         return window.ADD_VEHICLE_SUPABASE_CONFIG || {};
     }
 
+    function getInventoryConfig() {
+        return window.INVENTORY_SUPABASE_CONFIG || window.ADD_VEHICLE_SUPABASE_CONFIG || {};
+    }
+
     function looksLikePlaceholderConfigValue(value) {
         return !value || /your[-_ ]/i.test(value) || /replace[-_ ]/i.test(value);
     }
@@ -150,18 +156,73 @@
     }
 
     function initializeVehicleSubmissionSupabase() {
-        var config = getVehicleSubmissionConfig();
-
-        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        if (!window._collectorsAllianceClient) {
             return false;
         }
-
-        if (looksLikePlaceholderConfigValue(config.url) || looksLikePlaceholderConfigValue(config.anonKey)) {
-            return false;
-        }
-
-        vehicleSubmissionSupabaseClient = window.supabase.createClient(config.url, config.anonKey);
+        vehicleSubmissionSupabaseClient = window._collectorsAllianceClient;
         return true;
+    }
+
+    function initializeInventorySupabase() {
+        if (!window._collectorsAllianceClient) {
+            return false;
+        }
+        inventorySupabaseClient = window._collectorsAllianceClient;
+        return true;
+    }
+
+    function mapInventoryRowToCar(row) {
+        return {
+            id: row.id,
+            vin: row.vin || '',
+            year: Number.parseInt(row.year, 10) || row.year || '--',
+            make: row.make || 'Vehicle',
+            model: row.model || 'Listing',
+            engine: row.engine || '',
+            transmission: row.transmission || '',
+            bodyStyle: row.body_style || row.bodyStyle || '',
+            mileage: row.mileage || 'Unknown',
+            condition: row.condition || '',
+            description: row.description || '',
+            photo: row.photo || '',
+            startingBid: Number.isFinite(Number(row.starting_bid)) ? Number(row.starting_bid) : 0,
+            currentBid: Number.isFinite(Number(row.current_bid)) ? Number(row.current_bid) : 0,
+            reservePrice: Number.isFinite(Number(row.reserve_price)) ? Number(row.reserve_price) : null,
+            buyNowPrice: Number.isFinite(Number(row.buy_now_price)) ? Number(row.buy_now_price) : null,
+            status: row.market_status || row.status || 'Sale',
+            timeRemaining: row.time_remaining || '00:00:00',
+            seller: row.seller || 'Dealer',
+            location: row.location || '',
+            pickup: row.pickup || '',
+            auctionStartAt: row.auction_start_at || null,
+            auctionEndAt: row.auction_end_at || null
+        };
+    }
+
+    function loadInventoryCarsFromSupabase() {
+        var config = getInventoryConfig();
+        var table = config.table || INVENTORY_VEHICLES_TABLE;
+
+        if (!initializeInventorySupabase()) {
+            return Promise.resolve(null);
+        }
+
+        return inventorySupabaseClient
+            .from(table)
+            .select('*')
+            .then(function (result) {
+                if (result.error) {
+                    throw result.error;
+                }
+
+                return (result.data || [])
+                    .filter(function (row) { return row && row.is_archived !== true; })
+                    .map(mapInventoryRowToCar);
+            })
+            .catch(function (error) {
+                console.warn('[my-vehicles] Supabase inventory load failed, falling back to JSON:', error);
+                return null;
+            });
     }
 
     function formatSubmittedAt(value) {
@@ -1121,18 +1182,25 @@
 
     function loadInventoryData() {
         return Promise.all([
-            fetch('data/cars.json')
-                .then(function (response) {
-                    if (!response.ok) {
-                        throw new Error('HTTP ' + response.status);
+            loadInventoryCarsFromSupabase()
+                .then(function (supabaseCars) {
+                    if (Array.isArray(supabaseCars)) {
+                        return supabaseCars;
                     }
-                    return response.json();
-                })
-                .then(function (payload) {
-                    return payload && Array.isArray(payload.cars) ? payload.cars : [];
-                })
-                .catch(function () {
-                    return [];
+
+                    return fetch('data/cars.json')
+                        .then(function (response) {
+                            if (!response.ok) {
+                                throw new Error('HTTP ' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(function (payload) {
+                            return payload && Array.isArray(payload.cars) ? payload.cars : [];
+                        })
+                        .catch(function () {
+                            return [];
+                        });
                 }),
             loadApprovedInventorySubmissions()
         ])

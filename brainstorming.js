@@ -399,21 +399,15 @@
     }
 
     function initializeSupabase() {
-        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        if (!window._collectorsAllianceClient) {
             setConnectionMessage('Supabase client library failed to load.', 'error');
-            setRemoteActionsDisabled(true);
-            return false;
-        }
-
-        if (!hasValidSupabaseConfig()) {
-            setConnectionMessage('Supabase is not configured yet. Add your project URL and anon key in brainstorming.supabase-config.js.', 'warning');
             setRemoteActionsDisabled(true);
             return false;
         }
 
         var config = getSupabaseConfig();
         supabaseBucket = config.bucket || DEFAULT_BUCKET;
-        supabaseClient = window.supabase.createClient(config.url, config.anonKey);
+        supabaseClient = window._collectorsAllianceClient;
         setRemoteActionsDisabled(false);
         return true;
     }

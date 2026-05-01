@@ -33,19 +33,12 @@ function hasValidVehicleSubmissionConfig() {
 }
 
 function initializeVehicleSubmissionSupabase() {
-    var config;
-
-    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+    if (!window._collectorsAllianceClient) {
         return false;
     }
-
-    if (!hasValidVehicleSubmissionConfig()) {
-        return false;
-    }
-
-    config = getVehicleSubmissionConfig();
+    var config = getVehicleSubmissionConfig();
     vehicleSubmissionSupabaseBucket = config.bucket || DEFAULT_VEHICLE_SUBMISSIONS_BUCKET;
-    vehicleSubmissionSupabaseClient = window.supabase.createClient(config.url, config.anonKey);
+    vehicleSubmissionSupabaseClient = window._collectorsAllianceClient;
     return true;
 }
 
