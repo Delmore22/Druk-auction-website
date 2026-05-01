@@ -7,6 +7,7 @@ var VEHICLE_SUBMISSIONS_TABLE = 'vehicle_submissions';
 var DEFAULT_VEHICLE_SUBMISSIONS_BUCKET = 'vehicle-submission-photos';
 var vehicleSubmissionSupabaseClient = null;
 var vehicleSubmissionSupabaseBucket = DEFAULT_VEHICLE_SUBMISSIONS_BUCKET;
+var DEALER_TERMS_VERSION = 'CollectorsAllianceTOS-1.0';
 
 document.addEventListener('components:ready', function () {
     initSiteNotice();
@@ -150,6 +151,34 @@ function buildVehicleSubmissionRecord(vehicleData, photoAttachments) {
 
     normalizedPayload.photos = photos;
 
+    // ── Title SLA flags (TOS §11) ──────────────────────────────────────────
+    var titleSlaCategory = null;
+    var titleSlaDeadlineDays = null;
+    var titleShipDeadline = null;
+    var titleStatusValue = vehicleData.vehicleTitleStatus || vehicleData.titleStatus || '';
+    var maxDaysRaw = parseInt(vehicleData.titleShipMaxDays || vehicleData.titleMaxDays || '', 10);
+
+    if (titleStatusValue === 'title_present') {
+        titleSlaCategory = 'present';
+        titleSlaDeadlineDays = 2;
+    } else if (titleStatusValue === 'title_pending') {
+        titleSlaCategory = 'pending';
+        titleSlaDeadlineDays = 14;
+    } else if (titleStatusValue === 'title_delayed') {
+        titleSlaCategory = 'delayed';
+        titleSlaDeadlineDays = isNaN(maxDaysRaw) ? 30 : maxDaysRaw;
+    } else if (titleStatusValue === 'no_title_bos') {
+        titleSlaCategory = 'no_title';
+        titleSlaDeadlineDays = 0;
+    }
+
+    if (titleSlaDeadlineDays && titleSlaDeadlineDays > 0) {
+        var deadline = new Date();
+        deadline.setDate(deadline.getDate() + titleSlaDeadlineDays);
+        titleShipDeadline = deadline.toISOString();
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
     return {
         vin: vehicleData.vin || null,
         year: vehicleData.year ? String(vehicleData.year) : null,
@@ -162,6 +191,12 @@ function buildVehicleSubmissionRecord(vehicleData, photoAttachments) {
         review_status: 'pending',
         review_notes: null,
         summary_label: summaryLabel || 'Vehicle Submission',
+        title_sla_category: titleSlaCategory,
+        title_sla_deadline_days: titleSlaDeadlineDays,
+        title_ship_deadline: titleShipDeadline,
+        arbitration_reason_code: vehicleData.arbitrationReasonCode || null,
+        terms_version: vehicleData.termsVersion || DEALER_TERMS_VERSION,
+        terms_accepted_at: vehicleData.termsAcceptedAt || null,
         submitted_payload: normalizedPayload,
         submitted_at: new Date().toISOString()
     };
@@ -457,22 +492,24 @@ function initAddVehicleForm() {
         var submitButton = form.querySelector('.btn-submit');
         var originalLabel = submitButton ? submitButton.textContent : '';
 
-        if (submitButton) {
-            submitButton.disabled = true;
-            submitButton.textContent = 'Submitting...';
-        }
-
-        try {
-            var submitResult = await submitVehicle(vehicleData);
-            if (submitResult && submitResult.saved && draftController) {
-                draftController.clear();
-            }
-        } finally {
+        // Show binding acknowledgement modal before proceeding
+        openBindingAckModal(async function onConfirmed() {
             if (submitButton) {
-                submitButton.disabled = false;
-                submitButton.textContent = originalLabel;
+                submitButton.disabled = true;
+                submitButton.textContent = 'Submitting...';
             }
-        }
+            try {
+                var submitResult = await submitVehicle(vehicleData);
+                if (submitResult && submitResult.saved && draftController) {
+                    draftController.clear();
+                }
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalLabel;
+                }
+            }
+        });
     });
 
     // Handle cancel button
@@ -481,6 +518,35 @@ function initAddVehicleForm() {
             e.preventDefault();
             openCancelAllModal();
         });
+    }
+
+    function openBindingAckModal(onConfirmed) {
+        var modal = document.getElementById('bindingAckModal');
+        var cancelBtn = document.getElementById('bindingAckCancelBtn');
+        var confirmBtn = document.getElementById('bindingAckConfirmBtn');
+        if (!modal || !cancelBtn || !confirmBtn) {
+            // Fallback: proceed directly if modal elements are missing
+            onConfirmed();
+            return;
+        }
+
+        modal.hidden = false;
+        document.body.classList.add('preview-modal-open');
+        confirmBtn.focus();
+
+        function closeModal() {
+            modal.hidden = true;
+            document.body.classList.remove('preview-modal-open');
+            cancelBtn.removeEventListener('click', onCancel);
+            confirmBtn.removeEventListener('click', onConfirm);
+        }
+        function onCancel() { closeModal(); }
+        function onConfirm() {
+            closeModal();
+            onConfirmed();
+        }
+        cancelBtn.addEventListener('click', onCancel);
+        confirmBtn.addEventListener('click', onConfirm);
     }
 
     function openCancelAllModal() {
@@ -938,11 +1004,187 @@ function initManualEntryEnhancements() {
     initKeyRowButtons();
     initEquipmentCheckAll();
     initVinDecoder();
+    initTitleStatusCompliance();
+    initTermsAcceptanceCompliance();
+    initPricingFeePreview();
     initPickupLocationAutocomplete();
     initAnnouncementCounter();
     initPhotoPreview();
     initListingDurationPreview();
     initManualJumpNavigation();
+}
+
+function initTermsAcceptanceCompliance() {
+    var versionInput = document.getElementById('termsVersion');
+    var acceptedAtInput = document.getElementById('termsAcceptedAt');
+    var versionLabel = document.getElementById('tosVersionLabel');
+    var termsAccepted = document.getElementById('termsAccepted');
+    var paymentRecoveryAccepted = document.getElementById('paymentRecoveryAccepted');
+    var arbitrationScopeAccepted = document.getElementById('arbitrationScopeAccepted');
+
+    if (!versionInput || !acceptedAtInput || !termsAccepted || !paymentRecoveryAccepted || !arbitrationScopeAccepted) {
+        return;
+    }
+
+    versionInput.value = DEALER_TERMS_VERSION;
+    if (versionLabel) {
+        versionLabel.textContent = 'Terms Version: ' + DEALER_TERMS_VERSION;
+    }
+
+    function updateAcceptedTimestamp() {
+        var allAccepted = termsAccepted.checked && paymentRecoveryAccepted.checked && arbitrationScopeAccepted.checked;
+        acceptedAtInput.value = allAccepted ? new Date().toISOString() : '';
+    }
+
+    [termsAccepted, paymentRecoveryAccepted, arbitrationScopeAccepted].forEach(function (control) {
+        control.addEventListener('change', updateAcceptedTimestamp);
+    });
+
+    updateAcceptedTimestamp();
+}
+
+function initPricingFeePreview() {
+    var reserveInput = document.getElementById('vehicleReservePrice');
+    var startingBidInput = document.getElementById('vehicleStartingBid');
+    var buyNowInput = document.getElementById('vehicleEstimateValue');
+    var referenceEl = document.getElementById('feeReferencePrice');
+    var buyerFeeEl = document.getElementById('feeBuyerAmount');
+    var buyerRateEl = document.getElementById('feeBuyerRate');
+    var sellerFeeEl = document.getElementById('feeSellerAmount');
+    var sellerRuleEl = document.getElementById('feeSellerRule');
+    var allInEl = document.getElementById('feeAllInTotal');
+    var buyerFeeHidden = document.getElementById('estimatedBuyerFee');
+    var sellerFeeHidden = document.getElementById('estimatedSellerFee');
+    var allInHidden = document.getElementById('estimatedAllInTotal');
+
+    if (!reserveInput || !startingBidInput || !buyNowInput || !referenceEl || !buyerFeeEl || !buyerRateEl || !sellerFeeEl || !sellerRuleEl || !allInEl || !buyerFeeHidden || !sellerFeeHidden || !allInHidden) {
+        return;
+    }
+
+    function asMoney(value) {
+        return '$' + Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+
+    function parseAmount(control) {
+        var amount = Number(control.value);
+        return Number.isFinite(amount) && amount > 0 ? amount : 0;
+    }
+
+    function getBuyerFeeRate(referencePrice) {
+        if (referencePrice < 20000) return 0.065;
+        if (referencePrice < 50000) return 0.055;
+        if (referencePrice < 100000) return 0.0475;
+        return 0.029;
+    }
+
+    function updateFeePreview() {
+        var reserve = parseAmount(reserveInput);
+        var startingBid = parseAmount(startingBidInput);
+        var buyNow = parseAmount(buyNowInput);
+        var referencePrice = buyNow || reserve || startingBid;
+
+        var buyerFeeRate = referencePrice > 0 ? getBuyerFeeRate(referencePrice) : 0;
+        var buyerFee = referencePrice > 0 ? Math.round(referencePrice * buyerFeeRate) : 0;
+        if (referencePrice > 0) {
+            buyerFee = Math.max(850, Math.min(10000, buyerFee));
+        }
+
+        var isNoReserve = reserve <= 0;
+        var sellerFee = isNoReserve ? 0 : Math.round(referencePrice * 0.005);
+        var allInTotal = referencePrice + buyerFee;
+
+        referenceEl.textContent = asMoney(referencePrice);
+        buyerFeeEl.textContent = asMoney(buyerFee);
+        buyerRateEl.textContent = referencePrice > 0 ? (buyerFeeRate * 100).toFixed(2) + '% tier rate (min/max applied)' : '0.00%';
+        sellerFeeEl.textContent = asMoney(sellerFee);
+        sellerRuleEl.textContent = isNoReserve ? 'Waived (No Reserve listing)' : '0.5% standard seller fee';
+        allInEl.textContent = asMoney(allInTotal);
+
+        buyerFeeHidden.value = String(buyerFee);
+        sellerFeeHidden.value = String(sellerFee);
+        allInHidden.value = String(allInTotal);
+    }
+
+    [reserveInput, startingBidInput, buyNowInput].forEach(function (control) {
+        control.addEventListener('input', updateFeePreview);
+        control.addEventListener('change', updateFeePreview);
+    });
+
+    updateFeePreview();
+}
+
+function initTitleStatusCompliance() {
+    var titleStatus = document.getElementById('vehicleTitleStatus');
+    var timelineWrap = document.getElementById('titleTimelineWrap');
+    var timelineInput = document.getElementById('titleShipWindow');
+    var maxDaysInput = document.getElementById('titleShipMaxDays');
+    var delayedReasonWrap = document.getElementById('titleDelayedReasonWrap');
+    var delayedReasonInput = document.getElementById('titleDelayReason');
+    var noTitleRiskWrap = document.getElementById('noTitleRiskWrap');
+    var noTitleRiskAccepted = document.getElementById('noTitleRiskAccepted');
+
+    if (!titleStatus || !timelineWrap || !timelineInput || !maxDaysInput || !delayedReasonWrap || !delayedReasonInput || !noTitleRiskWrap || !noTitleRiskAccepted) {
+        return;
+    }
+
+    function setControlRequirement(control, isRequired) {
+        control.required = !!isRequired;
+        if (isRequired) {
+            decorateRequiredField(control);
+        } else {
+            control.classList.remove('is-invalid');
+        }
+        markControlValidity(control);
+    }
+
+    function updateTitleStatusState() {
+        var value = titleStatus.value;
+
+        timelineWrap.hidden = true;
+        delayedReasonWrap.hidden = true;
+        noTitleRiskWrap.hidden = true;
+
+        setControlRequirement(delayedReasonInput, false);
+        setControlRequirement(noTitleRiskAccepted, false);
+
+        if (value === 'title_present') {
+            timelineWrap.hidden = false;
+            timelineInput.value = 'Ship title within 2 business days';
+            maxDaysInput.value = '2';
+            return;
+        }
+
+        if (value === 'title_pending') {
+            timelineWrap.hidden = false;
+            timelineInput.value = 'Ship title within 10 business days (max 14 calendar days)';
+            maxDaysInput.value = '14';
+            return;
+        }
+
+        if (value === 'title_delayed') {
+            timelineWrap.hidden = false;
+            delayedReasonWrap.hidden = false;
+            timelineInput.value = 'Ship title in 14-30 calendar days';
+            maxDaysInput.value = '30';
+            setControlRequirement(delayedReasonInput, true);
+            return;
+        }
+
+        if (value === 'no_title_bos') {
+            timelineWrap.hidden = false;
+            noTitleRiskWrap.hidden = false;
+            timelineInput.value = 'No title provided (Bill of Sale Only)';
+            maxDaysInput.value = '0';
+            setControlRequirement(noTitleRiskAccepted, true);
+            return;
+        }
+
+        timelineInput.value = '';
+        maxDaysInput.value = '';
+    }
+
+    titleStatus.addEventListener('change', updateTitleStatusState);
+    updateTitleStatusState();
 }
 
 function initVinDecoder() {
@@ -2180,7 +2422,28 @@ document.addEventListener('DOMContentLoaded', function () {
     initConditionCollapse();
     initConditionAddRows();
     initWeekendWarning();
+    initStructuralDamageToggle();
 });
+
+function initStructuralDamageToggle() {
+    var radios = document.querySelectorAll('input[name="structuralDamage"]');
+    var detailWrap = document.getElementById('structuralDamageDetailWrap');
+    var detailTextarea = document.getElementById('structuralDamageDetail');
+    if (!radios.length || !detailWrap || !detailTextarea) return;
+
+    function updateVisibility() {
+        var selected = document.querySelector('input[name="structuralDamage"]:checked');
+        var needsDetail = selected && (selected.value === 'yes' || selected.value === 'unknown');
+        detailWrap.hidden = !needsDetail;
+        detailTextarea.required = !!needsDetail;
+    }
+
+    radios.forEach(function (radio) {
+        radio.addEventListener('change', updateVisibility);
+    });
+
+    updateVisibility();
+}
 
 // Weekend warning: Friday noon – Sunday noon
 function isWeekendWindow(date) {

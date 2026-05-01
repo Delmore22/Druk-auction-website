@@ -1107,6 +1107,161 @@ function getTransportEstimate(car) {
     };
 }
 
+function getCarHaulerConfig() {
+    var cfg = window.CARHAULER247_API_CONFIG || {};
+    return {
+        enabled: cfg.enabled === true,
+        baseUrl: String(cfg.baseUrl || '').replace(/\/+$/, ''),
+        endpoint: cfg.endpoint || '/api/public/v1/quote',
+        apiKey: cfg.apiKey || '',
+        apiKeyHeader: cfg.apiKeyHeader || 'x-api-key',
+        originParam: cfg.originParam || 'fromZip',
+        destinationParam: cfg.destinationParam || 'toZip',
+        vehicleTypeParam: cfg.vehicleTypeParam || 'vehicleType',
+        vehicleTypeValue: cfg.vehicleTypeValue || 'sedan',
+        isOperationalParam: cfg.isOperationalParam || 'isOperational',
+        isOperationalValue: cfg.isOperationalValue !== false,
+        defaultFromZip: cfg.defaultFromZip || '60601',
+        timeoutMs: Number.isFinite(cfg.timeoutMs) ? cfg.timeoutMs : 10000
+    };
+}
+
+function toFiniteNumber(value) {
+    var numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
+}
+
+function parseCarHaulerQuoteResponse(rawResponse) {
+    var root = rawResponse && typeof rawResponse === 'object' ? rawResponse : {};
+    var payload = root.quote && typeof root.quote === 'object' ? root.quote : root;
+
+    var low =
+        toFiniteNumber(payload.low_price) ||
+        toFiniteNumber(payload.price_low) ||
+        toFiniteNumber(payload.min_price) ||
+        toFiniteNumber(payload.estimated_low) ||
+        toFiniteNumber(payload.lower);
+
+    var high =
+        toFiniteNumber(payload.high_price) ||
+        toFiniteNumber(payload.price_high) ||
+        toFiniteNumber(payload.max_price) ||
+        toFiniteNumber(payload.estimated_high) ||
+        toFiniteNumber(payload.upper);
+
+    var singlePrice =
+        toFiniteNumber(payload.price) ||
+        toFiniteNumber(payload.quote) ||
+        toFiniteNumber(payload.estimated_price);
+
+    if (!Number.isFinite(low) && Number.isFinite(singlePrice)) {
+        low = Math.round(singlePrice * 0.92);
+    }
+    if (!Number.isFinite(high) && Number.isFinite(singlePrice)) {
+        high = Math.round(singlePrice * 1.08);
+    }
+
+    if (!Number.isFinite(low) || !Number.isFinite(high)) {
+        throw new Error('CarHauler247 API response missing quote values.');
+    }
+
+    var etaMin =
+        toFiniteNumber(payload.eta_min_days) ||
+        toFiniteNumber(payload.transit_days_min) ||
+        toFiniteNumber(payload.min_days) ||
+        toFiniteNumber(payload.eta_days);
+
+    var etaMax =
+        toFiniteNumber(payload.eta_max_days) ||
+        toFiniteNumber(payload.transit_days_max) ||
+        toFiniteNumber(payload.max_days);
+
+    // CarHauler docs return a text field like "2796 miles, 4 days and 7 hours drive".
+    if (!Number.isFinite(etaMin) || !Number.isFinite(etaMax)) {
+        var estimatedDaysText = String(payload.estimatedDays || payload.estimated_days || '');
+        var dayMatch = estimatedDaysText.match(/(\d+)\s*days?/i);
+        var hourMatch = estimatedDaysText.match(/(\d+)\s*hours?/i);
+        if (dayMatch) {
+            var parsedDay = Number(dayMatch[1]);
+            if (Number.isFinite(parsedDay)) {
+                etaMin = parsedDay;
+                etaMax = parsedDay;
+                if (hourMatch) {
+                    var parsedHour = Number(hourMatch[1]);
+                    if (Number.isFinite(parsedHour) && parsedHour > 0) {
+                        etaMax = parsedDay + 1;
+                    }
+                }
+            }
+        }
+    }
+
+    if (!Number.isFinite(etaMin) && Number.isFinite(etaMax)) etaMin = etaMax;
+    if (!Number.isFinite(etaMax) && Number.isFinite(etaMin)) etaMax = etaMin;
+    if (!Number.isFinite(etaMin)) etaMin = 3;
+    if (!Number.isFinite(etaMax)) etaMax = etaMin + 2;
+
+    return {
+        lower: Math.min(low, high),
+        upper: Math.max(low, high),
+        etaMinDays: Math.min(etaMin, etaMax),
+        etaMaxDays: Math.max(etaMin, etaMax)
+    };
+}
+
+function extractUsZipCode(inputText) {
+    var match = String(inputText || '').match(/\b(\d{5})\b/);
+    return match ? match[1] : '';
+}
+
+function fetchCarHaulerQuote(originZip, destinationZip) {
+    var config = getCarHaulerConfig();
+    if (!config.enabled || !config.baseUrl) {
+        return Promise.resolve(null);
+    }
+
+    var requestUrl = new URL(config.baseUrl + config.endpoint);
+    requestUrl.searchParams.set(config.originParam, originZip);
+    requestUrl.searchParams.set(config.destinationParam, destinationZip);
+    requestUrl.searchParams.set(config.vehicleTypeParam, config.vehicleTypeValue);
+    requestUrl.searchParams.set(config.isOperationalParam, String(config.isOperationalValue));
+
+    var headers = {
+        'Accept': 'application/json'
+    };
+
+    if (config.apiKey) {
+        headers[config.apiKeyHeader] = config.apiKey;
+    }
+
+    var controller = typeof AbortController === 'function' ? new AbortController() : null;
+    var timeoutId = null;
+
+    if (controller) {
+        timeoutId = window.setTimeout(function () {
+            controller.abort();
+        }, config.timeoutMs);
+    }
+
+    return fetch(requestUrl.toString(), {
+        method: 'GET',
+        headers: headers,
+        signal: controller ? controller.signal : undefined
+    })
+        .then(function (response) {
+            if (!response.ok) {
+                throw new Error('CarHauler247 API HTTP ' + response.status);
+            }
+            return response.json();
+        })
+        .then(parseCarHaulerQuoteResponse)
+        .finally(function () {
+            if (timeoutId !== null) {
+                window.clearTimeout(timeoutId);
+            }
+        });
+}
+
 function getAnnouncementItems(car) {
     var items = [];
 
@@ -1418,17 +1573,146 @@ function buildValueCard(car) {
 
 function buildTransportCard(car) {
     var estimate = getTransportEstimate(car);
-    var card = createElement('article', 'cdv-card');
-    card.appendChild(createElement('h3', 'cdv-card-title', 'Transportation Quote'));
-    card.appendChild(createElement('p', 'cdv-muted-text', 'Experience streamlined transport estimates based on the current pickup location.'));
+    var fromLocation = car.pickup || car.location || 'Location pending';
+    var config = getCarHaulerConfig();
+    var originZip = extractUsZipCode(fromLocation) || config.defaultFromZip;
+    var originIsFallbackZip = !extractUsZipCode(fromLocation);
+    var priceLower = estimate.price;
+    var priceUpper = Math.round(priceLower * 1.25 / 50) * 50;
+    var transitDaysMin = estimate.etaDays;
+    var transitDaysMax = estimate.etaDays + 2;
 
-    var row = createElement('div', 'cdv-transport-row');
-    var destination = createElement('div', 'cdv-transport-destination');
-    destination.appendChild(createElement('strong', null, estimate.destination));
-    destination.appendChild(createElement('span', 'cdv-muted-text', estimate.etaDays + ' business days'));
-    row.appendChild(destination);
-    row.appendChild(createElement('strong', 'cdv-transport-price', '$' + estimate.price.toLocaleString()));
-    card.appendChild(row);
+    var card = createElement('article', 'cdv-card cdv-transport-card');
+
+    // Header bar
+    var header = createElement('div', 'cdv-transport-header');
+    var headerLeft = createElement('div', 'cdv-transport-header-left');
+    var truckIcon = createElement('i', 'fas fa-truck');
+    truckIcon.setAttribute('aria-hidden', 'true');
+    headerLeft.appendChild(truckIcon);
+    headerLeft.appendChild(createElement('span', 'cdv-transport-header-label', 'Transport Estimate'));
+    header.appendChild(headerLeft);
+    var poweredBy = createElement('div', 'cdv-transport-powered-by');
+    poweredBy.appendChild(createElement('span', null, 'Powered by'));
+    poweredBy.appendChild(createElement('strong', null, 'CARHAULER247'));
+    header.appendChild(poweredBy);
+    card.appendChild(header);
+
+    var body = createElement('div', 'cdv-transport-body');
+
+    // FROM field
+    var fromGroup = createElement('div', 'cdv-transport-field-group');
+    fromGroup.appendChild(createElement('label', 'cdv-transport-field-label', 'FROM (Pickup Location)'));
+    var fromField = createElement('div', 'cdv-transport-field-value');
+    var fromPin = createElement('i', 'fas fa-location-dot cdv-transport-pin');
+    fromPin.setAttribute('aria-hidden', 'true');
+    fromField.appendChild(fromPin);
+    fromField.appendChild(document.createTextNode(fromLocation + ' (ZIP ' + originZip + ')'));
+    fromGroup.appendChild(fromField);
+    body.appendChild(fromGroup);
+
+    // TO field
+    var toGroup = createElement('div', 'cdv-transport-field-group');
+    toGroup.appendChild(createElement('label', 'cdv-transport-field-label', 'TO (Destination)'));
+    var toInputWrap = createElement('div', 'cdv-transport-field-value cdv-transport-field-input');
+    var toPin = createElement('i', 'fas fa-location-dot cdv-transport-pin');
+    toPin.setAttribute('aria-hidden', 'true');
+    var toInput = createElement('input', 'cdv-transport-dest-input');
+    toInput.type = 'text';
+    toInput.placeholder = 'Enter destination ZIP code (5 digits)';
+    toInput.setAttribute('aria-label', 'Destination ZIP code');
+    toInputWrap.appendChild(toPin);
+    toInputWrap.appendChild(toInput);
+    toGroup.appendChild(toInputWrap);
+    body.appendChild(toGroup);
+
+    // Price range
+    var rangeSection = createElement('div', 'cdv-transport-range-section');
+    var rangeLabel = createElement('span', 'cdv-transport-range-label', 'Estimated Price Range');
+    var rangeValue = createElement('div', 'cdv-transport-range-value',
+        '$' + priceLower.toLocaleString() + ' – $' + priceUpper.toLocaleString());
+    var rangeDays = createElement('span', 'cdv-transport-range-days',
+        transitDaysMin + ' – ' + transitDaysMax + ' days transit time');
+    var rangeStatus = createElement('span', 'cdv-transport-range-status', 'Enter destination ZIP for live CarHauler247 quote.');
+    rangeSection.appendChild(rangeLabel);
+    rangeSection.appendChild(rangeValue);
+    rangeSection.appendChild(rangeDays);
+    rangeSection.appendChild(rangeStatus);
+    body.appendChild(rangeSection);
+
+    // CTA button
+    var ctaBtn = createElement('button', 'cdv-transport-cta', 'Get Exact Quote');
+    ctaBtn.type = 'button';
+
+    function renderQuote(quote, sourceLabel) {
+        rangeValue.textContent = '$' + quote.lower.toLocaleString() + ' – $' + quote.upper.toLocaleString();
+        rangeDays.textContent = quote.etaMinDays + ' – ' + quote.etaMaxDays + ' days transit time';
+        rangeStatus.textContent = sourceLabel;
+        rangeStatus.classList.remove('is-error');
+    }
+
+    function renderError(message) {
+        rangeStatus.textContent = message;
+        rangeStatus.classList.add('is-error');
+    }
+
+    ctaBtn.addEventListener('click', function () {
+        var destZip = extractUsZipCode(toInput.value.trim());
+        if (!destZip) {
+            renderError('Enter a valid 5-digit destination ZIP code.');
+            toInput.focus();
+            return;
+        }
+
+        if (originIsFallbackZip) {
+            rangeStatus.textContent = 'Pickup ZIP missing on listing; using default origin ZIP ' + originZip + '.';
+        }
+
+        ctaBtn.disabled = true;
+        ctaBtn.textContent = 'Fetching Quote...';
+        rangeStatus.classList.remove('is-error');
+        rangeStatus.textContent = 'Requesting live quote from CarHauler247...';
+
+        fetchCarHaulerQuote(originZip, destZip)
+            .then(function (quote) {
+                if (quote) {
+                    renderQuote(quote, 'Live estimate from CarHauler247 API.');
+                    return;
+                }
+
+                // Fallback when API is not configured yet.
+                renderQuote({
+                    lower: priceLower,
+                    upper: priceUpper,
+                    etaMinDays: transitDaysMin,
+                    etaMaxDays: transitDaysMax
+                }, 'API not configured yet; showing local demo estimate.');
+            })
+            .catch(function () {
+                renderQuote({
+                    lower: priceLower,
+                    upper: priceUpper,
+                    etaMinDays: transitDaysMin,
+                    etaMaxDays: transitDaysMax
+                }, 'API request failed; showing local demo estimate.');
+                rangeStatus.classList.add('is-error');
+            })
+            .finally(function () {
+                ctaBtn.disabled = false;
+                ctaBtn.textContent = 'Get Exact Quote';
+            });
+    });
+    body.appendChild(ctaBtn);
+
+    // Footer note
+    var footerNote = createElement('p', 'cdv-transport-footer-note');
+    var lockIcon = createElement('i', 'fas fa-lock-open');
+    lockIcon.setAttribute('aria-hidden', 'true');
+    footerNote.appendChild(lockIcon);
+    footerNote.appendChild(document.createTextNode(' No obligation • Free instant quote'));
+    body.appendChild(footerNote);
+
+    card.appendChild(body);
     return card;
 }
 
@@ -1497,12 +1781,12 @@ function buildContentSection(car) {
     var left = createElement('div', 'cdv-column');
     var right = createElement('div', 'cdv-column');
 
+    left.appendChild(buildTransportCard(car));
     left.appendChild(buildInspectionCard(car));
     left.appendChild(buildDisclosureCard(car));
 
     right.appendChild(buildHistoryCard());
     right.appendChild(buildValueCard(car));
-    right.appendChild(buildTransportCard(car));
     right.appendChild(buildVehicleDetailsCard(car));
 
     section.appendChild(left);

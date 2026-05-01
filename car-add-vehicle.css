@@ -717,6 +717,119 @@
     line-height: 1.45;
 }
 
+.title-status-policy-note {
+    border: 1px solid var(--border-color);
+    background: var(--placeholder-bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.title-status-policy-note p {
+    margin: 0 0 6px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.title-status-policy-list {
+    margin: 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 0.25rem;
+    color: var(--secondary-text);
+    font-size: 0.83rem;
+}
+
+.title-risk-accept {
+    margin-top: -4px;
+    margin-bottom: 14px;
+}
+
+.tos-acceptance-block {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--placeholder-bg);
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+}
+
+.tos-acceptance-version {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--secondary-text);
+}
+
+.pricing-fee-preview {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--placeholder-bg);
+    padding: 12px;
+}
+
+.pricing-fee-preview h4 {
+    margin: 0 0 6px;
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.pricing-fee-note {
+    margin: 0 0 10px;
+    font-size: 0.82rem;
+    color: var(--secondary-text);
+    line-height: 1.45;
+}
+
+.pricing-fee-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.pricing-fee-item {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--header-bg);
+    padding: 10px;
+    display: grid;
+    gap: 4px;
+}
+
+.pricing-fee-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--secondary-text);
+}
+
+.pricing-fee-value {
+    font-size: 1.05rem;
+    color: var(--text-color);
+}
+
+.pricing-fee-item small {
+    color: var(--secondary-text);
+    font-size: 0.75rem;
+}
+
+/* Binding Transaction Acknowledgement modal list */
+.binding-ack-list {
+    margin: 0.75rem 0 0 1.1rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+.binding-ack-list li {
+    list-style: disc;
+}
+
 .seller-disclosure-question {
     margin-bottom: 6px;
     color: var(--text-color);
@@ -736,6 +849,96 @@
     font-size: 0.88rem;
     line-height: 1.4;
     margin-bottom: 12px;
+}
+
+/* Disclosure block — card-style wrapper for each disclosure question */
+.disclosure-block {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 1rem;
+    background: var(--placeholder-bg);
+}
+
+.disclosure-block-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-bottom: 0.75rem;
+}
+
+.disclosure-radio-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
+}
+
+.disclosure-radio-option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    font-size: 0.92rem;
+    color: var(--text-color);
+}
+
+.disclosure-radio-option input[type="radio"] {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-color);
+    cursor: pointer;
+}
+
+.disclosure-helper-text {
+    font-size: 0.83rem;
+    color: var(--secondary-text);
+    margin-bottom: 0.75rem;
+    line-height: 1.45;
+}
+
+.disclosure-detail-wrap {
+    margin-bottom: 0.75rem;
+}
+
+.disclosure-detail-textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.disclosure-legal-warning {
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: #dc2626;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.disclosure-certify-line {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+.disclosure-certify-line input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-color);
+    cursor: pointer;
 }
 
 .alert-note.info {

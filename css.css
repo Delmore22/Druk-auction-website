@@ -136,6 +136,14 @@ body {
     transition: opacity 0.3s ease, font-size 0.3s ease;
 }
 
+.logo-tagline {
+    font-size: 0.78rem !important;
+    font-style: italic;
+    color: var(--accent-color) !important;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
 /* ===== Shrunk header (on scroll) ===== */
 .top-header.shrunk .logo-icon {
     width: 82px;

@@ -511,6 +511,185 @@ body.car-details-page {
     gap: 0.3rem;
 }
 
+/* ===== Redesigned Transport Card ===== */
+.cdv-transport-card {
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.cdv-transport-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #1a1f2e;
+    color: #ffffff;
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+}
+
+.cdv-transport-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.cdv-transport-header-left .fas {
+    font-size: 1rem;
+    color: var(--accent-color);
+}
+
+.cdv-transport-header-label {
+    color: #ffffff;
+}
+
+.cdv-transport-powered-by {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.3;
+}
+
+.cdv-transport-powered-by strong {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 0.04em;
+}
+
+.cdv-transport-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cdv-transport-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.cdv-transport-field-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--secondary-text);
+}
+
+.cdv-transport-field-value {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--placeholder-bg);
+    font-size: 0.9rem;
+    color: var(--text-color);
+    min-height: 40px;
+}
+
+.cdv-transport-field-input {
+    padding: 0;
+}
+
+.cdv-transport-pin {
+    color: var(--accent-color);
+    flex-shrink: 0;
+    padding-left: 0.75rem;
+}
+
+.cdv-transport-dest-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    font: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    padding: 0.55rem 0.75rem 0.55rem 0;
+    min-height: 40px;
+}
+
+.cdv-transport-dest-input::placeholder {
+    color: var(--tertiary-text);
+}
+
+.cdv-transport-range-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+.cdv-transport-range-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--secondary-text);
+}
+
+.cdv-transport-range-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-color);
+    line-height: 1.1;
+}
+
+.cdv-transport-range-days {
+    font-size: 0.8rem;
+    color: var(--secondary-text);
+}
+
+.cdv-transport-range-status {
+    font-size: 0.76rem;
+    color: var(--secondary-text);
+}
+
+.cdv-transport-range-status.is-error {
+    color: #ef4444;
+}
+
+.cdv-transport-cta {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent-color);
+    color: var(--accent-text);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.18s ease;
+}
+
+.cdv-transport-cta:hover {
+    filter: brightness(0.92);
+}
+
+.cdv-transport-cta:disabled {
+    opacity: 0.72;
+    cursor: not-allowed;
+    filter: none;
+}
+
+.cdv-transport-footer-note {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--secondary-text);
+    margin: 0;
+}
+
 .cdv-detail-table {
     display: grid;
     border: 1px solid var(--border-color);

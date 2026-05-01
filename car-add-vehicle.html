@@ -201,11 +201,38 @@
                                 <label for="vehicleTitleStatus">Title Status</label>
                                 <select id="vehicleTitleStatus" name="titleStatus" required>
                                     <option value="">Select Title Status</option>
-                                    <option value="Clean">Clean</option>
-                                    <option value="Lien">Lien</option>
-                                    <option value="Rebuilt">Rebuilt</option>
+                                    <option value="title_present">Title Present</option>
+                                    <option value="title_pending">Title Pending</option>
+                                    <option value="title_delayed">Title Delayed</option>
+                                    <option value="no_title_bos">No Title / Bill of Sale Only</option>
                                 </select>
                             </div>
+
+                            <div class="form-group full-width title-status-policy-note" id="titleStatusPolicyNote">
+                                <p>Title status controls shipment deadlines and funding eligibility.</p>
+                                <ul class="title-status-policy-list">
+                                    <li>Title Present: must ship within 2 business days.</li>
+                                    <li>Title Pending: must ship within 10 business days (max 14 calendar days).</li>
+                                    <li>Title Delayed: 14-30 calendar day window; reason required.</li>
+                                    <li>No Title / Bill of Sale Only: buyer assumes risk and arbitration is not available.</li>
+                                </ul>
+                            </div>
+
+                            <div class="form-group full-width" id="titleTimelineWrap" hidden>
+                                <label for="titleShipWindow">Required Title Shipment Timeline</label>
+                                <input type="text" id="titleShipWindow" name="titleShipWindow" readonly>
+                                <input type="hidden" id="titleShipMaxDays" name="titleShipMaxDays">
+                            </div>
+
+                            <div class="form-group full-width" id="titleDelayedReasonWrap" hidden>
+                                <label for="titleDelayReason">Title Delay Reason</label>
+                                <textarea id="titleDelayReason" name="titleDelayReason" rows="3" placeholder="Provide reason for title delay and expected readiness date."></textarea>
+                            </div>
+
+                            <label class="checkbox-line title-risk-accept" id="noTitleRiskWrap" hidden>
+                                <input type="checkbox" id="noTitleRiskAccepted" name="noTitleRiskAccepted">
+                                I understand this listing is No Title / Bill of Sale Only, buyer assumes all risk, and this listing is not eligible for arbitration.
+                            </label>
 
                             <div class="form-group">
                                 <label for="vehicleTrim">Trim</label>
@@ -346,24 +373,62 @@
                     <fieldset class="form-section" id="disclosureOverviewSection">
                         <legend>Disclosure Overview</legend>
                         <p class="seller-disclosure-meta">All condition disclosures are provided by the seller. Platform does not inspect or verify vehicle condition.</p>
-                        <div class="form-grid one-column">
-                            <div class="seller-disclosure-question">To the best of seller's knowledge, has this vehicle had structural/frame damage? <span class="required-marker" aria-hidden="true">*</span></div>
-                            <div class="radio-group-row">
-                                <span>Structural Damage</span>
-                                <label><input type="radio" name="structuralDamage" value="yes"> Yes</label>
-                                <label><input type="radio" name="structuralDamage" value="no" checked> No</label>
-                                <label><input type="radio" name="structuralDamage" value="unknown"> Unknown</label>
+
+                        <!-- Structural / Frame Damage -->
+                        <div class="disclosure-block">
+                            <h4 class="disclosure-block-title">Structural / Frame Damage Disclosure <span class="required-marker" aria-hidden="true">*</span></h4>
+                            <div class="disclosure-radio-stack">
+                                <label class="disclosure-radio-option">
+                                    <input type="radio" name="structuralDamage" value="yes">
+                                    <span>Yes – Structural/Frame Damage Present</span>
+                                </label>
+                                <label class="disclosure-radio-option">
+                                    <input type="radio" name="structuralDamage" value="no" checked>
+                                    <span>No – No Known Structural/Frame Damage</span>
+                                </label>
+                                <label class="disclosure-radio-option">
+                                    <input type="radio" name="structuralDamage" value="unknown">
+                                    <span>Unknown – Explanation Required</span>
+                                </label>
                             </div>
-                            <div class="alert-note">Structural Damage is damage to the main load-bearing platform of a vehicle. Selecting yes may invalidate condition comments for this listing.</div>
-                            <div class="radio-group-row">
-                                <span>Sold As Is</span>
-                                <label><input type="radio" name="soldAsIs" value="yes"> Yes</label>
-                                <label><input type="radio" name="soldAsIs" value="no" checked> No</label>
+                            <p class="disclosure-helper-text">Structural damage includes frame, unibody, or load-bearing components affecting integrity.</p>
+                            <div class="disclosure-detail-wrap" id="structuralDamageDetailWrap" hidden>
+                                <textarea class="disclosure-detail-textarea" id="structuralDamageDetail" name="structuralDamageDetail" rows="4" placeholder="Describe damage or reason unknown (Required)"></textarea>
                             </div>
-                            <div class="radio-group-row">
-                                <span>Salvage</span>
-                                <label><input type="radio" name="salvage" value="yes"> Yes</label>
-                                <label><input type="radio" name="salvage" value="no" checked> No</label>
+                            <p class="disclosure-legal-warning">Failure to disclose accurately may result in penalties or account suspension.</p>
+                            <label class="disclosure-certify-line">
+                                <input type="checkbox" name="structuralDamageCertified" id="structuralDamageCertified" required>
+                                I certify this disclosure is accurate and complete
+                            </label>
+                        </div>
+
+                        <!-- Sold As Is -->
+                        <div class="disclosure-block">
+                            <h4 class="disclosure-block-title">Sold As Is <span class="required-marker" aria-hidden="true">*</span></h4>
+                            <div class="disclosure-radio-stack">
+                                <label class="disclosure-radio-option">
+                                    <input type="radio" name="soldAsIs" value="yes">
+                                    <span>Yes – Vehicle is Sold As Is</span>
+                                </label>
+                                <label class="disclosure-radio-option">
+                                    <input type="radio" name="soldAsIs" value="no" checked>
+                                    <span>No – Standard Sale Terms Apply</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Salvage -->
+                        <div class="disclosure-block">
+                            <h4 class="disclosure-block-title">Salvage Title <span class="required-marker" aria-hidden="true">*</span></h4>
+                            <div class="disclosure-radio-stack">
+                                <label class="disclosure-radio-option">
+                                    <input type="radio" name="salvage" value="yes">
+                                    <span>Yes – Salvage or Rebuilt Title</span>
+                                </label>
+                                <label class="disclosure-radio-option">
+                                    <input type="radio" name="salvage" value="no" checked>
+                                    <span>No – Clean Title</span>
+                                </label>
                             </div>
                         </div>
                     </fieldset>
@@ -563,6 +628,44 @@
                         </label>
                     </fieldset>
 
+                    <fieldset class="form-section" id="tosAcceptanceSection">
+                        <legend>Dealer Terms Acceptance</legend>
+                        <p class="seller-disclosure-meta">These acknowledgements are required before listing submission and are stored with your submission payload for audit review.</p>
+
+                        <div class="tos-acceptance-block">
+                            <div class="tos-acceptance-version" id="tosVersionLabel">Terms Version: Collectors Alliance Dealer Terms v1.0</div>
+
+                            <label class="checkbox-line disclosure-accept">
+                                <input type="checkbox" id="termsAccepted" name="termsAccepted" required>
+                                I accept the Collectors Alliance Dealer Terms of Service and understand accepted bids, Buy Now actions, and accepted offers create binding wholesale transactions.
+                            </label>
+
+                            <label class="checkbox-line disclosure-accept">
+                                <input type="checkbox" id="paymentRecoveryAccepted" name="paymentRecoveryAccepted" required>
+                                I authorize Collectors Alliance to charge payment methods on file for applicable fees, penalties, transportation, storage, arbitration, and recovery expenses as defined in the Terms.
+                            </label>
+
+                            <label class="checkbox-line disclosure-accept">
+                                <input type="checkbox" id="arbitrationScopeAccepted" name="arbitrationScopeAccepted" required>
+                                I understand arbitration is limited to title and identity issues, and does not apply to mechanical, structural, cosmetic, electrical, or missing-item claims.
+                            </label>
+
+                            <div class="form-group" id="arbitrationReasonWrap">
+                                <label for="arbitrationReasonCode">Arbitration Reason (if applicable) <small class="tos-acceptance-version">Title/identity disputes only — select if you anticipate a potential claim</small></label>
+                                <select id="arbitrationReasonCode" name="arbitrationReasonCode">
+                                    <option value="">Not applicable</option>
+                                    <option value="title_defect">Title Defect — lien, brand, or encumbrance on title</option>
+                                    <option value="title_not_received">Title Not Received — title not shipped within required SLA</option>
+                                    <option value="identity_mismatch">Identity Mismatch — VIN does not match vehicle or documents</option>
+                                    <option value="stolen_vehicle">Stolen Vehicle — VIN flagged in theft database</option>
+                                </select>
+                            </div>
+
+                            <input type="hidden" id="termsVersion" name="termsVersion" value="CollectorsAllianceTOS-1.0">
+                            <input type="hidden" id="termsAcceptedAt" name="termsAcceptedAt" value="">
+                        </div>
+                    </fieldset>
+
                     <fieldset class="form-section" id="photosSection">
                         <legend>Photos</legend>
                         <div class="form-group full-width">
@@ -616,6 +719,36 @@
                             <div class="form-group">
                                 <label for="vehicleEstimateValue">Buy Now Price</label>
                                 <input type="number" id="vehicleEstimateValue" name="estimateValue" min="0" step="0.01">
+                            </div>
+
+                            <div class="form-group full-width pricing-fee-preview" id="pricingFeePreview">
+                                <h4>TOS Fee Preview (Estimated)</h4>
+                                <p class="pricing-fee-note">Buyer fee tiers: 6.5% under $20k, 5.5% $20k-$50k, 4.75% $50k-$100k, 2.9% above $100k. Min $850, max $10,000. Seller fee is 0.5% and waived for No Reserve listings.</p>
+
+                                <div class="pricing-fee-grid">
+                                    <div class="pricing-fee-item">
+                                        <span class="pricing-fee-label">Reference Sale Price</span>
+                                        <strong class="pricing-fee-value" id="feeReferencePrice">$0</strong>
+                                    </div>
+                                    <div class="pricing-fee-item">
+                                        <span class="pricing-fee-label">Estimated Buyer Fee</span>
+                                        <strong class="pricing-fee-value" id="feeBuyerAmount">$0</strong>
+                                        <small id="feeBuyerRate">0.00%</small>
+                                    </div>
+                                    <div class="pricing-fee-item">
+                                        <span class="pricing-fee-label">Estimated Seller Fee</span>
+                                        <strong class="pricing-fee-value" id="feeSellerAmount">$0</strong>
+                                        <small id="feeSellerRule">0.5% standard</small>
+                                    </div>
+                                    <div class="pricing-fee-item">
+                                        <span class="pricing-fee-label">Estimated Buyer All-In Total</span>
+                                        <strong class="pricing-fee-value" id="feeAllInTotal">$0</strong>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" id="estimatedBuyerFee" name="estimatedBuyerFee" value="0">
+                                <input type="hidden" id="estimatedSellerFee" name="estimatedSellerFee" value="0">
+                                <input type="hidden" id="estimatedAllInTotal" name="estimatedAllInTotal" value="0">
                             </div>
                         </div>
                     </fieldset>
@@ -747,6 +880,31 @@
                         <div class="site-notice-actions">
                             <button type="button" class="btn-cancel" id="siteConfirmCancelBtn">Keep Editing</button>
                             <button type="button" class="btn-submit" id="siteConfirmOkBtn">Discard Changes</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Binding Transaction Acknowledgement Modal -->
+                <div class="site-confirm-modal" id="bindingAckModal" hidden>
+                    <div class="site-notice-backdrop"></div>
+                    <div class="site-notice-dialog" role="dialog" aria-modal="true" aria-labelledby="bindingAckTitle" aria-describedby="bindingAckMessage">
+                        <div class="site-notice-header">
+                            <div>
+                                <p class="site-notice-eyebrow">Collectors Alliance Exchange</p>
+                                <h2 id="bindingAckTitle">Binding Transaction Acknowledgement</h2>
+                            </div>
+                        </div>
+                        <div class="site-notice-message" id="bindingAckMessage">
+                            <p>By submitting this listing you acknowledge:</p>
+                            <ul class="binding-ack-list">
+                                <li>Once a bid is accepted, a Buy Now is executed, or an offer is accepted, <strong>the transaction is legally binding</strong> and may not be cancelled except as allowed under the Collectors Alliance Dealer Terms (§18).</li>
+                                <li>You are responsible for delivering the title within the timeframe selected on this form and for all fees, penalties, and recovery costs associated with non-performance.</li>
+                                <li>Arbitration is available <strong>only</strong> for title defects and VIN/identity mismatches — not for mechanical, structural, cosmetic, electrical, or missing-item claims.</li>
+                            </ul>
+                        </div>
+                        <div class="site-notice-actions">
+                            <button type="button" class="btn-cancel" id="bindingAckCancelBtn">Go Back</button>
+                            <button type="button" class="btn-submit" id="bindingAckConfirmBtn">I Understand — Submit Listing</button>
                         </div>
                     </div>
                 </div>
