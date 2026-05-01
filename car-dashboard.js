@@ -787,21 +787,50 @@ function createAuctionCardElement(car, sectionMode) {
     const saleTag = document.createElement('div');
     saleTag.className = 'sale-tag';
 
-    const saleLabel = document.createElement('span');
-    saleLabel.className = `sale-label ${status.className}`;
-    saleLabel.textContent = status.label;
-
     const salePrice = document.createElement('span');
     salePrice.className = 'sale-price';
     salePrice.textContent = `$${bid}`;
 
     const salePriceLabel = document.createElement('span');
     salePriceLabel.className = 'sale-price-label';
-    salePriceLabel.textContent = sectionMode === 'active' ? 'Current Bid' : 'Lead Bid';
+    salePriceLabel.textContent = sectionMode === 'active' ? 'Current Bid' : sectionMode === 'sold' ? 'Final Sold Bid' : 'Lead Bid';
 
-    saleTag.appendChild(saleLabel);
+    // Reserve, Reserve is Off, and Sold badges are all overlaid on the photo (top-left corner)
+    if (
+        status.className === 'status-appending' ||
+        status.className === 'status-reserve-off' ||
+        status.className === 'status-sold'
+    ) {
+        const photoBadge = document.createElement('span');
+        photoBadge.className = `auction-photo-status-badge ${status.className}`;
+        photoBadge.textContent = status.label;
+        photoBadge.setAttribute('aria-hidden', 'true');
+        photo.appendChild(photoBadge);
+    }
+
+    // Sale badge is intentionally omitted — the section the card appears in already implies it is for sale.
+
     saleTag.appendChild(salePriceLabel);
     saleTag.appendChild(salePrice);
+
+    // NAAA Sale Light System — 4 indicator circles (unlit by default; wired to data later)
+    const saleLights = [
+        { key: 'green',  label: 'Green – Ride & Drive' },
+        { key: 'yellow', label: 'Yellow – Limited Guarantee' },
+        { key: 'red',    label: 'Red – Limited As-Is' },
+        { key: 'blue',   label: 'Blue – Title Attached / Unavailable / Absent' }
+    ];
+    const saleLightsRow = document.createElement('div');
+    saleLightsRow.className = 'sale-lights';
+    saleLights.forEach(function (light) {
+        const circle = document.createElement('span');
+        const isLit = Math.random() < 0.5;
+        circle.className = 'sale-light sale-light-' + light.key + (isLit ? ' is-lit' : '');
+        circle.setAttribute('data-tooltip', light.label);
+        circle.setAttribute('aria-label', light.label);
+        saleLightsRow.appendChild(circle);
+    });
+    saleTag.appendChild(saleLightsRow);
 
     let listActionRow = null;
     let tileActionRow = null;

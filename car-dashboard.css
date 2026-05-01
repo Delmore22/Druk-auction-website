@@ -271,6 +271,7 @@
     background-color: var(--card-bg);
     overflow: hidden;
     flex-shrink: 0;
+    position: relative;
 }
 
 .auction-photo-image {
@@ -370,6 +371,31 @@
     text-transform: uppercase;
     color: var(--tertiary-text);
 }
+
+/* NAAA Sale Light System */
+.sale-lights {
+    display: flex;
+    gap: 0.35rem;
+    margin-top: 0.3rem;
+}
+
+.sale-light {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid rgba(148, 163, 184, 0.5);
+    background: transparent;
+    cursor: default;
+    flex-shrink: 0;
+    transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+/* Lit states (active when the matching class is added) */
+.sale-light-green.is-lit  { border-color: #16a34a; background: #16a34a; }
+.sale-light-yellow.is-lit { border-color: #ca8a04; background: #ca8a04; }
+.sale-light-red.is-lit    { border-color: #dc2626; background: #dc2626; }
+.sale-light-blue.is-lit   { border-color: #2563eb; background: #2563eb; }
 
 .auction-row-actions {
     display: none;
@@ -605,6 +631,32 @@
 
 .auction-photo-count {
     display: none;
+}
+
+/* Status badge overlaid on the photo — used for Reserve and Reserve is Off */
+.auction-photo-status-badge {
+    position: absolute;
+    top: 0.55rem;
+    left: 0.55rem;
+    z-index: 4;
+    padding: 0.22rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #ffffff;
+    background: #0f766e;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.auction-photo-status-badge.status-appending {
+    background: #2563eb;
+}
+
+.auction-photo-status-badge.status-sold {
+    background: #16a34a;
 }
 
 .tile-view .auction-photo-nav {

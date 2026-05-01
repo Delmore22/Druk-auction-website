@@ -138,6 +138,12 @@
                     title: 'Migrate Favorites from localStorage to user account storage after launch',
                     text: 'The Favorites (heart icon) feature currently stores saved vehicles in localStorage, which means favorites are browser- and device-specific and are lost if the user clears their browser data. Once user accounts are in place, favorites should be persisted to the backend (Supabase or Firebase) so they sync across devices and sessions.',
                     file: 'car-dashboard.js / my-searches.html'
+                },
+                {
+                    id: 'dashboard-sale-lights-wire-real-data',
+                    title: 'Wire NAAA Sale Light System circles to real vehicle data',
+                    text: 'Each dashboard card currently displays 4 NAAA sale-light circles (Green – Ride & Drive, Yellow – Limited Guarantee, Red – Limited As-Is, Blue – Title Attached/Unavailable/Absent) with randomly lit states for demo purposes. Before launch, replace the random logic with real per-vehicle data from the backend and add the is-lit class only to the lights that actually apply.',
+                    file: 'car-dashboard.js'
                 }
             ]
         },
