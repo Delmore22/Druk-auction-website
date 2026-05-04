@@ -370,6 +370,7 @@
         var newStatus = activeReviewAction === 'approve' ? 'approved' : 'rejected';
         var newStatusLabel = activeReviewAction === 'approve' ? 'Approved' : 'Rejected';
         var entryId = activeReviewEntry.id;
+        var entrySnapshot = activeReviewEntry;
 
         if (reviewDecisionConfirm) {
             reviewDecisionConfirm.disabled = true;
@@ -389,6 +390,14 @@
                 if (result.error) {
                     throw result.error;
                 }
+
+                if (newStatus === 'approved') {
+                    return upsertApprovedSubmissionToInventory(entrySnapshot);
+                }
+
+                return null;
+            })
+            .then(function () {
 
                 closeReviewDecision();
                 loadReviewQueue();
@@ -571,6 +580,66 @@
             auctionStartAt: entry.submitted_at || null,
             inventoryStatusOverride: { label: 'Ready for Sale', className: 'ready-for-sale' }
         };
+    }
+
+    function mapApprovedSubmissionToInventoryRow(entry) {
+        var payload = entry && entry.submitted_payload && typeof entry.submitted_payload === 'object'
+            ? entry.submitted_payload
+            : {};
+        var estimateValue = Number.parseFloat(payload.estimateValue);
+        var reserveValue = Number.parseFloat(payload.reservePrice || payload.startingBid || payload.estimateValue);
+        var buyNowValue = Number.parseFloat(payload.buyNowPrice || payload.reservePrice || payload.estimateValue);
+
+        return {
+            id: 'submission-' + entry.id,
+            vin: entry.vin || payload.vin || null,
+            year: Number.parseInt(entry.year || payload.year, 10) || null,
+            make: entry.make || payload.make || null,
+            model: entry.model || payload.model || null,
+            engine: payload.engine || null,
+            transmission: payload.transmission || null,
+            body_style: payload.bodyType || payload.bodyStyle || null,
+            mileage: payload.mileage || null,
+            condition: payload.titleStatus || 'Approved Submission',
+            description: payload.description || 'Approved submission moved into live inventory.',
+            photo: getSubmissionPrimaryPhoto(payload) || null,
+            starting_bid: Number.isFinite(estimateValue) ? Math.round(estimateValue) : 0,
+            current_bid: Number.isFinite(estimateValue) ? Math.round(estimateValue) : 0,
+            reserve_price: Number.isFinite(reserveValue) ? Math.round(reserveValue) : null,
+            buy_now_price: Number.isFinite(buyNowValue) ? Math.round(buyNowValue) : null,
+            market_status: 'Sale',
+            inventory_status: 'Active',
+            listing_type: payload.listingType || null,
+            time_remaining: '24:00:00',
+            seller: entry.seller_company || entry.seller_name || payload.sellerCompanyName || payload.sellerContactName || 'Dealer',
+            location: payload.pickupLocation || payload.pickupCity || null,
+            pickup: payload.pickupLocation || payload.pickupCity || null,
+            auction_start_at: entry.reviewed_at || entry.submitted_at || new Date().toISOString(),
+            auction_end_at: null,
+            is_demo: false,
+            is_archived: false,
+            updated_at: new Date().toISOString()
+        };
+    }
+
+    function upsertApprovedSubmissionToInventory(entry) {
+        if (!entry || !entry.id) {
+            return Promise.reject(new Error('Missing submission entry for inventory upsert.'));
+        }
+
+        if (!initializeInventorySupabase()) {
+            return Promise.reject(new Error('Supabase inventory client is not configured.'));
+        }
+
+        return inventorySupabaseClient
+            .from(INVENTORY_VEHICLES_TABLE)
+            .upsert(mapApprovedSubmissionToInventoryRow(entry), { onConflict: 'id' })
+            .then(function (result) {
+                if (result.error) {
+                    throw result.error;
+                }
+                return true;
+            });
     }
 
     function loadApprovedInventorySubmissions() {
@@ -1207,8 +1276,19 @@
             .then(function (results) {
                 var staticCars = Array.isArray(results[0]) ? results[0] : [];
                 var approvedCars = Array.isArray(results[1]) ? results[1] : [];
+                var seenIds = Object.create(null);
+                var mergedCars = [];
 
-                allCars = applyStoredPriceOverrides(staticCars.concat(approvedCars));
+                staticCars.concat(approvedCars).forEach(function (car) {
+                    if (!car || !car.id || seenIds[car.id]) {
+                        return;
+                    }
+
+                    seenIds[car.id] = true;
+                    mergedCars.push(car);
+                });
+
+                allCars = applyStoredPriceOverrides(mergedCars);
                 allCars.sort(function (a, b) {
                     var aSold = (a.status || '').toLowerCase() === 'sold' ? 1 : 0;
                     var bSold = (b.status || '').toLowerCase() === 'sold' ? 1 : 0;
