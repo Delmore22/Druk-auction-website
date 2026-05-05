@@ -368,3 +368,90 @@ begin
     end if;
 end
 $$;
+
+-- ── users role constraint: expand to include dev roles ────────
+
+alter table public.users drop constraint if exists users_role_check;
+alter table public.users
+    add constraint users_role_check
+    check (role in ('member', 'dealer', 'admin', 'developer', 'dev', 'ceo'));
+
+-- ── timesheet_tasks (dev-only shared task tracker) ────────────
+
+-- Helper function: returns true if the calling user has a dev role.
+-- Uses SECURITY DEFINER so the RLS policy can query the users table safely.
+create or replace function public.current_user_is_dev()
+returns boolean
+language sql
+security definer
+stable
+as $$
+    select exists (
+        select 1 from public.users
+        where id = auth.uid()::text
+          and role in ('admin', 'developer', 'dev', 'ceo')
+    );
+$$;
+
+create table if not exists public.timesheet_tasks (
+    id text primary key,
+    title text not null check (length(btrim(title)) > 0),
+    estimate_hours numeric,
+    time_spent_hours numeric,
+    comments text not null default '',
+    status text not null default 'Not Started'
+        check (status in ('Not Started', 'In Development', 'Ready for Approval', 'Completed')),
+    updated_at timestamptz not null default timezone('utc', now()),
+    created_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.timesheet_tasks enable row level security;
+
+do $$
+begin
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'timesheet_tasks'
+          and policyname = 'timesheet_tasks_select'
+    ) then
+        create policy timesheet_tasks_select
+            on public.timesheet_tasks for select
+            to authenticated
+            using (public.current_user_is_dev());
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'timesheet_tasks'
+          and policyname = 'timesheet_tasks_insert'
+    ) then
+        create policy timesheet_tasks_insert
+            on public.timesheet_tasks for insert
+            to authenticated
+            with check (public.current_user_is_dev());
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'timesheet_tasks'
+          and policyname = 'timesheet_tasks_update'
+    ) then
+        create policy timesheet_tasks_update
+            on public.timesheet_tasks for update
+            to authenticated
+            using (public.current_user_is_dev())
+            with check (public.current_user_is_dev());
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'timesheet_tasks'
+          and policyname = 'timesheet_tasks_delete'
+    ) then
+        create policy timesheet_tasks_delete
+            on public.timesheet_tasks for delete
+            to authenticated
+            using (public.current_user_is_dev());
+    end if;
+end
+$$;
